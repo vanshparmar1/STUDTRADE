@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #fafaf9; /* A very light warm gray for a modern clean look */
+  color: #171717; /* Neutral dark text */
+}
+
+/* Minimalist global resets */
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove default focus outlines for a cleaner look, substituting with custom styles where needed */
+*:focus-visible {
+  outline: 2px solid #6366f1; /* Indigo-500 */
+  outline-offset: 2px;
+}
