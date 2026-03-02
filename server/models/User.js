@@ -74,10 +74,41 @@ const userSchema = new mongoose.Schema(
             default: 'user',
         },
 
-        // ── KYC / verification gate (for future student ID verification)
+        // ── KYC / Student Verification ───────────────────────────────────────
+
+        // Boolean fast-access flag — kept in sync with verificationStatus
         isVerified: {
             type: Boolean,
             default: false,
+        },
+
+        // Cloudinary URL of the uploaded KYC document (student ID, etc.)
+        kycDocument: {
+            type: String,
+            default: null,
+        },
+
+        // Verification lifecycle status
+        verificationStatus: {
+            type: String,
+            enum: {
+                values: ['pending', 'approved', 'rejected'],
+                message: 'verificationStatus must be pending, approved, or rejected',
+            },
+            default: 'pending',
+        },
+
+        // Timestamp of when the admin approved/rejected
+        verifiedAt: {
+            type: Date,
+            default: null,
+        },
+
+        // Admin who approved/rejected — references the User collection itself
+        verifiedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null,
         },
 
         // ── Platform-specific unique identifier (auto-generated, immutable)

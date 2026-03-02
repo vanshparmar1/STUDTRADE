@@ -63,3 +63,19 @@ export const authorizeRoles = (...roles) => {
         next();
     };
 };
+
+/**
+ * requireVerifiedUser
+ * Restricts access to users whose verificationStatus is 'approved'.
+ * Must be used AFTER `protect`.
+ */
+export const requireVerifiedUser = (req, res, next) => {
+    if (req.user.verificationStatus !== 'approved') {
+        const error = new Error(
+            'Access denied. Your account must be verified to perform this action.'
+        );
+        error.statusCode = 403;
+        return next(error);
+    }
+    next();
+};
