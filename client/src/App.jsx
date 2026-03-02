@@ -4,8 +4,13 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Register from './pages/Register';
-
+import Login from './pages/Login';
+import KYCSubmission from './pages/KYCSubmission';
+import ItemListing from './pages/ItemListing';
+import Marketplace from './pages/Marketplace';
+import ItemDetails from './pages/ItemDetails';
 import AdminDashboard from './pages/AdminDashboard';
+import SellerProfile from './pages/SellerProfile';
 
 // Placeholder — swap in a real Dashboard once it exists
 const Dashboard = () => (
@@ -25,6 +30,10 @@ function App() {
         {/* Public */}
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/item/:id" element={<ItemDetails />} />
+        <Route path="/seller/:id" element={<SellerProfile />} />
 
         {/* Protected */}
         <Route
@@ -32,6 +41,26 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* KYC Verification */}
+        <Route
+          path="/kyc"
+          element={
+            <ProtectedRoute>
+              <KYCSubmission />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Sell an Item */}
+        <Route
+          path="/sell"
+          element={
+            <ProtectedRoute>
+              <ItemListing />
             </ProtectedRoute>
           }
         />

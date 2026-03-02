@@ -62,14 +62,17 @@ function Home() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
                     <Link
-                        to="/register"
+                        to="/marketplace"
                         className="px-8 py-3.5 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 hover:-translate-y-0.5 transition-all shadow-md hover:shadow-lg hover:shadow-indigo-200 text-center"
                     >
                         Start Trading
                     </Link>
-                    <button className="px-8 py-3.5 rounded-full bg-white text-gray-900 border-2 border-gray-200 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all cursor-pointer">
+                    <Link
+                        to="/marketplace"
+                        className="px-8 py-3.5 rounded-full bg-white text-gray-900 border-2 border-gray-200 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all text-center"
+                    >
                         Browse Categories
-                    </button>
+                    </Link>
                 </div>
             </div>
         </main>
