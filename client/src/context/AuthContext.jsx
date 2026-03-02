@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
@@ -36,18 +37,6 @@ export function AuthProvider({ children }) {
     const navigate = useNavigate();
 
     /**
-     * login — call this after a successful register or login API response.
-     * @param {string} token
-     * @param {object} userData
-     * @param {string} [redirectTo='/']
-     */
-    const login = useCallback((token, userData, redirectTo = '/') => {
-        writeStorage(token, userData);
-        setAuth({ token, user: userData });
-        navigate(redirectTo, { replace: true });
-    }, [navigate]);
-
-    /**
      * logout — clears state and storage, redirects to /login.
      */
     const logout = useCallback(() => {
@@ -56,10 +45,47 @@ export function AuthProvider({ children }) {
         navigate('/login', { replace: true });
     }, [navigate]);
 
+    /**
+     * refreshUser — fetches the latest user data from the backend.
+     * Useful for updating KYC status or other profile changes.
+     */
+    const refreshUser = useCallback(async () => {
+        if (!token) return;
+        try {
+            const { data } = await axios.get('http://localhost:5000/api/auth/me', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (data.success) {
+                const updatedUser = data.data;
+                writeStorage(token, updatedUser);
+                setAuth({ token, user: updatedUser });
+                return updatedUser;
+            }
+        } catch (err) {
+            // Only logout on a definitive 401 from the server.
+            // Network errors (backend down, ECONNREFUSED, etc.) should NOT
+            // log the user out — just fail silently so the cached session persists.
+            if (err.response && err.response.status === 401) {
+                logout();
+            } else {
+                console.warn('refreshUser failed (non-401), keeping session:', err.message);
+            }
+        }
+    }, [token, logout]);
+
+    /**
+     * login — call this after a successful register or login API response.
+     */
+    const login = useCallback((token, userData, redirectTo = '/') => {
+        writeStorage(token, userData);
+        setAuth({ token, user: userData });
+        navigate(redirectTo, { replace: true });
+    }, [navigate]);
+
     /** Derived convenience flag */
     const isAuthenticated = Boolean(token && user);
 
-    const value = { user, token, isAuthenticated, login, logout };
+    const value = { user, token, isAuthenticated, login, logout, refreshUser };
 
     return (
         <AuthContext.Provider value={value}>
@@ -69,10 +95,6 @@ export function AuthProvider({ children }) {
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
-/**
- * useAuth — consume auth context anywhere in the component tree.
- * @returns {{ user, token, isAuthenticated, login, logout }}
- */
 export function useAuth() {
     const ctx = useContext(AuthContext);
     if (!ctx) {
