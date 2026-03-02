@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { user, isAuthenticated, logout } = useAuth();
     const location = useLocation();
+
     const isAuthPage = ['/login', '/register'].includes(location.pathname);
 
     return (
@@ -17,17 +20,53 @@ const Navbar = () => {
                     </Link>
 
                     {/* Desktop nav */}
-                    <div className="hidden md:flex space-x-8 items-center">
-                        <Link to="/" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">Marketplace</Link>
-                        <a href="#" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">Categories</a>
-                        <a href="#" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">How it Works</a>
-                        {!isAuthPage && (
-                            <Link
-                                to="/register"
-                                className="ml-4 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-indigo-600 hover:shadow-md transition-all"
-                            >
-                                Join Now
-                            </Link>
+                    <div className="hidden md:flex space-x-6 items-center">
+                        <Link to="/marketplace" className="text-sm font-bold text-gray-600 hover:text-indigo-600 transition-colors">Marketplace</Link>
+
+                        {isAuthenticated ? (
+                            <>
+                                {user?.role === 'admin' && (
+                                    <Link to="/admin" className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-all">Admin Panel</Link>
+                                )}
+                                {user?.verificationStatus === 'approved' ? (
+                                    <Link
+                                        to="/sell"
+                                        className="text-sm font-bold px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:shadow-lg shadow-indigo-100 transition-all active:scale-95"
+                                    >
+                                        Sell an Item
+                                    </Link>
+                                ) : (
+                                    <Link to="/kyc" className="text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors flex items-center gap-1.5">
+                                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                                        {user?.verificationStatus === 'pending' ? 'Verification Pending' : 'Verify Account'}
+                                    </Link>
+                                )}
+                                <div className="h-4 w-[1px] bg-gray-200 mx-2"></div>
+                                <div className="flex items-center gap-3">
+                                    <div className="text-right">
+                                        <p className="text-xs font-black text-gray-900 leading-none">{user?.name}</p>
+                                        <p className="text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-wider">{user?.role}</p>
+                                    </div>
+                                    <button
+                                        onClick={logout}
+                                        className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            !isAuthPage && (
+                                <div className="flex items-center gap-4">
+                                    <Link to="/login" className="text-sm font-bold text-gray-600 hover:text-indigo-600">Log In</Link>
+                                    <Link
+                                        to="/register"
+                                        className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-black hover:bg-indigo-600 hover:shadow-lg shadow-gray-200 transition-all active:scale-95"
+                                    >
+                                        Join Now
+                                    </Link>
+                                </div>
+                            )
                         )}
                     </div>
 
@@ -51,18 +90,38 @@ const Navbar = () => {
 
             {/* Mobile dropdown */}
             {mobileOpen && (
-                <div className="md:hidden border-t border-gray-100 bg-white/95 backdrop-blur-xl px-4 py-4 space-y-3">
-                    <Link to="/" className="block text-sm font-semibold text-gray-700 hover:text-indigo-600 py-1" onClick={() => setMobileOpen(false)}>Marketplace</Link>
-                    <a href="#" className="block text-sm font-semibold text-gray-700 hover:text-indigo-600 py-1">Categories</a>
-                    <a href="#" className="block text-sm font-semibold text-gray-700 hover:text-indigo-600 py-1">How it Works</a>
-                    {!isAuthPage && (
-                        <Link
-                            to="/register"
-                            onClick={() => setMobileOpen(false)}
-                            className="block w-full text-center mt-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-indigo-600 transition-all"
-                        >
-                            Join Now
-                        </Link>
+                <div className="md:hidden border-t border-gray-100 bg-white/95 backdrop-blur-xl px-4 py-6 space-y-4 shadow-xl">
+                    <Link to="/" className="block text-lg font-bold text-gray-900" onClick={() => setMobileOpen(false)}>Marketplace</Link>
+
+                    {isAuthenticated ? (
+                        <>
+                            {user?.role === 'admin' && (
+                                <Link to="/admin" className="block text-lg font-bold text-indigo-600" onClick={() => setMobileOpen(false)}>Admin Panel</Link>
+                            )}
+                            <Link to="/kyc" className="block text-lg font-bold text-gray-900" onClick={() => setMobileOpen(false)}>Verification Status</Link>
+                            <div className="pt-4 border-t border-gray-100">
+                                <p className="text-sm font-black text-gray-900">{user?.name}</p>
+                                <button
+                                    onClick={() => { logout(); setMobileOpen(false); }}
+                                    className="mt-3 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-center"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        !isAuthPage && (
+                            <div className="space-y-3">
+                                <Link to="/login" className="block w-full py-4 text-center font-bold text-gray-900" onClick={() => setMobileOpen(false)}>Log In</Link>
+                                <Link
+                                    to="/register"
+                                    onClick={() => setMobileOpen(false)}
+                                    className="block w-full text-center py-4 rounded-2xl bg-gray-900 text-white font-black shadow-lg"
+                                >
+                                    Join Now
+                                </Link>
+                            </div>
+                        )
                     )}
                 </div>
             )}

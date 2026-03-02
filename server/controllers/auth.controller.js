@@ -120,14 +120,15 @@ export const getMe = async (req, res, next) => {
     try {
         res.status(200).json({
             success: true,
-            user: {
-                id: req.user._id,
+            data: {
+                _id: req.user._id,
                 studtradeID: req.user.studtradeID,
                 name: req.user.name,
                 email: req.user.email,
                 phone: req.user.phone ?? null,
                 role: req.user.role,
                 isVerified: req.user.isVerified,
+                verificationStatus: req.user.verificationStatus,
                 createdAt: req.user.createdAt,
             },
         });

@@ -10,6 +10,8 @@ import healthRouter from './routes/health.routes.js';
 import authRouter from './routes/auth.routes.js';
 import kycRouter from './routes/kyc.routes.js';
 import adminRouter from './routes/admin.routes.js';
+import itemRouter from './routes/item.routes.js';
+import userRouter from './routes/user.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +26,8 @@ app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/kyc', kycRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/items', itemRouter);
+app.use('/api/users', userRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use(notFound);
