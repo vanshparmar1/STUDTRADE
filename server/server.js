@@ -7,17 +7,19 @@ import { corsOptions } from './config/corsOptions.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import healthRouter from './routes/health.routes.js';
+import authRouter from './routes/auth.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ─── Core Middleware ──────────────────────────────────────────────────────────
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use(notFound);
