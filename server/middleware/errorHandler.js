@@ -52,7 +52,7 @@ const handleJWTExpiredError = () => ({
 
 // eslint-disable-next-line no-unused-vars
 export const errorHandler = (err, req, res, next) => {
-    const isDev = process.env.NODE_ENV !== 'production';
+    const isDev = process.env.NODE_ENV === 'development';
 
     // Start with a safe default
     let statusCode = err.statusCode || 500;
