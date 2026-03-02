@@ -5,6 +5,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Register from './pages/Register';
 
+import AdminDashboard from './pages/AdminDashboard';
+
 // Placeholder — swap in a real Dashboard once it exists
 const Dashboard = () => (
   <main className="flex-grow flex items-center justify-center">
@@ -30,6 +32,16 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Only */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />
