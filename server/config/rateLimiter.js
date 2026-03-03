@@ -25,3 +25,16 @@ export const authLimiter = rateLimit({
         message: 'Too many attempts. Please wait 15 minutes and try again.',
     },
 });
+
+// ─── Item Creation Rate Limiter ──────────────────────────────────────────────
+// Applied to item creation to prevent spam listings.
+export const itemLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5,                   // 5 item creations per window per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        success: false,
+        message: 'You have reached the maximum number of items (5) you can list in 15 minutes. Please try again later.',
+    },
+});

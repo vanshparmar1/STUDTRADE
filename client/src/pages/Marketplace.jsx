@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import debounce from 'lodash.debounce';
 import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = ['All', 'Books', 'Cycles', 'Tech', 'Furniture', 'Other'];
@@ -11,6 +12,7 @@ export default function Marketplace() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchInput, setSearchInput] = useState('');
 
     const [filters, setFilters] = useState({
         category: 'All',
@@ -57,6 +59,25 @@ export default function Marketplace() {
         fetchItems();
     }, [fetchItems]);
 
+    // Create a stable debounced function for updating the search filter
+    const debouncedSetSearchFilter = useCallback(
+        debounce((query) => {
+            setFilters(prev => ({ ...prev, search: query, page: 1 }));
+        }, 500),
+        []
+    );
+
+    // Cleanup generic debounce on unmount
+    useEffect(() => {
+        return () => debouncedSetSearchFilter.cancel();
+    }, [debouncedSetSearchFilter]);
+
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchInput(query);
+        debouncedSetSearchFilter(query);
+    };
+
     const toggleSave = async (e, itemId) => {
         e.preventDefault(); // prevent navigation to ItemDetail
         if (!user) return toast.error('Please log in to save items!');
@@ -98,8 +119,8 @@ export default function Marketplace() {
                                 type="text"
                                 placeholder="Search for items (e.g. cycles, books...)"
                                 className="w-full pl-12 pr-6 py-4 bg-gray-100 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-medium shadow-inner group-hover:bg-gray-200/50 group-hover:focus:bg-white"
-                                value={filters.search}
-                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                                value={searchInput}
+                                onChange={handleSearchChange}
                             />
                             <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </div>
@@ -185,7 +206,10 @@ export default function Marketplace() {
                             <h3 className="text-3xl font-black text-gray-900 tracking-tight">Nothing found</h3>
                             <p className="text-gray-500 font-medium max-w-sm mx-auto">We couldn't find any items matching your filters. Try adjusting them or clearing your search.</p>
                             <button
-                                onClick={() => setFilters({ category: 'All', minPrice: '', maxPrice: '', search: '', page: 1 })}
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setFilters({ category: 'All', minPrice: '', maxPrice: '', search: '', page: 1 });
+                                }}
                                 className="px-6 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-indigo-600 transition-all active:scale-95"
                             >
                                 Clear All Filters

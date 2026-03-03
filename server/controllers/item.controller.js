@@ -86,10 +86,14 @@ export const getAllItems = async (req, res, next) => {
         const skip = (pageNum - 1) * perPage;
 
         // ── Execute query + count in parallel ────────────────────────────────
+        const sortOptions = search
+            ? { score: { $meta: 'textScore' } }
+            : { status: 1, createdAt: -1 };
+
         const [items, total] = await Promise.all([
-            Item.find(filter)
+            Item.find(filter, search ? { score: { $meta: 'textScore' } } : {})
                 .populate('seller', 'name email phone')
-                .sort({ status: 1, createdAt: -1 }) // available first, then newest
+                .sort(sortOptions) // Text relevance if searching; available/newest otherwise
                 .skip(skip)
                 .limit(perPage),
             Item.countDocuments(filter),
