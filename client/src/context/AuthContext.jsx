@@ -68,7 +68,9 @@ export function AuthProvider({ children }) {
             if (err.response && err.response.status === 401) {
                 logout();
             } else {
-                console.warn('refreshUser failed (non-401), keeping session:', err.message);
+                if (process.env.NODE_ENV !== 'production') {
+                    console.warn('refreshUser failed (non-401), keeping session:', err.message);
+                }
             }
         }
     }, [token, logout]);

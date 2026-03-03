@@ -7,6 +7,7 @@ import {
 } from '../controllers/item.controller.js';
 import { protect } from '../middleware/auth.js';
 import { uploadItemImages } from '../middleware/upload.js';
+import { itemLimiter } from '../config/rateLimiter.js';
 
 import { Router } from 'express';
 
@@ -22,6 +23,7 @@ router.get('/:id', getSingleItem);
 router.post(
     '/',
     protect,
+    itemLimiter,
     uploadItemImages.array('images', 5),
     createItem
 );
