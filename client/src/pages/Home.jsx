@@ -15,7 +15,9 @@ function Home() {
                 setHealth(response.data);
                 setError(null);
             } catch (err) {
-                console.error('API health check failed:', err);
+                if (process.env.NODE_ENV !== 'production') {
+                    console.error('API health check failed:', err);
+                }
                 setError('Server connection failed. Please ensure the backend is running.');
             } finally {
                 setLoading(false);
