@@ -1,148 +1,147 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard() {
-    const { token } = useAuth();
-    const [users, setUsers] = useState([]);
+    const { user } = useAuth();
+    const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [actionLoading, setActionLoading] = useState(null); // stores userId being processed
+    const [statusFilter, setStatusFilter] = useState('');
 
-    const fetchPendingUsers = async () => {
+    const fetchReports = async () => {
         try {
             setLoading(true);
-            const { data } = await axios.get('http://localhost:5000/api/admin/pending-users', {
-                headers: { Authorization: `Bearer ${token}` },
+            const token = localStorage.getItem('studtrade_token');
+            const { data } = await axios.get(`http://localhost:5000/api/admin/reports?status=${statusFilter}`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-            setUsers(data.data);
-            setError(null);
+            if (data.success) {
+                setReports(data.data);
+            }
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to fetch pending users');
+            setError(err.response?.data?.message || 'Failed to fetch reports');
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchPendingUsers();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const handleAction = async (userId, action) => {
+    const handleReview = async (id, status) => {
         try {
-            setActionLoading(userId);
-            await axios.patch(
-                `http://localhost:5000/api/admin/${action}/${userId}`,
-                {},
+            const token = localStorage.getItem('studtrade_token');
+            const adminNote = window.prompt(`Add a note for this ${status} report (optional):`);
+
+            const { data } = await axios.patch(`http://localhost:5000/api/admin/reports/${id}/review`,
+                { status, adminNote },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            // Remove the user from the list on success
-            setUsers((prev) => prev.filter((user) => user._id !== userId));
+            if (data.success) {
+                setReports(reports.map(r => r._id === id ? data.data : r));
+            }
         } catch (err) {
-            alert(err.response?.data?.message || `Failed to ${action} user`);
-        } finally {
-            setActionLoading(null);
+            alert(err.response?.data?.message || 'Failed to update report');
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex-grow flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-        );
-    }
+    useEffect(() => {
+        fetchReports();
+    }, [statusFilter]);
+
+    if (loading) return <div className="p-20 text-center animate-pulse text-indigo-600 font-bold">Loading Reports...</div>;
 
     return (
-        <main className="flex-grow bg-gray-50 flex items-start justify-center p-6 pb-20">
-            <div className="w-full max-w-5xl space-y-8">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                        Admin Dashboard
-                    </h1>
-                    <p className="mt-2 text-sm text-gray-500">
-                        Review and verify pending student KYC submissions.
-                    </p>
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Admin Dashboard</h1>
+                    <p className="text-gray-500 font-bold">Review flagged content from the community</p>
                 </div>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-white border-2 border-gray-100 rounded-xl px-4 py-2 font-bold text-gray-700 outline-none focus:border-indigo-600 transition-all"
+                >
+                    <option value="">All Reports</option>
+                    <option value="pending">Pending</option>
+                    <option value="reviewed">Reviewed</option>
+                    <option value="dismissed">Dismissed</option>
+                </select>
+            </div>
 
-                {error && (
-                    <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
-                        {error}
-                    </div>
-                )}
+            {error && (
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl font-bold mb-6 border border-red-100">
+                    Error: {error}
+                </div>
+            )}
 
-                {users.length === 0 && !error ? (
-                    <div className="bg-white p-12 text-center rounded-2xl shadow-sm border border-gray-100">
-                        <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <h3 className="mt-4 text-lg font-medium text-gray-900">All caught up!</h3>
-                        <p className="mt-1 text-sm text-gray-500">There are no pending KYC verifications right now.</p>
-                    </div>
-                ) : (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {users.map((user) => (
-                            <div key={user._id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col transition-all hover:shadow-md">
-                                {/* Image Preview */}
-                                <div className="h-48 bg-gray-100 relative group">
-                                    {user.kycDocument ? (
-                                        <a href={user.kycDocument} target="_blank" rel="noreferrer" className="block w-full h-full">
-                                            <img
-                                                src={user.kycDocument}
-                                                alt="KYC Document"
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                <span className="text-white text-sm font-medium flex items-center gap-2">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" /></svg>
-                                                    View Full Size
-                                                </span>
-                                            </div>
-                                        </a>
+            {reports.length === 0 ? (
+                <div className="bg-gray-50 rounded-[2rem] p-20 text-center border-2 border-dashed border-gray-200">
+                    <p className="text-4xl mb-4">🙌</p>
+                    <h2 className="text-2xl font-black text-gray-400 uppercase tracking-widest">No reports found</h2>
+                </div>
+            ) : (
+                <div className="grid gap-6">
+                    {reports.map((report) => (
+                        <div key={report._id} className="bg-white border-2 border-gray-100 rounded-[2rem] p-8 shadow-sm hover:shadow-md transition-all">
+                            <div className="flex flex-col md:flex-row gap-8">
+                                <div className="w-full md:w-48 h-48 bg-gray-50 rounded-2xl overflow-hidden flex-shrink-0 border border-gray-100">
+                                    {report.item?.images?.[0] ? (
+                                        <img src={report.item.images[0]} alt="" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                            No Document
-                                        </div>
+                                        <div className="w-full h-full flex items-center justify-center text-gray-300 font-black">NO IMAGE</div>
                                     )}
                                 </div>
 
-                                {/* User Info */}
-                                <div className="p-5 flex-grow">
-                                    <h3 className="text-lg font-semibold text-gray-900 truncate" title={user.name}>{user.name}</h3>
-                                    <p className="text-sm text-gray-500 truncate mt-1" title={user.email}>{user.email}</p>
-                                    <div className="mt-3 text-xs font-medium text-gray-400">
-                                        Submitted {new Date(user.createdAt).toLocaleDateString()}
+                                <div className="flex-grow">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <span className={`px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest ${report.status === 'pending' ? 'bg-amber-100 text-amber-600' :
+                                                report.status === 'reviewed' ? 'bg-emerald-100 text-emerald-600' :
+                                                    'bg-gray-100 text-gray-500'
+                                                }`}>
+                                                {report.status}
+                                            </span>
+                                            <h3 className="text-2xl font-black text-gray-900 mt-3 truncate max-w-md">{report.item?.title || 'Unknown Item'}</h3>
+                                            <p className="text-sm text-gray-400 font-bold mt-1">Reported by: {report.reportedBy?.name} ({report.reportedBy?.email})</p>
+                                        </div>
+                                        <div className="text-right text-xs text-gray-400 font-bold uppercase tracking-widest">
+                                            {new Date(report.createdAt).toLocaleDateString()}
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Actions */}
-                                <div className="p-5 pt-0 mt-auto grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => handleAction(user._id, 'reject')}
-                                        disabled={actionLoading === user._id}
-                                        className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-50 text-red-700 hover:bg-red-100 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
-                                    >
-                                        Reject
-                                    </button>
-                                    <button
-                                        onClick={() => handleAction(user._id, 'verify')}
-                                        disabled={actionLoading === user._id}
-                                        className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm hover:shadow focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center"
-                                    >
-                                        {actionLoading === user._id ? (
-                                            <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        ) : (
-                                            'Approve'
-                                        )}
-                                    </button>
+                                    <div className="bg-red-50/50 border border-red-100 p-6 rounded-2xl italic text-red-900 font-medium mb-6">
+                                        "{report.reason}"
+                                    </div>
+
+                                    {report.adminNote && (
+                                        <div className="bg-gray-50 p-4 rounded-xl text-sm font-bold text-gray-600 mb-6 border border-gray-100">
+                                            Admin Note: {report.adminNote}
+                                        </div>
+                                    )}
+
+                                    {report.status === 'pending' && (
+                                        <div className="flex gap-4">
+                                            <button
+                                                onClick={() => handleReview(report._id, 'reviewed')}
+                                                className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-black hover:bg-emerald-700 transition-all active:scale-95"
+                                            >
+                                                Mark as Reviewed
+                                            </button>
+                                            <button
+                                                onClick={() => handleReview(report._id, 'dismissed')}
+                                                className="px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-black hover:bg-gray-200 transition-all active:scale-95"
+                                            >
+                                                Dismiss Report
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </main>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
     );
 }

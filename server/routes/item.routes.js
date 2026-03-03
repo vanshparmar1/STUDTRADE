@@ -1,11 +1,11 @@
 import {
     createItem,
     getAllItems,
-    getItem,
+    getSingleItem,
     updateItem,
     markAsSold
 } from '../controllers/item.controller.js';
-import { protect, requireVerifiedUser } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 import { uploadItemImages } from '../middleware/upload.js';
 
 import { Router } from 'express';
@@ -16,21 +16,20 @@ const router = Router();
 router.get('/', getAllItems);
 
 // GET /api/items/:id — public
-router.get('/:id', getItem);
+router.get('/:id', getSingleItem);
 
-// POST /api/items — verified users only; accepts up to 5 images in 'images' field
+// POST /api/items — authenticated users only; accepts up to 5 images in 'images' field
 router.post(
     '/',
     protect,
-    requireVerifiedUser,
     uploadItemImages.array('images', 5),
     createItem
 );
 
-// PUT /api/items/:id — verified owners or admin only
-router.put('/:id', protect, requireVerifiedUser, updateItem);
+// PUT /api/items/:id — owners or admin only
+router.put('/:id', protect, updateItem);
 
-// PATCH /api/items/:id/sold — verified owners only
-router.patch('/:id/sold', protect, requireVerifiedUser, markAsSold);
+// PATCH /api/items/:id/sold — owners only
+router.patch('/:id/sold', protect, markAsSold);
 
 export default router;

@@ -77,30 +77,6 @@ export default function ItemListing() {
         }
     };
 
-    if (user?.verificationStatus !== 'approved') {
-        return (
-            <main className="flex-grow flex items-center justify-center p-6">
-                <div className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 text-center max-w-lg">
-                    <div className="text-5xl mb-6">🔒</div>
-                    <h2 className="text-2xl font-black text-gray-900 mb-4">Verification Required</h2>
-                    <p className="text-gray-600 font-medium mb-8">
-                        You need to be a verified student to list items on STUDTRADE.
-                        {user?.verificationStatus === 'pending'
-                            ? " Your verification is currently under review."
-                            : " Please complete your KYC verification first."}
-                    </p>
-                    {user?.verificationStatus !== 'pending' && (
-                        <button
-                            onClick={() => navigate('/kyc')}
-                            className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all"
-                        >
-                            Verify Now
-                        </button>
-                    )}
-                </div>
-            </main>
-        );
-    }
 
     return (
         <main className="flex-grow bg-gray-50/50 p-6 flex items-start justify-center pb-24">
@@ -194,8 +170,8 @@ export default function ItemListing() {
                                         type="button"
                                         onClick={() => setFormData({ ...formData, condition: c })}
                                         className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 ${formData.condition === c
-                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
-                                                : 'bg-white text-gray-600 border-gray-100 hover:border-indigo-200'
+                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
+                                            : 'bg-white text-gray-600 border-gray-100 hover:border-indigo-200'
                                             }`}
                                     >
                                         {c}

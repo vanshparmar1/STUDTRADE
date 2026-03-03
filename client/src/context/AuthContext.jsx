@@ -82,10 +82,22 @@ export function AuthProvider({ children }) {
         navigate(redirectTo, { replace: true });
     }, [navigate]);
 
+    /**
+     * updateUser — locally update user data without a full refresh (e.g. toggling saved items)
+     */
+    const updateUser = useCallback((newUserData) => {
+        setAuth(prev => {
+            if (!prev.user) return prev;
+            const merged = { ...prev.user, ...newUserData };
+            writeStorage(prev.token, merged);
+            return { token: prev.token, user: merged };
+        });
+    }, []);
+
     /** Derived convenience flag */
     const isAuthenticated = Boolean(token && user);
 
-    const value = { user, token, isAuthenticated, login, logout, refreshUser };
+    const value = { user, token, isAuthenticated, login, logout, refreshUser, updateUser };
 
     return (
         <AuthContext.Provider value={value}>

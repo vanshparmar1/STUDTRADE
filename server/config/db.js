@@ -15,20 +15,26 @@ const connectDB = async () => {
             //  but kept explicit here for clarity and backward compatibility)
         });
 
-        console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+        }
     } catch (error) {
         console.error(`❌ MongoDB connection error: ${error.message}`);
-        process.exit(1); // Exit immediately so the process manager can restart
+        process.exit(1);
     }
 };
 
 // Emit helpful messages on subsequent connection events
 mongoose.connection.on('disconnected', () => {
-    console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
+    if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
+    }
 });
 
 mongoose.connection.on('reconnected', () => {
-    console.log('🔄 MongoDB reconnected.');
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('🔄 MongoDB reconnected.');
+    }
 });
 
 export default connectDB;
