@@ -28,19 +28,12 @@ const Navbar = () => {
                                 {user?.role === 'admin' && (
                                     <Link to="/admin" className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-all">Admin Panel</Link>
                                 )}
-                                {user?.verificationStatus === 'approved' ? (
-                                    <Link
-                                        to="/sell"
-                                        className="text-sm font-bold px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:shadow-lg shadow-indigo-100 transition-all active:scale-95"
-                                    >
-                                        Sell an Item
-                                    </Link>
-                                ) : (
-                                    <Link to="/kyc" className="text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors flex items-center gap-1.5">
-                                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
-                                        {user?.verificationStatus === 'pending' ? 'Verification Pending' : 'Verify Account'}
-                                    </Link>
-                                )}
+                                <Link
+                                    to="/sell"
+                                    className="text-sm font-bold px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:shadow-lg shadow-indigo-100 transition-all active:scale-95"
+                                >
+                                    Sell an Item
+                                </Link>
                                 <div className="h-4 w-[1px] bg-gray-200 mx-2"></div>
                                 <div className="flex items-center gap-3">
                                     <div className="text-right">
@@ -98,7 +91,6 @@ const Navbar = () => {
                             {user?.role === 'admin' && (
                                 <Link to="/admin" className="block text-lg font-bold text-indigo-600" onClick={() => setMobileOpen(false)}>Admin Panel</Link>
                             )}
-                            <Link to="/kyc" className="block text-lg font-bold text-gray-900" onClick={() => setMobileOpen(false)}>Verification Status</Link>
                             <div className="pt-4 border-t border-gray-100">
                                 <p className="text-sm font-black text-gray-900">{user?.name}</p>
                                 <button

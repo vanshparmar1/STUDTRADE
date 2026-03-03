@@ -2,7 +2,7 @@ import Item from '../models/Item.js';
 
 // ─── @desc    Create a new item listing ──────────────────────────────────────
 // ─── @route   POST /api/items ────────────────────────────────────────────────
-// ─── @access  Private (verified users only) ──────────────────────────────────
+// ─── @access  Private (any logged-in user) ───────────────────────────────────
 export const createItem = async (req, res, next) => {
     try {
         const { title, description, price, category, condition } = req.body;
@@ -62,7 +62,8 @@ export const getAllItems = async (req, res, next) => {
         } = req.query;
 
         // ── Build filter object dynamically ──────────────────────────────────
-        const filter = { status: 'available' };
+        // Only fetch available and sold items (exclude any deleted/draft if added later)
+        const filter = { status: { $in: ['available', 'sold'] } };
 
         if (category) filter.category = category;
         if (condition) filter.condition = condition;
@@ -87,8 +88,8 @@ export const getAllItems = async (req, res, next) => {
         // ── Execute query + count in parallel ────────────────────────────────
         const [items, total] = await Promise.all([
             Item.find(filter)
-                .populate('seller', 'name email studtradeID')
-                .sort({ createdAt: -1 })
+                .populate('seller', 'name email phone')
+                .sort({ status: 1, createdAt: -1 }) // available first, then newest
                 .skip(skip)
                 .limit(perPage),
             Item.countDocuments(filter),
@@ -110,9 +111,14 @@ export const getAllItems = async (req, res, next) => {
 // ─── @desc    Get single item ─────────────────────────────────────────────────
 // ─── @route   GET /api/items/:id ─────────────────────────────────────────────
 // ─── @access  Public ─────────────────────────────────────────────────────────
-export const getItem = async (req, res, next) => {
+export const getSingleItem = async (req, res, next) => {
     try {
-        const item = await Item.findById(req.params.id).populate('seller', 'name email studtradeID');
+        // Atomic increment of views + fetching populated data in one go
+        const item = await Item.findByIdAndUpdate(
+            req.params.id,
+            { $inc: { views: 1 } },
+            { new: true, runValidators: true }
+        ).populate('seller', 'name email phone');
 
         if (!item) {
             return res.status(404).json({

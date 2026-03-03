@@ -122,7 +122,7 @@ export default function Register() {
             });
 
             // 3. Hand off to AuthContext — stores token/user and redirects
-            login(data.token, data.user, '/');
+            login(data.token, data.user, '/dashboard');
         } catch (err) {
             const msg =
                 err?.response?.data?.message ||

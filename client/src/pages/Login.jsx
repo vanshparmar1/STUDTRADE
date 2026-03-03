@@ -24,7 +24,7 @@ export default function Login() {
         try {
             const { data } = await axios.post('http://localhost:5000/api/auth/login', formData);
             if (data.success) {
-                login(data.token, data.user);
+                login(data.token, data.user, '/dashboard');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
