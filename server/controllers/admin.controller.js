@@ -1,115 +1,61 @@
 import User from '../models/User.js';
-import Counter from '../models/Counter.js';
+import Report from '../models/Report.js';
 
-// ─── Helper: get next STUDTRADE ID atomically ────────────────────────────────
-const getNextStudtradeID = async () => {
-    const counter = await Counter.findOneAndUpdate(
-        { _id: 'studtradeID' },
-        { $inc: { seq: 1 } },
-        { new: true, upsert: true }
-    );
-    return `ST-${counter.seq.toString().padStart(4, '0')}`;
-};
 
-// ─── @desc    Get all users with pending KYC ──────────────────────────────────
-// ─── @route   GET /api/admin/pending-users ──────────────────────────────────
+// ─── @desc    Get all reports ────────────────────────────────────────────────
+// ─── @route   GET /api/admin/reports ────────────────────────────────────────
 // ─── @access  Private/Admin ──────────────────────────────────────────────────
-export const getPendingUsers = async (req, res, next) => {
+export const getAllReports = async (req, res, next) => {
     try {
-        const users = await User.find({ verificationStatus: 'pending' })
-            .select('-password')
-            .sort({ createdAt: 1 }); // oldest first
+        const { status } = req.query;
+        const filter = status ? { status } : {};
+
+        const reports = await Report.find(filter)
+            .populate('item', 'title images')
+            .populate('reportedBy', 'name email')
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
-            count: users.length,
-            data: users,
+            count: reports.length,
+            data: reports,
         });
     } catch (err) {
         next(err);
     }
 };
 
-// ─── @desc    Approve a user's KYC ───────────────────────────────────────────
-// ─── @route   PATCH /api/admin/approve/:userId ───────────────────────────────
+// ─── @desc    Review a report ────────────────────────────────────────────────
+// ─── @route   PATCH /api/admin/reports/:id/review ────────────────────────────
 // ─── @access  Private/Admin ──────────────────────────────────────────────────
-export const approveUser = async (req, res, next) => {
+export const reviewReport = async (req, res, next) => {
     try {
-        const user = await User.findById(req.params.userId);
+        const { status, adminNote } = req.body;
 
-        if (!user) {
-            const error = new Error('User not found');
-            error.statusCode = 404;
-            throw error;
+        if (!['reviewed', 'dismissed'].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid status. Must be reviewed or dismissed.',
+            });
         }
 
-        if (user.verificationStatus === 'approved') {
-            const error = new Error('This user is already approved');
-            error.statusCode = 400;
-            throw error;
+        const report = await Report.findById(req.params.id);
+
+        if (!report) {
+            return res.status(404).json({
+                success: false,
+                message: 'Report not found',
+            });
         }
 
-        user.verificationStatus = 'approved';
-        user.isVerified = true;
-        user.verifiedAt = new Date();
-        user.verifiedBy = req.user._id;
+        report.status = status;
+        if (adminNote) report.adminNote = adminNote;
 
-        // Assign STUDTRADE ID if not already present
-        if (!user.studtradeID) {
-            user.studtradeID = await getNextStudtradeID();
-        }
-
-        await user.save();
+        await report.save();
 
         res.status(200).json({
             success: true,
-            message: 'User approved successfully',
-            data: {
-                id: user._id,
-                studtradeID: user.studtradeID,
-                verificationStatus: user.verificationStatus,
-                isVerified: user.isVerified,
-            },
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// ─── @desc    Reject a user's KYC ────────────────────────────────────────────
-// ─── @route   PATCH /api/admin/reject/:userId ────────────────────────────────
-// ─── @access  Private/Admin ──────────────────────────────────────────────────
-export const rejectUser = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.params.userId);
-
-        if (!user) {
-            const error = new Error('User not found');
-            error.statusCode = 404;
-            throw error;
-        }
-
-        if (user.verificationStatus === 'approved') {
-            const error = new Error('Cannot reject an already approved user');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        user.verificationStatus = 'rejected';
-        user.isVerified = false;
-        user.verifiedAt = new Date();
-        user.verifiedBy = req.user._id;
-
-        await user.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'User rejected successfully',
-            data: {
-                id: user._id,
-                verificationStatus: user.verificationStatus,
-                isVerified: user.isVerified,
-            },
+            data: report,
         });
     } catch (err) {
         next(err);

@@ -1,18 +1,5 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import Counter from './Counter.js';
-
-// ─── Helper: generate sequential STUDTRADE ID (race-condition safe) ──────────
-// Uses an atomic findOneAndUpdate + $inc on a dedicated Counter collection.
-// Format: ST-0001, ST-0002, ... ST-9999, ST-10000 (unbounded)
-const getNextStudtradeID = async () => {
-    const counter = await Counter.findOneAndUpdate(
-        { _id: 'studtradeID' },
-        { $inc: { seq: 1 } },
-        { new: true, upsert: true }
-    );
-    return `ST-${counter.seq.toString().padStart(4, '0')}`;
-};
 
 
 // ─── Schema Definition ────────────────────────────────────────────────────────
@@ -74,65 +61,24 @@ const userSchema = new mongoose.Schema(
             default: 'user',
         },
 
-        // ── KYC / Student Verification ───────────────────────────────────────
-
-        // Boolean fast-access flag — kept in sync with verificationStatus
-        isVerified: {
-            type: Boolean,
-            default: false,
+        // ── Saved / Wishlist items
+        savedItems: {
+            type: [{
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Item',
+            }],
+            default: [],
         },
 
-        // Cloudinary URL of the uploaded KYC document (student ID, etc.)
-        kycDocument: {
-            type: String,
-            default: null,
-        },
-
-        // Verification lifecycle status
-        verificationStatus: {
-            type: String,
-            enum: {
-                values: ['pending', 'approved', 'rejected'],
-                message: 'verificationStatus must be pending, approved, or rejected',
-            },
-            default: 'pending',
-        },
-
-        // Timestamp of when the admin approved/rejected
-        verifiedAt: {
-            type: Date,
-            default: null,
-        },
-
-        // Admin who approved/rejected — references the User collection itself
-        verifiedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            default: null,
-        },
-
-        // ── Platform-specific unique identifier (auto-generated, immutable)
-        studtradeID: {
-            type: String,
-            unique: true,
-            index: true,
-        },
     },
     {
         timestamps: true, // auto-manages createdAt & updatedAt
     }
 );
 
-// ─── Pre-save: auto-generate studtradeID on first save ───────────────────────
+// ─── Pre-save: hash password on create or change ────────────────────────────
 userSchema.pre('save', async function () {
-    // Generate studtradeID only on document creation
-    if (this.isNew) {
-        this.studtradeID = await getNextStudtradeID();
-    }
-
-    // Only re-hash if password field was actually modified
     if (!this.isModified('password')) return;
-
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
 });

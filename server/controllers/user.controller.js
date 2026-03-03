@@ -8,7 +8,7 @@ export const getUserProfile = async (req, res, next) => {
     try {
         // Return only public-safe fields
         const user = await User.findById(req.params.id)
-            .select('name role verificationStatus studtradeID createdAt');
+            .select('name role createdAt');
 
         if (!user) {
             return res.status(404).json({
@@ -56,6 +56,45 @@ export const getUserItems = async (req, res, next) => {
                 message: 'Invalid User ID format'
             });
         }
+        next(err);
+    }
+};
+// ─── @desc    Toggle save item (Add/Remove from wishlist) ─────────────────────
+// ─── @route   PATCH /api/users/saved-items/:itemId ───────────────────────────
+// ─── @access  Private ─────────────────────────────────────────────────────────
+export const toggleSaveItem = async (req, res, next) => {
+    try {
+        const { itemId } = req.params;
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Check if item exists
+        const item = await Item.findById(itemId);
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
+
+        const isSaved = user.savedItems.includes(itemId);
+
+        if (isSaved) {
+            // Remove if already saved
+            user.savedItems = user.savedItems.filter(id => id.toString() !== itemId);
+        } else {
+            // Add if not present
+            user.savedItems.push(itemId);
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: isSaved ? 'Item removed from saved items' : 'Item saved successfully',
+            data: user.savedItems
+        });
+    } catch (err) {
         next(err);
     }
 };

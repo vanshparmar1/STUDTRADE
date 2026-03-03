@@ -1,33 +1,39 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 
 import connectDB from './config/db.js';
 import { corsOptions } from './config/corsOptions.js';
+import { generalLimiter, authLimiter } from './config/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import healthRouter from './routes/health.routes.js';
 import authRouter from './routes/auth.routes.js';
-import kycRouter from './routes/kyc.routes.js';
 import adminRouter from './routes/admin.routes.js';
 import itemRouter from './routes/item.routes.js';
 import userRouter from './routes/user.routes.js';
+import reportRouter from './routes/report.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ─── Core Middleware ──────────────────────────────────────────────────────────
-app.use(cors(corsOptions));
+// ─── Security Middleware ───────────────────────────────────────────────────────
+app.use(helmet());                         // Sets 15+ secure HTTP response headers
+app.use(cors(corsOptions));               // Restrict origins to FRONTEND_URL env var
+app.use(generalLimiter);                  // Global: 200 req / 15 min per IP
+
+// ─── Body Parsers ─────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/kyc', kycRouter);
+app.use('/api/auth', authLimiter, authRouter);   // Strict: 20 req / 15 min
 app.use('/api/admin', adminRouter);
 app.use('/api/items', itemRouter);
 app.use('/api/users', userRouter);
+app.use('/api/reports', reportRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use(notFound);
@@ -40,7 +46,9 @@ app.use(errorHandler);
 (async () => {
     await connectDB();
     app.listen(PORT, () => {
-        console.log(`✅ Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`✅ Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
+        }
     });
 })();
 

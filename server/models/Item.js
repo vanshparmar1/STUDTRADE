@@ -62,7 +62,7 @@ const itemSchema = new mongoose.Schema(
             index: true,
         },
 
-        // ── Lifecycle ────────────────────────────────────────────────────────
+        // ── Lifecycle & Analytics ──────────────────────────────────────────
         status: {
             type: String,
             enum: {
@@ -70,6 +70,11 @@ const itemSchema = new mongoose.Schema(
                 message: 'Status must be available or sold',
             },
             default: 'available',
+        },
+
+        views: {
+            type: Number,
+            default: 0,
         },
     },
     {

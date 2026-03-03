@@ -1,11 +1,11 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
-import KYCSubmission from './pages/KYCSubmission';
 import ItemListing from './pages/ItemListing';
 import Marketplace from './pages/Marketplace';
 import ItemDetails from './pages/ItemDetails';
@@ -45,15 +45,6 @@ function App() {
           }
         />
 
-        {/* KYC Verification */}
-        <Route
-          path="/kyc"
-          element={
-            <ProtectedRoute>
-              <KYCSubmission />
-            </ProtectedRoute>
-          }
-        />
 
         {/* Sell an Item */}
         <Route
@@ -78,6 +69,7 @@ function App() {
       <footer className="w-full text-center py-8 text-sm font-medium text-gray-400">
         &copy; {new Date().getFullYear()} STUDTRADE. Verified student marketplace.
       </footer>
+      <Toaster position="bottom-right" />
     </div>
   );
 }
