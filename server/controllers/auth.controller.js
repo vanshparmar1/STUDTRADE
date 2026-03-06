@@ -1,136 +1,92 @@
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
 // ─── @desc    Register a new user ───────────────────────────────────────────
 // ─── @route   POST /api/auth/register ───────────────────────────────────────
 // ─── @access  Public ────────────────────────────────────────────────────────
-export const registerUser = async (req, res, next) => {
-    try {
-        const { name, email, password, phone } = req.body;
+export const register = asyncHandler(async (req, res) => {
+    const { name, email, password, phone } = req.body;
 
-        // ── 1. Validate required fields ──────────────────────────────────────
-        if (!name || !email || !password) {
-            const error = new Error('Name, email, and password are required');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        // ── 2. Enforce college email domain ──────────────────────────────────
-        if (!email.toLowerCase().endsWith('@iiitbhopal.ac.in')) {
-            const error = new Error(
-                'Registration is restricted to @iiitbhopal.ac.in email addresses'
-            );
-            error.statusCode = 400;
-            throw error;
-        }
-
-        // ── 3. Validate optional phone format (Indian 10-digit, starts 6-9) ──
-        if (phone && !/^[6-9]\d{9}$/.test(phone)) {
-            const error = new Error(
-                'Please provide a valid 10-digit Indian mobile number'
-            );
-            error.statusCode = 400;
-            throw error;
-        }
-
-        // ── 4. Check for duplicate email ─────────────────────────────────────
-        const existingUser = await User.findOne({ email: email.toLowerCase() });
-        if (existingUser) {
-            const error = new Error('An account with this email already exists');
-            error.statusCode = 409;
-            throw error;
-        }
-
-        // ── 5. Create user ───────────────────────────────────────────────────
-        const user = await User.create({ name, email, password, phone });
-
-        // ── 6. Issue JWT ─────────────────────────────────────────────────────
-        const token = generateToken(user._id);
-
-        // ── 7. Return sanitized user + token ─────────────────────────────────
-        res.status(201).json({
-            success: true,
-            message: 'Registration successful',
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                phone: user.phone ?? null,
-                role: user.role,
-                savedItems: user.savedItems,
-                createdAt: user.createdAt,
-            },
-        });
-    } catch (err) {
-        next(err); // Forwarded to the global errorHandler middleware
+    // ── Check for duplicate email ─────────────────────────────────────────────
+    // (field presence, format, and phone pattern are pre-validated by validate() middleware)
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+        const error = new Error('An account with this email already exists');
+        error.statusCode = 409;
+        throw error;
     }
-};
+
+    // ── 5. Create user ───────────────────────────────────────────────────────
+    const user = await User.create({ name, email, password, phone });
+
+    // ── 6. Issue JWT ─────────────────────────────────────────────────────────
+    const token = generateToken(user._id);
+
+    // ── 7. Return sanitized user + token ─────────────────────────────────────
+    res.status(201).json({
+        success: true,
+        message: 'Registration successful',
+        token,
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone ?? null,
+            role: user.role,
+            savedItems: user.savedItems,
+            createdAt: user.createdAt,
+        },
+    });
+});
 
 // ─── @desc    Login an existing user ────────────────────────────────────────
 // ─── @route   POST /api/auth/login ──────────────────────────────────────────
 // ─── @access  Public ────────────────────────────────────────────────────────
-export const loginUser = async (req, res, next) => {
-    try {
-        const { email, password } = req.body;
+export const login = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
 
-        if (!email || !password) {
-            const error = new Error('Please provide email and password');
-            error.statusCode = 400;
-            throw error;
-        }
+    // (required-field check handled by validate(loginRules) middleware)
+    // Explicitly include password field (excluded by default via select:false)
+    const user = await User.findOne({ email }).select('+password');
 
-        // Explicitly include password field (excluded by default via select:false)
-        const user = await User.findOne({ email }).select('+password');
-
-        if (!user || !(await user.matchPassword(password))) {
-            const error = new Error('Invalid email or password');
-            error.statusCode = 401;
-            throw error;
-        }
-
-        const token = generateToken(user._id);
-
-        res.status(200).json({
-            success: true,
-            message: 'Login successful',
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                phone: user.phone ?? null,
-                role: user.role,
-                savedItems: user.savedItems,
-            },
-        });
-    } catch (err) {
-        next(err);
+    if (!user || !(await user.matchPassword(password))) {
+        const error = new Error('Invalid email or password');
+        error.statusCode = 401;
+        throw error;
     }
-};
+
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        token,
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone ?? null,
+            role: user.role,
+            savedItems: user.savedItems,
+        },
+    });
+});
 
 // ─── @desc    Get current logged-in user ────────────────────────────────────
 // ─── @route   GET /api/auth/me ──────────────────────────────────────────────
 // ─── @access  Private (requires JWT via protect middleware) ─────────────────
-export const getMe = async (req, res, next) => {
-    try {
-        res.status(200).json({
-            success: true,
-            data: {
-                _id: req.user._id,
-                name: req.user.name,
-                email: req.user.email,
-                phone: req.user.phone ?? null,
-                role: req.user.role,
-                savedItems: req.user.savedItems,
-                createdAt: req.user.createdAt,
-            },
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
-// ─── Named alias (to match common naming conventions) ───────────────────────
-export const register = registerUser;
-export const login = loginUser;
+export const getMe = asyncHandler(async (req, res) => {
+    res.status(200).json({
+        success: true,
+        data: {
+            _id: req.user._id,
+            name: req.user.name,
+            email: req.user.email,
+            phone: req.user.phone ?? null,
+            role: req.user.role,
+            savedItems: req.user.savedItems,
+            createdAt: req.user.createdAt,
+        },
+    });
+});

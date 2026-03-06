@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    // Dev-only proxy: forwards /api requests to the local Express server.
+    // In production (Vercel), the VITE_API_URL env var is used instead — see src/api/axios.js.
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

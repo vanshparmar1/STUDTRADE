@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import API from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -60,11 +61,8 @@ export default function ItemListing() {
         images.forEach(image => data.append('images', image));
 
         try {
-            const response = await axios.post('http://localhost:5000/api/items', data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${token}`
-                }
+            const response = await API.post('/items', data, {
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
 
             if (response.data.success) {
