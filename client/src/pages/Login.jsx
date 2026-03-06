@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -22,7 +23,7 @@ export default function Login() {
         setError('');
 
         try {
-            const { data } = await axios.post('http://localhost:5000/api/auth/login', formData);
+            const { data } = await API.post('/auth/login', formData);
             if (data.success) {
                 login(data.token, data.user, '/dashboard');
             }

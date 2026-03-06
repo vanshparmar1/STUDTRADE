@@ -6,8 +6,10 @@ const allowedOrigins = rawOrigins.split(',').map((o) => o.trim());
 
 export const corsOptions = {
     origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. mobile apps, curl, Postman)
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else if (!origin && process.env.NODE_ENV !== 'production') {
+            // Allow curl/Postman/mobile in development only
             callback(null, true);
         } else {
             callback(new Error(`CORS policy: Origin "${origin}" is not allowed.`));
