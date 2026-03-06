@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import API from '../api/axios';
 
 function Home() {
     const [health, setHealth] = useState(null);
@@ -11,11 +12,11 @@ function Home() {
         const checkHealth = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('/api/health');
+                const response = await API.get('/health');
                 setHealth(response.data);
                 setError(null);
             } catch (err) {
-                if (process.env.NODE_ENV !== 'production') {
+                if (import.meta.env.DEV) {
                     console.error('API health check failed:', err);
                 }
                 setError('Server connection failed. Please ensure the backend is running.');

@@ -1,15 +1,16 @@
+import { Router } from 'express';
 import {
     createItem,
     getAllItems,
     getSingleItem,
     updateItem,
-    markAsSold
+    markAsSold,
 } from '../controllers/item.controller.js';
 import { protect } from '../middleware/auth.js';
-import { uploadItemImages } from '../middleware/upload.js';
+import { uploadItemImages, handleMulterError } from '../middleware/upload.js';
 import { itemLimiter } from '../config/rateLimiter.js';
-
-import { Router } from 'express';
+import { validate } from '../middleware/validate.js';
+import { createItemRules } from '../validators/item.validators.js';
 
 const router = Router();
 
@@ -19,12 +20,13 @@ router.get('/', getAllItems);
 // GET /api/items/:id — public
 router.get('/:id', getSingleItem);
 
-// POST /api/items — authenticated users only; accepts up to 5 images in 'images' field
+// POST /api/items — authenticated; validate body → upload images → create
 router.post(
     '/',
     protect,
     itemLimiter,
-    uploadItemImages.array('images', 5),
+    validate(createItemRules),
+    handleMulterError(uploadItemImages.array('images', 5)),
     createItem
 );
 
