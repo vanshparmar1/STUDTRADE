@@ -1,9 +1,15 @@
 # Dependencies
 node_modules/
+client/node_modules/
+server/node_modules/
 
-# Environment
+# Environment — both client and server
 .env
 .env.*
+client/.env
+client/.env.*
+server/.env
+server/.env.*
 
 # OS
 .DS_Store
@@ -15,3 +21,4 @@ Thumbs.db
 # Build
 dist/
 build/
+client/dist/

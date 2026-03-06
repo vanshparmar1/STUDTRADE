@@ -5,9 +5,18 @@ import toast from 'react-hot-toast';
 const TOKEN_KEY = 'studtrade_token';
 const USER_KEY = 'studtrade_user';
 
+/**
+ * In dev: VITE_API_URL is unset → baseURL = '/api' → Vite proxy forwards to localhost:5000
+ * In prod: VITE_API_URL = 'https://studtrade.onrender.com' → requests go directly to Render
+ */
+const BASE_URL = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api`
+    : '/api';
+
 // Create instance
 const API = axios.create({
-    baseURL: '/api', // Proxied via Vite or set explicitly
+    baseURL: BASE_URL,
+    withCredentials: true, // required for cookies / credentials (also satisfies CORS credentials mode)
 });
 
 // ─── Request Interceptor ───────────────────────────────────────────────────
