@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 // ── Field definitions (drives the input list) ────────────────────────────────
@@ -114,7 +115,7 @@ export default function Register() {
         // 2. API call
         try {
             setLoading(true);
-            const { data } = await axios.post('/api/auth/register', {
+            const { data } = await API.post('/auth/register', {
                 name: form.name.trim(),
                 email: form.email.trim().toLowerCase(),
                 phone: form.phone.trim() || undefined,

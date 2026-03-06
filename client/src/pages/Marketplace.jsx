@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import API from '../api/axios';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import debounce from 'lodash.debounce';
 import { useAuth } from '../context/AuthContext';
+import ItemCard from '../components/ItemCard';
 
 const CATEGORIES = ['All', 'Books', 'Cycles', 'Tech', 'Furniture', 'Other'];
 
@@ -11,6 +14,7 @@ export default function Marketplace() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchInput, setSearchInput] = useState('');
 
     const [filters, setFilters] = useState({
         category: 'All',
@@ -36,7 +40,7 @@ export default function Marketplace() {
             params.append('page', filters.page);
             params.append('limit', 12);
 
-            const { data } = await axios.get(`http://localhost:5000/api/items?${params.toString()}`);
+            const { data } = await API.get(`/items?${params.toString()}`);
             if (data.success) {
                 setItems(data.data);
                 setPagination({
@@ -57,14 +61,31 @@ export default function Marketplace() {
         fetchItems();
     }, [fetchItems]);
 
+    // Create a stable debounced function for updating the search filter
+    const debouncedSetSearchFilter = useCallback(
+        debounce((query) => {
+            setFilters(prev => ({ ...prev, search: query, page: 1 }));
+        }, 500),
+        []
+    );
+
+    // Cleanup generic debounce on unmount
+    useEffect(() => {
+        return () => debouncedSetSearchFilter.cancel();
+    }, [debouncedSetSearchFilter]);
+
+    const handleSearchChange = (e) => {
+        const query = e.target.value;
+        setSearchInput(query);
+        debouncedSetSearchFilter(query);
+    };
+
     const toggleSave = async (e, itemId) => {
         e.preventDefault(); // prevent navigation to ItemDetail
         if (!user) return toast.error('Please log in to save items!');
 
         try {
-            const { data } = await axios.patch(`http://localhost:5000/api/users/saved-items/${itemId}`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const { data } = await API.patch(`/users/saved-items/${itemId}`, {});
             if (data.success) {
                 updateUser({ savedItems: data.data });
                 if (data.data.includes(itemId)) {
@@ -98,8 +119,8 @@ export default function Marketplace() {
                                 type="text"
                                 placeholder="Search for items (e.g. cycles, books...)"
                                 className="w-full pl-12 pr-6 py-4 bg-gray-100 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-medium shadow-inner group-hover:bg-gray-200/50 group-hover:focus:bg-white"
-                                value={filters.search}
-                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                                value={searchInput}
+                                onChange={handleSearchChange}
                             />
                             <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </div>
@@ -185,7 +206,10 @@ export default function Marketplace() {
                             <h3 className="text-3xl font-black text-gray-900 tracking-tight">Nothing found</h3>
                             <p className="text-gray-500 font-medium max-w-sm mx-auto">We couldn't find any items matching your filters. Try adjusting them or clearing your search.</p>
                             <button
-                                onClick={() => setFilters({ category: 'All', minPrice: '', maxPrice: '', search: '', page: 1 })}
+                                onClick={() => {
+                                    setSearchInput('');
+                                    setFilters({ category: 'All', minPrice: '', maxPrice: '', search: '', page: 1 });
+                                }}
                                 className="px-6 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-indigo-600 transition-all active:scale-95"
                             >
                                 Clear All Filters
@@ -195,70 +219,11 @@ export default function Marketplace() {
                         <>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {items.map(item => (
-                                    <Link key={item._id} to={`/item/${item._id}`} className="group bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 relative">
-
-                                        {item.status === 'sold' && (
-                                            <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center">
-                                                <span className="px-6 py-2 bg-gray-900/90 text-white font-black tracking-widest uppercase rounded-2xl shadow-xl -skew-x-6 text-xl border border-gray-800 backdrop-blur-md">
-                                                    Sold
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        <button
-                                            onClick={(e) => toggleSave(e, item._id)}
-                                            className="absolute top-4 right-4 p-2.5 bg-white/90 backdrop-blur-md rounded-full text-gray-300 hover:text-rose-500 hover:scale-110 shadow-sm border border-white/50 transition-all z-20"
-                                        >
-                                            <svg className={`w-5 h-5 ${user?.savedItems?.includes(item._id) ? 'fill-rose-500 text-rose-500 drop-shadow-md' : 'fill-none'}`} stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                            </svg>
-                                        </button>
-
-                                        <div className="aspect-[4/5] bg-gray-100 relative overflow-hidden">
-
-                                            <img
-                                                src={item.images[0]}
-                                                alt={item.title}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                            />
-                                            <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-[10px] font-black uppercase tracking-wider text-gray-900 shadow-sm border border-white/50">
-                                                {item.category}
-                                            </div>
-                                            <div className="absolute bottom-4 right-4 px-4 py-2 bg-indigo-600 text-white rounded-xl font-black text-lg shadow-lg">
-                                                ₹{item.price.toLocaleString()}
-                                            </div>
-                                        </div>
-                                        <div className="p-6">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className="text-lg font-black text-gray-900 group-hover:text-indigo-600 transition-colors truncate pr-2">{item.title}</h3>
-                                            </div>
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight ${item.condition === 'New' ? 'bg-emerald-50 text-emerald-600' :
-                                                    item.condition === 'Like New' ? 'bg-blue-50 text-blue-600' :
-                                                        'bg-amber-50 text-amber-600'
-                                                    }`}>
-                                                    {item.condition}
-                                                </span>
-                                                <div className="flex items-center gap-1.5 text-gray-400 text-xs font-bold bg-gray-50 px-2 py-0.5 rounded-md">
-                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                    {item.views || 0}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 pt-4 border-t border-gray-50">
-                                                <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-black text-indigo-600 uppercase italic">
-                                                    {item.seller?.name?.charAt(0)}
-                                                </div>
-                                                <span className="text-xs font-bold text-gray-500 truncate flex items-center gap-1 group-hover:text-gray-900 transition-colors">
-                                                    {item.seller?.name}
-                                                    {item.seller?.verificationStatus === 'approved' && (
-                                                        <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" title="Verified Student">
-                                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                                        </svg>
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </Link>
+                                    <ItemCard
+                                        key={item._id}
+                                        item={item}
+                                        onToggleSave={toggleSave}
+                                    />
                                 ))}
                             </div>
 
