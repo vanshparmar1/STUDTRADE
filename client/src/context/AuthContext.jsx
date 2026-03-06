@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API from '../api/axios';
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
@@ -52,9 +53,7 @@ export function AuthProvider({ children }) {
     const refreshUser = useCallback(async () => {
         if (!token) return;
         try {
-            const { data } = await axios.get('http://localhost:5000/api/auth/me', {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const { data } = await API.get('/auth/me');
             if (data.success) {
                 const updatedUser = data.data;
                 writeStorage(token, updatedUser);
@@ -62,18 +61,13 @@ export function AuthProvider({ children }) {
                 return updatedUser;
             }
         } catch (err) {
-            // Only logout on a definitive 401 from the server.
-            // Network errors (backend down, ECONNREFUSED, etc.) should NOT
-            // log the user out — just fail silently so the cached session persists.
-            if (err.response && err.response.status === 401) {
-                logout();
-            } else {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.warn('refreshUser failed (non-401), keeping session:', err.message);
-                }
+            // 401 logout is now handled globally by the axios interceptor.
+            // We just need to handle any additional local logic if necessary.
+            if (import.meta.env.DEV) {
+                console.warn('refreshUser failed, keeping session if not 401:', err.message);
             }
         }
-    }, [token, logout]);
+    }, [token]);
 
     /**
      * login — call this after a successful register or login API response.

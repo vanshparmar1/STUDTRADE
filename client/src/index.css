@@ -2,8 +2,10 @@
 
 :root {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: #fafaf9; /* A very light warm gray for a modern clean look */
-  color: #171717; /* Neutral dark text */
+  background-color: #fafaf9;
+  /* A very light warm gray for a modern clean look */
+  color: #171717;
+  /* Neutral dark text */
 }
 
 /* Minimalist global resets */
@@ -15,6 +17,19 @@ body {
 
 /* Remove default focus outlines for a cleaner look, substituting with custom styles where needed */
 *:focus-visible {
-  outline: 2px solid #6366f1; /* Indigo-500 */
+  outline: 2px solid #6366f1;
+  /* Indigo-500 */
   outline-offset: 2px;
+}
+
+/* ── Image skeleton shimmer ────────────────────────────────────────────────── */
+/* Used by LazyImage in ItemCard.jsx */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }

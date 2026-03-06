@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function ItemDetails() {
@@ -14,7 +15,7 @@ export default function ItemDetails() {
     const fetchItem = async () => {
         try {
             setLoading(true);
-            const { data } = await axios.get(`http://localhost:5000/api/items/${id}`);
+            const { data } = await API.get(`/items/${id}`);
             if (data.success) {
                 setItem(data.data);
             }
@@ -31,9 +32,7 @@ export default function ItemDetails() {
         try {
             // Need token from auth context for protected route
             const token = localStorage.getItem('studtrade_token');
-            const { data } = await axios.patch(`http://localhost:5000/api/items/${item._id}/sold`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const { data } = await API.patch(`/items/${item._id}/sold`, {});
             if (data.success) {
                 // Instantly update local state to reflect sold status
                 setItem(prev => ({ ...prev, status: 'sold' }));
@@ -46,16 +45,15 @@ export default function ItemDetails() {
     const handleReport = async () => {
         if (!currentUser) return alert('Please login to report items');
 
-        const reason = window.prompt('Why are you reporting this item? (min 10 characters)');
-        if (!reason) return;
-        if (reason.length < 10) return alert('Reason must be at least 10 characters');
+        const reportReason = window.prompt('Why are you reporting this item? (min 10 characters)');
+        if (!reportReason) return;
+        if (reportReason.length < 10) return alert('Reason must be at least 10 characters');
 
         try {
-            const token = localStorage.getItem('studtrade_token');
-            const { data } = await axios.post(`http://localhost:5000/api/reports`,
-                { item: item._id, reason },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const { data } = await API.post(`/reports`, {
+                item: item._id,
+                reason: reportReason.trim()
+            });
             if (data.success) {
                 alert('Item reported successfully. Our team will review it.');
             }

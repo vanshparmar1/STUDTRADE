@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import API from '../api/axios';
 
 export default function SellerProfile() {
     const { id } = useParams();
@@ -14,12 +15,12 @@ export default function SellerProfile() {
             try {
                 setLoading(true);
                 // Fetch profile and items simultaneously
-                const [profileRes, itemsRes] = await Promise.all([
-                    axios.get(`http://localhost:5000/api/users/${id}`),
-                    axios.get(`http://localhost:5000/api/users/${id}/items`)
+                const [userRes, itemsRes] = await Promise.all([
+                    API.get(`/users/${id}`),
+                    API.get(`/users/${id}/items`)
                 ]);
 
-                if (profileRes.data.success) setSeller(profileRes.data.data);
+                if (userRes.data.success) setSeller(userRes.data.data);
                 if (itemsRes.data.success) setItems(itemsRes.data.data);
 
             } catch (err) {

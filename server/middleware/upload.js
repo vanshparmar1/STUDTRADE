@@ -56,3 +56,24 @@ export const uploadItemImages = multer({
         files: 5,                  // max 5 files per request
     },
 });
+
+// ─── Multer Error Wrapper ─────────────────────────────────────────────────────
+/**
+ * handleMulterError
+ * Wraps a Multer middleware to catch MulterError and forward it
+ * to the global error handler with a descriptive 400 status.
+ */
+export const handleMulterError = (multerMiddleware) => (req, res, next) => {
+    multerMiddleware(req, res, (err) => {
+        if (err) {
+            err.statusCode = 400;
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                err.message = 'File too large. Maximum size is 3 MB per image.';
+            } else if (err.code === 'LIMIT_FILE_COUNT') {
+                err.message = 'Too many files. Maximum is 5 images.';
+            }
+            return next(err);
+        }
+        next();
+    });
+};
