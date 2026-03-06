@@ -1,15 +1,18 @@
 // ─── Allowed origins ─────────────────────────────────────────────────────────
-// In production, set FRONTEND_URL to your deployed frontend domain.
-// Multiple origins can be comma-separated: "https://a.com,https://b.com"
-const rawOrigins = process.env.FRONTEND_URL || 'http://localhost:5173';
-const allowedOrigins = rawOrigins.split(',').map((o) => o.trim());
+// Reads from FRONTEND_URL env var.  Multiple origins can be comma-separated.
+// Always includes localhost for local development.
+const envOrigins = process.env.FRONTEND_URL || '';
+const allowedOrigins = [
+    'http://localhost:5173',                        // Vite dev server
+    ...envOrigins.split(',').map((o) => o.trim()),  // production / preview URLs
+]
+    .filter(Boolean)
+    .map((o) => o.replace(/\/+$/, ''));              // strip trailing slashes — browsers never send them
 
 export const corsOptions = {
     origin: (origin, callback) => {
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else if (!origin && process.env.NODE_ENV !== 'production') {
-            // Allow curl/Postman/mobile in development only
+        if (!origin || allowedOrigins.includes(origin)) {
+            // !origin covers: server-to-server, curl, Postman, mobile apps
             callback(null, true);
         } else {
             callback(new Error(`CORS policy: Origin "${origin}" is not allowed.`));
