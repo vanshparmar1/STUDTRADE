@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard() {
@@ -13,9 +14,7 @@ export default function AdminDashboard() {
         try {
             setLoading(true);
             const token = localStorage.getItem('studtrade_token');
-            const { data } = await axios.get(`http://localhost:5000/api/admin/reports?status=${statusFilter}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const { data } = await API.get(`/admin/reports?status=${statusFilter}`);
             if (data.success) {
                 setReports(data.data);
             }
@@ -28,13 +27,9 @@ export default function AdminDashboard() {
 
     const handleReview = async (id, status) => {
         try {
-            const token = localStorage.getItem('studtrade_token');
             const adminNote = window.prompt(`Add a note for this ${status} report (optional):`);
 
-            const { data } = await axios.patch(`http://localhost:5000/api/admin/reports/${id}/review`,
-                { status, adminNote },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const { data } = await API.patch(`/admin/reports/${id}/review`, { status, actionTaken: adminNote });
 
             if (data.success) {
                 setReports(reports.map(r => r._id === id ? data.data : r));
