@@ -1,77 +1,59 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
-import Home from './pages/Home';
-import Register from './pages/Register';
-import Login from './pages/Login';
-import ItemListing from './pages/ItemListing';
-import Marketplace from './pages/Marketplace';
-import ItemDetails from './pages/ItemDetails';
+
+// Pages still using legacy layout
 import AdminDashboard from './pages/AdminDashboard';
 import SellerProfile from './pages/SellerProfile';
 
-// Placeholder — swap in a real Dashboard once it exists
-const Dashboard = () => (
-  <main className="flex-grow flex items-center justify-center">
-    <div className="text-center space-y-3">
-      <h1 className="text-3xl font-extrabold text-gray-900">Dashboard</h1>
-      <p className="text-gray-500">You are logged in 🎉</p>
-    </div>
-  </main>
+// Stitch UI Pages (standalone, own navbar/footer)
+import Register from './pages/Register';
+import Login from './pages/Login';
+import ItemListing from './pages/ItemListing';
+
+// New Stitch UI Pages (own navbar/footer built-in)
+import MarketplaceGrid from './pages/MarketplaceGrid';
+import LandingPage from './pages/LandingPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import BuyPage from './pages/BuyPage';
+import OrderSuccessPage from './pages/OrderSuccessPage';
+
+
+// Layout wrapper for the legacy UI (old Navbar + footer)
+const LegacyLayout = () => (
+  <div className="min-h-screen flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900 text-gray-900">
+    <Navbar />
+    <Outlet />
+    <footer className="w-full text-center py-8 text-sm font-medium text-gray-400">
+      &copy; {new Date().getFullYear()} STUDTRADE. Verified student marketplace.
+    </footer>
+    <Toaster position="bottom-right" />
+  </div>
 );
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900 text-gray-900">
-      <Navbar />
-      <Routes>
-        {/* Public */}
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/item/:id" element={<ItemDetails />} />
+    <Routes>
+      {/* ── New Stitch UI (standalone, no legacy wrapper) ── */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/marketplace" element={<MarketplaceGrid />} />
+      <Route path="/item/:id" element={<ProductDetailPage />} />
+      <Route path="/buy" element={<BuyPage />} />
+      <Route path="/success" element={<OrderSuccessPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/sell" element={<ProtectedRoute><ItemListing /></ProtectedRoute>} />
+
+      {/* ── Legacy UI (wrapped with old Navbar) ── */}
+      <Route element={<LegacyLayout />}>
         <Route path="/seller/:id" element={<SellerProfile />} />
-
-        {/* Protected */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-
-
-        {/* Sell an Item */}
-        <Route
-          path="/sell"
-          element={
-            <ProtectedRoute>
-              <ItemListing />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Admin Only */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-      <footer className="w-full text-center py-8 text-sm font-medium text-gray-400">
-        &copy; {new Date().getFullYear()} STUDTRADE. Verified student marketplace.
-      </footer>
-      <Toaster position="bottom-right" />
-    </div>
+        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+      </Route>
+    </Routes>
   );
 }
 
 export default App;
+

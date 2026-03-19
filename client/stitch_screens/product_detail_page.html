@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>STUDTRADE | Product Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#121414",
+              "primary-container": "#b2ebec",
+              "on-secondary-fixed-variant": "#004f50",
+              "on-secondary-container": "#002021",
+              "on-surface": "#191c1c",
+              "tertiary-dim": "#b2c8e8",
+              "on-secondary-fixed": "#002021",
+              "outline-variant": "#bfc8c8",
+              "surface-container-low": "#f0f4f4",
+              "secondary-fixed": "#b2ebec",
+              "on-secondary": "#ffffff",
+              "on-tertiary-fixed-variant": "#324965",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#0d1d34",
+              "error-container": "#ffdad6",
+              "primary": "#1A8081",
+              "on-surface-variant": "#3f4948",
+              "primary-fixed-dim": "#83d3d4",
+              "surface": "#f5fafa",
+              "surface-variant": "#dae4e4",
+              "surface-container-high": "#e1e9e9",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#0d1d34",
+              "inverse-surface": "#2d3131",
+              "secondary": "#4a6363",
+              "surface-bright": "#f5fafa",
+              "tertiary-container": "#d3e4ff",
+              "primary-fixed": "#9eeef0",
+              "tertiary-fixed": "#d3e4ff",
+              "inverse-on-surface": "#eff1f1",
+              "error-dim": "#ffb4ab",
+              "inverse-primary": "#83d3d4",
+              "surface-dim": "#d5dbdb",
+              "on-error-container": "#410002",
+              "error": "#ba1a1a",
+              "secondary-container": "#cde7e8",
+              "primary-dim": "#00696a",
+              "tertiary": "#4a5f7d",
+              "outline": "#6f7979",
+              "surface-container": "#e7eeee",
+              "on-primary-fixed": "#002020",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed-variant": "#004f50",
+              "surface-tint": "#00696a",
+              "surface-container-highest": "#dae4e4",
+              "secondary-dim": "#b1cbcb",
+              "on-error": "#ffffff",
+              "tertiary-fixed-dim": "#b2c8e8",
+              "on-primary-container": "#002020",
+              "background": "#f5fafa",
+              "secondary-fixed-dim": "#b1cbcb"
+            },
+            fontFamily: {
+              "headline": ["Manrope", "sans-serif"],
+              "body": ["Manrope", "sans-serif"],
+              "label": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "2rem", "lg": "3rem", "xl": "4rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body { font-family: 'Manrope', sans-serif; background-color: #f5fafa; }
+      .font-headline { font-family: 'Manrope', sans-serif; }
+      .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+      .gradient-primary { background: linear-gradient(135deg, #1A8081 0%, #00696a 100%); }
+      .glass-nav { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    </style>
+</head>
+<body class="text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-surface-container">
+<div class="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-8">
+<img alt="STUDTRADE" class="w-auto object-contain h-16 md:h-20" src="https://lh3.googleusercontent.com/aida/ADBb0ugP-8-ftVAg1tKVfZsYut3HJTdhm3RDUGNOBTm4M8NiX1pQxaudsc7Pl91pslH6TT496Qq19owS3HsGlrgXibC1hP4Dij91KypjBozSJ3y3EiFHMWB-Of6Mv_DYO5KS66GcN7KuZai5_WR_sIuvj5ByF-_wppFu2ly3MAzh1JP-WD0mi5HXGNZKYd8gXyI147TUx6JNjkognsf1gRKmvqUurbJy_Borem7TgdbOuszcszmkL3MEXYVfPByv7uSzmLLOD1KlDoZ70g"/>
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-primary font-bold border-b-2 border-primary uppercase tracking-wider text-xs" href="#">Shop</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wider text-xs" href="#">Categories</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wider text-xs" href="#">Sell</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<input class="bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 w-64 focus:ring-2 focus:ring-primary/20 transition-all text-sm" placeholder="Search products..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-surface-container-high transition-all duration-300 rounded-full scale-95 active:scale-90 text-on-surface-variant">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high transition-all duration-300 rounded-full scale-95 active:scale-90 text-on-surface-variant">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</div>
+</nav>
+<main class="pt-28 pb-20 max-w-7xl mx-auto px-6">
+<!-- Product Detail Shell -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Product Gallery (Left) -->
+<div class="lg:col-span-7 flex flex-col gap-6">
+<div class="aspect-[4/5] bg-surface-container-low rounded-lg overflow-hidden relative group">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Modern premium tablet on clean desk surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApqeth2v1TksHwKc3MdtGgePmS2do-PWOs-45rxC9u8jtEXyhdqb2fabf0K_16txrVDmo8H86yJfQOGi-dkGMjCVwtV-lEkEOtMT7EP_Wg5ffLh46lldXMhObLghtQVizTXHWHf_K6kgmoauWmfA3P16XegF642fT7hux5PUCC8IHadeWiLeeNCOk7s-pwdlrieugOnD3LaZJG-XOQU_hdpLDO4NOFUif4dK-dnDggIVjLZ9YRB9EFOkzyTAv8aT0SFv2UT_N0-NA"/>
+<div class="absolute top-6 right-6">
+<span class="bg-white/70 backdrop-blur-md px-4 py-2 rounded-full font-headline font-bold text-on-surface shadow-sm">
+                        Verified Item
+                    </span>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-4">
+<button class="aspect-square rounded-DEFAULT overflow-hidden ring-2 ring-primary bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Tablet detail view front" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABzRGsCHJNJC2dNPyc25x7P-NsDHzQsUBDyfP26k-Lz5ekAzq9teTJGWMKAowajq6OGsIPAyOHdBPueiLRu6kvrNthv1XEPBb_5hru95DBFcuo-V06Dih52Ums4VB718SZcgzb3TUUnEiZy93aWH5-8_dVbgXhm1GqRXJlg57UIHDOa6h1t_Sn0s5O7gn-CPXHwIPOt2nacRTMSYef748QfAeA_Nji21LuBuOGJlI7fBD19nJUEfPoIGZx1e9rwVtFMm6hSh7ki_c"/>
+</button>
+<button class="aspect-square rounded-DEFAULT overflow-hidden hover:opacity-80 transition-opacity bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Tablet detail view side profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvA5QuNqH8njFrt6E1K0nS5T3ASuz1ORcP4djUaIFq7oX2HoSp1kWjIjnyAKUgKCfE4oVZJNc3bQ0XtXCsvdgb6-Ne6Z2z0sYDBKbyCPPHuna3wFVO4BvHcaHzL3PdqOoUlHjdbSDlz_mWlL5pNeXWzLy0ZBfMdFrtFrIaxYhFP7LOcfb7i2bSNlE1c-S5wjh-q0g4oesr6fQ4e-RUf0mFqIVmy9Z0qY9vnoEEyuWaKZd4NN2LXbU9vgCK8HEHTtsK0qj8yO3GUT4"/>
+</button>
+<button class="aspect-square rounded-DEFAULT overflow-hidden hover:opacity-80 transition-opacity bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Tablet screen close up display" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjuBu8DMgZK48qPBz89UIHCZyPLhncY1ze4XswqMBMSuP5Q1YW9wy6tJOzxCS23XplNYoeWBlYCREdtkfo1WPLVzbuW647S26eia9NB-od6mB1qf25Y2zGaQcMz7QfNVElM40t-NvfLYMM-tCg_geORe0cT9FV__QJSK7rDdn8BpAQA5u85yD6HwRYCoUqQhihOFxsGAof-GA2ZNWLXakRue2y1DN5GEhjwmM9eXlZbmOHK42CKTCM1NC_r9qjKTz8a_fzBDNv_fU"/>
+</button>
+<button class="aspect-square rounded-DEFAULT overflow-hidden hover:opacity-80 transition-opacity bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Tablet with keyboard accessory" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5tnka06mnIQqoXgBVgjoaKDdECfOhWGmosbg6BDzJ-r-lgPo_m5an0aZUcVsclzpJ8_ZG0RRy3lRYJN5sA2E2Sg26wRqiqQaEVGmeasPHxWOD9_ipmXsm7HehfgbNIVjuoKwaWKTLpnc0WNgYGpzL_9qyffO_UnJqDMDniR2YjKudmmjUpiSbxB0gJdHdrOFGMae4a417P3XuqwSSkqWbKrh2xXHEq2s2by9LCwQKkbzcLi6PpGXJGsYRffExgI9__rC480Ae1nA"/>
+</button>
+</div>
+</div>
+<!-- Info Section (Right) -->
+<div class="lg:col-span-5 sticky top-32 flex flex-col gap-8">
+<div>
+<span class="text-xs font-bold uppercase tracking-widest text-primary mb-2 block font-label">Technology &amp; Electronics</span>
+<h1 class="text-4xl md:text-5xl font-extrabold font-headline tracking-tight text-on-surface leading-tight mb-4">
+                    iPad Pro 12.9" <span class="text-outline">M2 Chip</span>
+</h1>
+<div class="flex items-baseline gap-4">
+<span class="text-3xl font-black font-headline text-on-surface">$899.00</span>
+<span class="text-lg text-on-surface-variant line-through">$1,099.00</span>
+<span class="bg-secondary-container text-on-secondary-container text-xs font-bold px-3 py-1 rounded-full ml-auto">STUDENT SAVINGS</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container-low rounded-lg">
+<h3 class="font-headline font-bold mb-3 text-on-surface">Description</h3>
+<p class="text-on-surface-variant leading-relaxed text-sm">
+                    Experience the ultimate student workstation. This M2-powered iPad Pro offers lightning-fast performance for everything from note-taking in lectures to heavy 4K video editing for your media projects. In pristine condition, lightly used for one semester.
+                </p>
+</div>
+<div class="flex flex-col gap-4">
+<h3 class="font-headline font-bold text-on-surface px-1">Key Features</h3>
+<ul class="grid grid-cols-1 gap-3">
+<li class="flex items-center gap-3 text-sm text-on-surface-variant bg-surface-container-lowest p-3 rounded-DEFAULT">
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Apple M2 chip with 8-core CPU
+                    </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant bg-surface-container-lowest p-3 rounded-DEFAULT">
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Liquid Retina XDR display
+                    </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant bg-surface-container-lowest p-3 rounded-DEFAULT">
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        128GB Storage | 8GB RAM
+                    </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant bg-surface-container-lowest p-3 rounded-DEFAULT">
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Includes original Apple Pencil (2nd Gen)
+                    </li>
+</ul>
+</div>
+<!-- CTA Section -->
+<div class="flex flex-col gap-4 pt-4">
+<button class="gradient-primary text-on-primary font-headline font-bold py-5 rounded-lg text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    Buy Now
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<div class="flex gap-3">
+<button class="flex-1 bg-surface-container-high text-primary font-bold py-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined">favorite</span>
+                        Add to Wishlist
+                    </button>
+<button class="w-16 bg-surface-container-high text-primary py-4 rounded-lg flex items-center justify-center hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<!-- Trust Badge -->
+<div class="flex items-center gap-4 p-4 rounded-lg bg-secondary-container/30">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-secondary-container uppercase tracking-tight">Purchase Protected</p>
+<p class="text-xs text-on-secondary-container/80">Funds held in escrow until item is received.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Related items -->
+<section class="mt-32">
+<div class="flex justify-between items-end mb-10">
+<div>
+<h2 class="text-3xl font-black font-headline text-on-surface tracking-tight">You might also like</h2>
+<p class="text-on-surface-variant">Recommended based on your browsing history</p>
+</div>
+<button class="text-primary font-bold flex items-center gap-2 hover:underline">
+                View all 
+                <span class="material-symbols-outlined text-sm">open_in_new</span>
+</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Related Item 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-square bg-surface-container rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="MacBook Pro on white table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi40hW7FFMicIBH8qUGxfW8dfswdENqXR1VmmJKtv8K3d-QR9dDvpaLkPBzBCiod-dnm0oe1El-b601U8JadBSlF3VEs6zBsT9C7_ru3FKA5Bc4PbpZuoNJFef8MZX61Te4CbiYN2-JRONOLKDMI5pw0D6iLzkD5qLzo3V5uDKWSU1d-HrAWzHt3aO6bsPybgkoR2qRpGckg8tvLfdcHyu8tlWBmtZJyAR-DIIvj9wHQZ4bI-v2RnTBugf99yh-QIjoNmeHoKaeqY"/>
+<div class="absolute top-4 right-4 glass-nav px-3 py-1 rounded-full text-xs font-bold bg-white/50">$750</div>
+</div>
+<h4 class="font-headline font-bold text-on-surface group-hover:text-primary transition-colors">MacBook Pro 13"</h4>
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mt-1">Laptops</p>
+</div>
+<!-- Related Item 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-square bg-surface-container rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Studio wireless headphones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXg-dUv-h5g6ure48EO5o2cGePaQNpgZRoA4YCuP5b6MjjxixCaf_5jMvqD1NQ4f51MJdkUbVI2wBA9adPgOBGAYR7cQqWrfneLl08wKufK95T7Fwx7gbH8NPSn1WZPg6UOrA_MUQDdJN2aecvxf6fTnz1uQZCq7TC2Sh38jmvkreIvj_hBQWTHxmMP748TgH8kPfonY_jX5UA9K1VB6HOJhkR1E92n2B4S5JnqDl_DBDlmham1MOizmM4fvHc0Li_KZo_jW0w4PY"/>
+<div class="absolute top-4 right-4 glass-nav px-3 py-1 rounded-full text-xs font-bold bg-white/50">$120</div>
+</div>
+<h4 class="font-headline font-bold text-on-surface group-hover:text-primary transition-colors">Beats Studio3 Wireless</h4>
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mt-1">Audio</p>
+</div>
+<!-- Related Item 3 -->
+<div class="group cursor-pointer">
+<div class="aspect-square bg-surface-container rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Logitech MX Master mouse" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsK25PPoE99iDqLVbdTLMLu8m-bR974PMe_225y5P61xvN9hbMvlI3dkaZBNS6sZiaSONpuEi3Pjal5e2wm_SYXF9a-YGehrPx7Bd70nDTyPXCcRfUwJxeSpW1lQFJDIIqtN_UHWSByFNawCA7HCU81sFtvK0TREgximwpcIXgpwxU9WY8RrmLV_4tOdVV21AeVGCs98xXQ6xhEFAcmtuifHn406geNAsHS4BVi9lzNcP0my-fx8h6PcQLFsM_vePnx8-gar4PHa8"/>
+<div class="absolute top-4 right-4 glass-nav px-3 py-1 rounded-full text-xs font-bold bg-white/50">$45</div>
+</div>
+<h4 class="font-headline font-bold text-on-surface group-hover:text-primary transition-colors">Logitech MX Master 3S</h4>
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mt-1">Accessories</p>
+</div>
+<!-- Related Item 4 -->
+<div class="group cursor-pointer">
+<div class="aspect-square bg-surface-container rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Mechanical keyboard close up" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwUvs-I42i2YaHtZ2Vp0TbRy0HA6dh7hHz5ObGQFdK5ZgQ96N6i_vn2YWOP5KL1tyt6tTzb5AUQrk3g6tf5_Vvv4XfxhnRRJDUytY6a6sOUKsvYH1mVcFREQG75FhEdekD_0skcgGOLiQpv-CFYsRkKHXCoq3Gf5bClOlV1pWkldr-egkXnZRjxya-Z9FlLMNW_YmG9s0QF6QGtUTk0KgoVzxR6_rzTy3RavL2GOXFm1vYrEoaAaB0bb2KE1L2Li8O6ZDi-b7RMXg"/>
+<div class="absolute top-4 right-4 glass-nav px-3 py-1 rounded-full text-xs font-bold bg-white/50">$85</div>
+</div>
+<h4 class="font-headline font-bold text-on-surface group-hover:text-primary transition-colors">Keychron K2 Mechanical</h4>
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mt-1">Accessories</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-surface-container">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-8 py-12 max-w-7xl mx-auto">
+<div class="col-span-1 md:col-span-1">
+<img alt="STUDTRADE" class="w-auto object-contain mb-4 h-16" src="https://lh3.googleusercontent.com/aida/ADBb0ugP-8-ftVAg1tKVfZsYut3HJTdhm3RDUGNOBTm4M8NiX1pQxaudsc7Pl91pslH6TT496Qq19owS3HsGlrgXibC1hP4Dij91KypjBozSJ3y3EiFHMWB-Of6Mv_DYO5KS66GcN7KuZai5_WR_sIuvj5ByF-_wppFu2ly3MAzh1JP-WD0mi5HXGNZKYd8gXyI147TUx6JNjkognsf1gRKmvqUurbJy_Borem7TgdbOuszcszmkL3MEXYVfPByv7uSzmLLOD1KlDoZ70g"/>
+<p class="text-on-surface-variant text-sm leading-relaxed">
+                © 2024 STUDTRADE. Digital Sanctuary for Students.
+            </p>
+</div>
+<div>
+<h4 class="font-headline font-bold mb-4 text-on-surface">Marketplace</h4>
+<ul class="flex flex-col gap-2">
+<li><a class="text-on-surface-variant text-sm hover:text-primary transition-colors" href="#">Buy Gear</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-primary transition-colors" href="#">Sell Items</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-primary transition-colors" href="#">Student Discounts</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-headline font-bold mb-4 text-on-surface">Support</h4>
+<ul class="flex flex-col gap-2">
+<li><a class="text-on-surface-variant text-sm hover:text-primary transition-colors" href="#">Help</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-primary transition-colors" href="#">Terms</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-primary transition-colors" href="#">Privacy</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-headline font-bold mb-4 text-on-surface">Stay Connected</h4>
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">public</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">alternate_email</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">rss_feed</span>
+</button>
+</div>
+</div>
+</div>
+</footer>
+</body></html>
