@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#1a1c1c",
+              "primary-container": "#b2ebec",
+              "on-secondary-fixed-variant": "#344b4b",
+              "on-secondary-container": "#051f20",
+              "on-surface": "#1a1c1c",
+              "tertiary-dim": "#a2c9ff",
+              "on-secondary-fixed": "#051f20",
+              "outline-variant": "#bfc8c8",
+              "surface-container-low": "#f0f4f4",
+              "secondary-fixed": "#cce8e8",
+              "on-secondary": "#ffffff",
+              "on-tertiary-fixed-variant": "#304963",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#001d35",
+              "error-container": "#ffdad6",
+              "primary": "#1A8081",
+              "on-surface-variant": "#3f4949",
+              "primary-fixed-dim": "#83d3d4",
+              "surface": "#f5fafa",
+              "surface-variant": "#dae4e4",
+              "surface-container-high": "#e1e9e9",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#001d35",
+              "inverse-surface": "#2e3131",
+              "secondary": "#4c6363",
+              "surface-bright": "#f5fafa",
+              "tertiary-container": "#cce5ff",
+              "primary-fixed": "#b2ebec",
+              "tertiary-fixed": "#cce5ff",
+              "inverse-on-surface": "#eff1f1",
+              "error-dim": "#ffb4ab",
+              "inverse-primary": "#83d3d4",
+              "surface-dim": "#d5dbdb",
+              "on-error-container": "#410002",
+              "error": "#ba1a1a",
+              "secondary-container": "#cce8e8",
+              "primary-dim": "#006a6b",
+              "tertiary": "#4a6078",
+              "outline": "#6f7979",
+              "surface-container": "#e7eeee",
+              "on-primary-fixed": "#002020",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed-variant": "#004f50",
+              "surface-tint": "#1A8081",
+              "surface-container-highest": "#dae4e4",
+              "secondary-dim": "#b3cccc",
+              "on-error": "#ffffff",
+              "tertiary-fixed-dim": "#a2c9ff",
+              "on-primary-container": "#002020",
+              "background": "#f5fafa",
+              "secondary-fixed-dim": "#b3cccc"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "9999px", "lg": "9999px", "xl": "9999px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #f5fafa; color: #1a1c1c; }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        .glass-nav { background: rgba(245, 250, 250, 0.7); backdrop-filter: blur(20px); }
+        .primary-gradient { background: linear-gradient(135deg, #1A8081 0%, #004f50 100%); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .text-editorial-label { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; font-weight: 600; }
+        .soft-shadow { box-shadow: 0px 20px 40px rgba(26, 28, 28, 0.04); }
+    </style>
+</head>
+<body class="bg-surface selection:bg-primary-container/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 glass-nav border-b border-surface-variant/50">
+<div class="flex justify-between items-center px-6 py-3 max-w-7xl mx-auto">
+<div class="flex items-center">
+<img alt="STUDTRADE" class="w-auto h-24" src="https://lh3.googleusercontent.com/aida/ADBb0ugP-8-ftVAg1tKVfZsYut3HJTdhm3RDUGNOBTm4M8NiX1pQxaudsc7Pl91pslH6TT496Qq19owS3HsGlrgXibC1hP4Dij91KypjBozSJ3y3EiFHMWB-Of6Mv_DYO5KS66GcN7KuZai5_WR_sIuvj5ByF-_wppFu2ly3MAzh1JP-WD0mi5HXGNZKYd8gXyI147TUx6JNjkognsf1gRKmvqUurbJy_Borem7TgdbOuszcszmkL3MEXYVfPByv7uSzmLLOD1KlDoZ70g"/>
+</div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-primary font-bold border-b-2 border-primary" href="#">Home</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-medium" href="#">Explore</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-medium" href="#">Messages</a>
+</div>
+<div class="flex items-center space-x-4">
+<div class="relative hidden sm:block">
+<input class="bg-surface-container-low border-none rounded-full py-2 pl-4 pr-10 text-sm focus:ring-2 focus:ring-primary/20 w-64 text-on-surface" placeholder="Search campus..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
+</div>
+<div class="flex space-x-1">
+<button class="p-2 hover:bg-primary-container/20 rounded-full transition-all duration-300">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<button class="p-2 hover:bg-primary-container/20 rounded-full transition-all duration-300">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</div>
+</nav>
+<main class="pt-24">
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-6 py-12 md:py-24">
+<div class="grid md:grid-cols-2 gap-12 items-center">
+<div class="space-y-8">
+<span class="text-editorial-label text-primary font-bold">The Digital Sanctuary for Students</span>
+<h1 class="font-headline text-5xl md:text-7xl font-extrabold text-on-surface leading-[1.1] tracking-tight">
+                    Trade Smarter, <br/><span class="text-primary">Live Better.</span>
+</h1>
+<p class="text-lg text-on-surface-variant max-w-md font-body leading-relaxed">
+                    Join the curated marketplace built for university life. Buy, sell, and swap items within your trusted student community.
+                </p>
+<div class="flex flex-col sm:flex-row gap-4 pt-4">
+<button class="primary-gradient text-on-primary px-8 py-4 rounded-full font-bold text-lg hover:shadow-lg active:scale-95 transition-all">
+                        Start Trading
+                    </button>
+<button class="bg-surface-container-high text-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-surface-container-highest transition-all">
+                        Explore Catalog
+                    </button>
+</div>
+</div>
+<div class="relative group">
+<div class="absolute -inset-4 bg-primary-container/30 rounded-full -rotate-2 group-hover:rotate-0 transition-transform"></div>
+<img alt="Student trading app interface" class="relative z-10 w-full rounded-3xl soft-shadow object-cover aspect-[4/3]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDHi33oD8O2bjUCA6Hdt5WmM3cUm5nOziIT1-oSpgAwXa2tOQR9ln9Qf04pMKd_y3os62k0N2Ey0lfvdIhYZnMMFsnCvLtg6gKiK_SbNDSPNU4A0ciAAjn4-h-By6sesa5icE4G1UjdGRb19E359rb2AWs8_l9YU79IOA4g9TJMC7iBdADqmN_YEeGLzFmUTZ3d8PbF56WyZyAdBIcN7VyorTE70kgf-vRBirFoFl-I_YXFn_tJM8cd-VmwMyWo5kxl4t61lTiqIk"/>
+</div>
+</div>
+</section>
+<!-- Category Quick Links (Bento Inspired) -->
+<section class="bg-surface-container-low py-20 px-6">
+<div class="max-w-7xl mx-auto">
+<div class="flex justify-between items-end mb-12">
+<div>
+<span class="text-editorial-label text-on-surface-variant">Browse by</span>
+<h2 class="font-headline text-3xl font-bold text-on-surface">Essentials</h2>
+</div>
+<a class="text-primary font-semibold flex items-center gap-1 hover:underline" href="#">
+                    View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+<!-- Books -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl soft-shadow hover:-translate-y-2 transition-transform cursor-pointer flex flex-col items-center text-center">
+<div class="w-16 h-16 bg-primary-container/20 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="menu_book">menu_book</span>
+</div>
+<h3 class="font-headline font-bold text-on-surface">Books</h3>
+<p class="text-xs text-on-surface-variant mt-1 font-medium">1.2k Listings</p>
+</div>
+<!-- Electronics -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl soft-shadow hover:-translate-y-2 transition-transform cursor-pointer flex flex-col items-center text-center">
+<div class="w-16 h-16 bg-secondary-container/30 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-secondary text-3xl" data-icon="devices">devices</span>
+</div>
+<h3 class="font-headline font-bold text-on-surface">Electronics</h3>
+<p class="text-xs text-on-surface-variant mt-1 font-medium">850 Listings</p>
+</div>
+<!-- Furniture -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl soft-shadow hover:-translate-y-2 transition-transform cursor-pointer flex flex-col items-center text-center">
+<div class="w-16 h-16 bg-tertiary-container/30 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-tertiary text-3xl" data-icon="chair">chair</span>
+</div>
+<h3 class="font-headline font-bold text-on-surface">Furniture</h3>
+<p class="text-xs text-on-surface-variant mt-1 font-medium">420 Listings</p>
+</div>
+<!-- Housing -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl soft-shadow hover:-translate-y-2 transition-transform cursor-pointer flex flex-col items-center text-center">
+<div class="w-16 h-16 bg-error-container/20 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-error text-3xl" data-icon="home">home</span>
+</div>
+<h3 class="font-headline font-bold text-on-surface">Housing</h3>
+<p class="text-xs text-on-surface-variant mt-1 font-medium">150 Listings</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Ads Section (Featured Items) -->
+<section class="max-w-7xl mx-auto px-6 py-24">
+<div class="flex items-center gap-4 mb-12">
+<h2 class="font-headline text-3xl font-bold text-on-surface">Featured Opportunities</h2>
+<div class="h-px flex-1 bg-surface-container"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Ad Card 1 -->
+<div class="group relative bg-surface-container-lowest rounded-3xl overflow-hidden soft-shadow">
+<div class="relative aspect-[16/10]">
+<div class="absolute top-4 left-4 z-10 bg-secondary-container text-on-secondary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">Featured</div>
+<div class="absolute top-4 right-4 z-10 bg-white/70 backdrop-blur-md text-on-surface text-sm font-bold px-3 py-1 rounded-full">$45.00</div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf6yQLe5G1ueIXt6KY3AL4wF1e2AWQaDHhpDkoH2gT0jvlWB_aIm3X1p9zkHtHxb58F_5sTJE7wWUuLFZelzVqQAwBL1eYZo2AXpsHzJMcv-ASM7v4Vbtb3hAidTTCm1RT-gtLW3J2jv3NSZonnMymY7QL33Rnr6AHF15BmCsfrGN8FRjqQJNJvf00ZgwmVZeXr8bWVI5gfjyJe_wSaOp0_G5ygKuUGjZc1JYhKBfIkpWxznqwwoEKC0H2Kfxa7ZsvYq18oOMO8rA"/>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="verified" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-editorial-label text-on-surface-variant text-[10px]">Textbook Swap</span>
+</div>
+<h4 class="font-headline font-bold text-lg text-on-surface mb-2">Engineering Mechanics Set</h4>
+<p class="text-on-surface-variant text-sm mb-4">Hardly used, 2023 edition with lab manuals included.</p>
+<button class="w-full py-3 rounded-full text-sm font-bold border border-outline hover:bg-primary hover:text-on-primary hover:border-primary transition-all">View Details</button>
+</div>
+</div>
+<!-- Ad Card 2 -->
+<div class="group relative bg-surface-container-lowest rounded-3xl overflow-hidden soft-shadow">
+<div class="relative aspect-[16/10]">
+<div class="absolute top-4 left-4 z-10 bg-secondary-container text-on-secondary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">Featured</div>
+<div class="absolute top-4 right-4 z-10 bg-white/70 backdrop-blur-md text-on-surface text-sm font-bold px-3 py-1 rounded-full">$29.00/mo</div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDplq-64BUsRRKpkKT_VAlho095r4-RicpnOcUtX1yCI3H6VimkpGSljbfBa_jVoxQoN1dX5euIcb3CqP7_tv1dl76WAealcj8CBV4SbY07eabeqpTWF6Gn9aF0ew5WKywO9ObJxitlvPEgdOfnU6p5oZFZCllA54H9hs15HGBeRfb6Bl74O1ZMH3xpPBIESJLib5tSi5J7eYV4j9w6PO0R5a_E7rQDUyHQvCBv1wFJGDIxYvSiwmBjnXwnRKWmxz-Y_iw1kXVvm60"/>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="verified" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-editorial-label text-on-surface-variant text-[10px]">Service</span>
+</div>
+<h4 class="font-headline font-bold text-lg text-on-surface mb-2">Campus Storage Solutions</h4>
+<p class="text-on-surface-variant text-sm mb-4">Secure, student-run locker storage near the central library.</p>
+<button class="w-full py-3 rounded-full text-sm font-bold border border-outline hover:bg-primary hover:text-on-primary hover:border-primary transition-all">Check Availability</button>
+</div>
+</div>
+<!-- Ad Card 3 -->
+<div class="group relative bg-surface-container-lowest rounded-3xl overflow-hidden soft-shadow">
+<div class="relative aspect-[16/10]">
+<div class="absolute top-4 left-4 z-10 bg-secondary-container text-on-secondary-container text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">Featured</div>
+<div class="absolute top-4 right-4 z-10 bg-white/70 backdrop-blur-md text-on-surface text-sm font-bold px-3 py-1 rounded-full">$120.00</div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDK-14R4t70BR1rRH5Wv1JT_VDEdEuNsqnBYP8Ya-l1P9i-PaPhd8UPx3Bx2XGECatOCMxilFYio62M_aLKa30GYK7mw0ia3kvt4_rKkzmpFV6NwFbw7-NBsPHuoJh3wNDysD1GIvXDdZlKYdbDnZypOzFokllSPUEPe0fByDfdDoN0i8Yreq4QVMSH8MRaB1yhKS-RbuoJju-d0JRWDf6irfZgR3uofu_NSAvV2mW1_8ZUVri5l5ByuqQN1M4I7vHLlTDzCeAftss"/>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="verified" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-editorial-label text-on-surface-variant text-[10px]">Electronics</span>
+</div>
+<h4 class="font-headline font-bold text-lg text-on-surface mb-2">Smart Monitor 27"</h4>
+<p class="text-on-surface-variant text-sm mb-4">Perfect for dorm setups. Built-in speakers and HDMI ports.</p>
+<button class="w-full py-3 rounded-full text-sm font-bold border border-outline hover:bg-primary hover:text-on-primary hover:border-primary transition-all">Contact Seller</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Trust / CTA Section -->
+<section class="max-w-7xl mx-auto px-6 mb-24">
+<div class="primary-gradient p-12 md:p-20 rounded-3xl flex flex-col items-center text-center space-y-8">
+<h2 class="font-headline text-3xl md:text-5xl font-extrabold text-on-primary max-w-2xl leading-tight">
+                Ready to declutter your dorm and fill your wallet?
+            </h2>
+<p class="text-on-primary/80 max-w-md font-medium">
+                Join thousands of students trading daily on STUDTRADE. Safe, verified, and strictly for your campus.
+            </p>
+<button class="bg-surface-container-lowest text-primary px-10 py-4 rounded-full font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-xl">
+                Create Your Listing
+            </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-surface-variant">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-8 py-12 max-w-7xl mx-auto">
+<div class="col-span-1 md:col-span-1">
+<img alt="STUDTRADE" class="w-auto mb-4 h-16" src="https://lh3.googleusercontent.com/aida/ADBb0ugP-8-ftVAg1tKVfZsYut3HJTdhm3RDUGNOBTm4M8NiX1pQxaudsc7Pl91pslH6TT496Qq19owS3HsGlrgXibC1hP4Dij91KypjBozSJ3y3EiFHMWB-Of6Mv_DYO5KS66GcN7KuZai5_WR_sIuvj5ByF-_wppFu2ly3MAzh1JP-WD0mi5HXGNZKYd8gXyI147TUx6JNjkognsf1gRKmvqUurbJy_Borem7TgdbOuszcszmkL3MEXYVfPByv7uSzmLLOD1KlDoZ70g"/>
+<p class="text-on-surface-variant text-sm leading-relaxed font-medium">
+                The premium editorial marketplace designed for modern campus life. Empowering students through circular economy.
+            </p>
+</div>
+<div>
+<h5 class="font-headline font-bold text-on-surface mb-4">Platform</h5>
+<ul class="space-y-2 text-sm text-on-surface-variant font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">How it Works</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Pricing</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Safety</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Mobile App</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-headline font-bold text-on-surface mb-4">Resources</h5>
+<ul class="space-y-2 text-sm text-on-surface-variant font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">Help</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Community</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Blog</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-headline font-bold text-on-surface mb-4">Legal</h5>
+<ul class="space-y-2 text-sm text-on-surface-variant font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">Terms</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Privacy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Cookies</a></li>
+</ul>
+</div>
+</div>
+<div class="border-t border-surface-variant/50 py-8 px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-on-surface-variant/60 text-xs font-semibold">
+<div>© 2024 STUDTRADE. Digital Sanctuary for Students.</div>
+<div class="flex space-x-6 mt-4 md:mt-0">
+<a class="hover:text-primary" href="#">Twitter</a>
+<a class="hover:text-primary" href="#">Instagram</a>
+<a class="hover:text-primary" href="#">LinkedIn</a>
+</div>
+</div>
+</footer>
+</body></html>

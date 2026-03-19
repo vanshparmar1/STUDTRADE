@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>List an Item | STUDTRADE</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed": "#002020",
+              "on-secondary": "#ffffff",
+              "secondary": "#3a6566",
+              "on-tertiary-fixed-variant": "#713615",
+              "on-secondary-container": "#3f6a6a",
+              "primary-fixed": "#99f1f2",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#214d4e",
+              "on-primary-fixed": "#002020",
+              "surface-variant": "#e1e3e3",
+              "primary-fixed-dim": "#7dd5d5",
+              "outline-variant": "#bdc9c8",
+              "on-primary": "#ffffff",
+              "tertiary-fixed": "#ffdbcc",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#3e4949",
+              "primary-container": "#1a8081",
+              "surface-dim": "#d8dada",
+              "inverse-surface": "#2e3131",
+              "inverse-on-surface": "#eff1f1",
+              "on-background": "#191c1d",
+              "tertiary-container": "#a8613d",
+              "outline": "#6e7979",
+              "on-tertiary-container": "#fff9f8",
+              "on-primary-fixed-variant": "#004f50",
+              "surface-tint": "#00696a",
+              "error": "#ba1a1a",
+              "surface-container-high": "#e6e8e9",
+              "on-primary-container": "#e9fffe",
+              "secondary-fixed-dim": "#a2cfcf",
+              "inverse-primary": "#7dd5d5",
+              "error-container": "#ffdad6",
+              "on-tertiary-fixed": "#351000",
+              "secondary-fixed": "#beebeb",
+              "secondary-container": "#bbe8e9",
+              "surface-bright": "#f8fafa",
+              "background": "#f8fafa",
+              "surface-container-highest": "#e1e3e3",
+              "tertiary": "#8a4927",
+              "tertiary-fixed-dim": "#ffb693",
+              "on-surface": "#191c1d",
+              "on-error-container": "#93000a",
+              "primary": "#006667",
+              "surface": "#f8fafa",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#eceeee",
+              "surface-container-low": "#f2f4f4"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-3xl shadow-[0_20px_50px_rgba(13,61,62,0.05)] font-['Manrope'] antialiased">
+<div class="flex justify-between items-center w-full px-12 h-20 max-w-[1440px] mx-auto">
+<div class="text-2xl font-black tracking-tighter text-[#006667] dark:text-[#1A8081]">
+                STUDTRADE
+            </div>
+<div class="hidden md:flex items-center gap-10">
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#1A8081] transition-colors duration-300" href="#">Marketplace</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#1A8081] transition-colors duration-300" href="#">Textbooks</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#1A8081] transition-colors duration-300" href="#">Services</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#1A8081] transition-colors duration-300" href="#">Help</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-slate-500 hover:text-[#006667] transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-slate-500 hover:text-[#006667] transition-colors">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border-2 border-primary-container/20">
+<img class="w-full h-full object-cover" data-alt="Student user profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl0tD-VkKK5Ipy5LZZbBb3hzhU9HQoSzJ1JFHQQLnker68oIp5hUh2nascN5mHoskXuG8cbIIPqBMnY44acMSySC0kzqF0d_dNaB-yGep7tLhQrkpUi9H-jVV6PPAl_8bQ9erqWOE_5qdqfT5jj5BfHgPJXGhwBG991MOCmn8uqyakm4myuutjxnU9iCDfqBRBx1REnV1PnugpDn82FEt1_vT8K53X6nwDdwlCQqXVw-WBNwvEwYuS9wvTa4JNsaE72kRlIq1bJ9s"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-32 pb-24 px-6 md:px-12 lg:px-24 max-w-[1440px] mx-auto">
+<!-- Header Section -->
+<header class="mb-16">
+<h1 class="text-5xl font-extrabold tracking-tighter text-primary mb-4 leading-tight">List an Item</h1>
+<p class="text-lg text-secondary font-medium max-w-2xl">Give your pre-loved gear a new home. Reach thousands of students across campus instantly.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+<!-- Left Column: The Form -->
+<div class="lg:col-span-8 space-y-12">
+<!-- Image Upload Bento -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<h3 class="text-xl font-bold text-on-surface">Images (Max 5)</h3>
+<span class="text-sm font-medium text-outline">0 / 5 selected</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="aspect-square bg-surface-container rounded-lg border-2 border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container-high transition-colors group">
+<span class="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors" data-icon="add_a_photo">add_a_photo</span>
+<p class="mt-2 text-xs font-bold text-outline uppercase tracking-widest">Add Photo</p>
+</div>
+<div class="aspect-square bg-surface-container-low rounded-lg"></div>
+<div class="aspect-square bg-surface-container-low rounded-lg"></div>
+<div class="aspect-square bg-surface-container-low rounded-lg"></div>
+</div>
+</section>
+<!-- Listing Details -->
+<section class="bg-surface-container-lowest p-10 rounded-xl shadow-[0_40px_80px_rgba(0,102,103,0.03)] space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="md:col-span-2">
+<label class="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Item Title</label>
+<input class="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60" placeholder="e.g. Organic Chemistry Textbook (12th Edition)" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Price ($)</label>
+<div class="relative">
+<span class="absolute left-6 top-1/2 -translate-y-1/2 text-outline font-bold">$</span>
+<input class="w-full bg-surface-container pl-12 pr-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface" placeholder="0.00" type="number"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Category</label>
+<select class="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface appearance-none">
+<option>Select Category</option>
+<option>Textbooks</option>
+<option>Electronics</option>
+<option>Furniture</option>
+<option>Clothing</option>
+<option>Supplies</option>
+</select>
+</div>
+</div>
+<div>
+<label class="block text-sm font-bold text-primary mb-4 uppercase tracking-wider">Item Condition</label>
+<div class="flex flex-wrap gap-3">
+<button class="px-8 py-3 rounded-full bg-primary-container text-on-primary-container font-bold text-sm shadow-lg shadow-primary-container/20">New</button>
+<button class="px-8 py-3 rounded-full bg-surface-container text-outline font-bold text-sm hover:bg-surface-container-high transition-colors">Like New</button>
+<button class="px-8 py-3 rounded-full bg-surface-container text-outline font-bold text-sm hover:bg-surface-container-high transition-colors">Good</button>
+<button class="px-8 py-3 rounded-full bg-surface-container text-outline font-bold text-sm hover:bg-surface-container-high transition-colors">Fair</button>
+</div>
+</div>
+<div>
+<label class="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Description</label>
+<textarea class="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60 resize-none" placeholder="Tell other students why they should buy this. Mention any wear and tear or special features." rows="5"></textarea>
+</div>
+</section>
+<!-- Post CTA -->
+<div class="pt-8">
+<button class="w-full md:w-auto px-16 py-5 bg-primary-container text-on-primary-container font-extrabold text-lg rounded-full shadow-[0_20px_40px_rgba(26,128,129,0.3)] hover:scale-[1.02] active:scale-95 transition-all">
+                        Post Listing
+                    </button>
+</div>
+</div>
+<!-- Right Column: Sidebar -->
+<aside class="lg:col-span-4 space-y-8">
+<!-- Pro Tips Card -->
+<div class="bg-[#eceeee] dark:bg-slate-900 p-8 rounded-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16"></div>
+<h3 class="text-xl font-black text-primary mb-6 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container" data-icon="lightbulb">lightbulb</span>
+                        Pro Tips for Sellers
+                    </h3>
+<ul class="space-y-6">
+<li class="flex gap-4">
+<div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+<div>
+<p class="font-bold text-on-surface text-sm">Take clear photos</p>
+<p class="text-xs text-outline leading-relaxed mt-1">Natural lighting works best. Show the item from multiple angles.</p>
+</div>
+</li>
+<li class="flex gap-4">
+<div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+<div>
+<p class="font-bold text-on-surface text-sm">Be honest</p>
+<p class="text-xs text-outline leading-relaxed mt-1">Clearly mention any scratches or highlights to build trust.</p>
+</div>
+</li>
+<li class="flex gap-4">
+<div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+<div>
+<p class="font-bold text-on-surface text-sm">Set a fair price</p>
+<p class="text-xs text-outline leading-relaxed mt-1">Check similar listings to ensure your price is competitive.</p>
+</div>
+</li>
+</ul>
+</div>
+<!-- Trust Badge -->
+<div class="p-8 rounded-xl border border-primary-container/10 bg-surface-container-lowest flex items-start gap-5">
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="verified_user" data-weight="fill">verified_user</span>
+<div>
+<p class="font-bold text-primary text-sm mb-1 uppercase tracking-tight">Safe Exchange Guarantee</p>
+<p class="text-sm text-secondary leading-relaxed">Always meet in well-lit, campus-designated safe zones for transactions.</p>
+</div>
+</div>
+<!-- Ad/Promo Area -->
+<div class="relative h-48 rounded-xl overflow-hidden group cursor-pointer">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Abstract campus lifestyle photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkjEMhuaA6yPiMn39f0aMM9jKIn5x9v8agaLAkY3GIrwalKrGv-kLGexWYBOTjU8IhtPkmmG4YIken1xccZq9zK4iL0whCo4OlvE2DmJQ2GHGPCaG7pnhQHMRGYOe4GtSzNVMEsan_aSvZqUGCqOVm_Z60Fi8p3lwSMRw53U-Vg2_kSSQJS2NhIIXo6zEF9Uy0gG4p1w3fVi-JQXuoPrYcqj9MpUUx6P_1MTjzX3yAFOQN5GH7ygq6OeQ7ulLltwIZP3_OlwTwQpw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-6">
+<p class="text-white font-bold">New: Campus Delivery Hubs now open!</p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full pt-24 pb-12 bg-[#eceeee] dark:bg-slate-950 font-['Inter'] text-sm leading-relaxed">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 px-24 max-w-[1440px] mx-auto">
+<div class="space-y-4">
+<div class="text-lg font-bold text-[#006667] dark:text-[#1A8081]">STUDTRADE</div>
+<p class="text-slate-500 dark:text-slate-400">The premier digital sanctuary for campus commerce.</p>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-primary">Marketplace</h4>
+<ul class="space-y-2">
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">Textbooks</a></li>
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">Electronics</a></li>
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">Sustainability</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-primary">Support</h4>
+<ul class="space-y-2">
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">Safety Guidelines</a></li>
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">Help Center</a></li>
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h4 class="font-bold text-primary">Connect</h4>
+<ul class="space-y-2">
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">Careers</a></li>
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">About Us</a></li>
+<li><a class="text-slate-500 hover:text-[#006667] transition-all" href="#">Contact</a></li>
+</ul>
+</div>
+</div>
+<div class="mt-20 px-24 max-w-[1440px] mx-auto pt-8 border-t border-outline-variant/30 flex justify-between items-center text-xs text-slate-400">
+<p>© 2024 STUDTRADE. Designed for the Digital Sanctuary.</p>
+<div class="flex gap-6">
+<span>Terms</span>
+<span>Privacy</span>
+</div>
+</div>
+</footer>
+</body></html>
