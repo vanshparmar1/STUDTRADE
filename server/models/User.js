@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import Counter from './Counter.js';
 
 
 // ─── Schema Definition ────────────────────────────────────────────────────────
@@ -70,14 +71,33 @@ const userSchema = new mongoose.Schema(
             default: [],
         },
 
+        // ── Platform-specific unique identifier (auto-generated, immutable)
+        studtradeID: {
+            type: String,
+            unique: true,
+            index: true,
+            sparse: true,
+        },
     },
     {
         timestamps: true, // auto-manages createdAt & updatedAt
     }
 );
 
-// ─── Pre-save: hash password on create or change ────────────────────────────
+// ─── Pre-save: auto-generate studtradeID on first save & hash password ────────
 userSchema.pre('save', async function () {
+    // Generate studtradeID only on document creation
+    if (this.isNew && !this.studtradeID) {
+        const counter = await Counter.findOneAndUpdate(
+            { _id: 'studtradeID' },
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+        );
+        // e.g. ST-0001
+        this.studtradeID = `ST-${String(counter.seq).padStart(4, '0')}`;
+    }
+
+    // Only re-hash if password field was actually modified
     if (!this.isModified('password')) return;
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
