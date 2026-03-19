@@ -20,13 +20,13 @@ router.get('/', getAllItems);
 // GET /api/items/:id — public
 router.get('/:id', getSingleItem);
 
-// POST /api/items — authenticated; validate body → upload images → create
+// POST /api/items — authenticated; upload images (parses multipart body) → validate → create
 router.post(
     '/',
     protect,
     itemLimiter,
-    validate(createItemRules),
     handleMulterError(uploadItemImages.array('images', 5)),
+    validate(createItemRules),
     createItem
 );
 

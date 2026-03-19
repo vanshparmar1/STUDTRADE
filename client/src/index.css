@@ -1,35 +1,108 @@
 @import "tailwindcss";
 
-:root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: #fafaf9;
-  /* A very light warm gray for a modern clean look */
-  color: #171717;
-  /* Neutral dark text */
+@theme {
+  --color-on-background: #1a1c1c;
+  --color-primary-container: #b4edee;
+  --color-on-secondary-fixed-variant: #324b4b;
+  --color-on-secondary-container: #002021;
+  --color-on-surface: #1a1c1c;
+  --color-tertiary-dim: #b4c5ff;
+  --color-on-secondary-fixed: #002021;
+  --color-outline-variant: #bfc8c8;
+  --color-surface-container-low: #f0f4f4;
+  --color-secondary-fixed: #cde7e8;
+  --color-on-secondary: #ffffff;
+  --color-on-tertiary-fixed-variant: #2e4377;
+  --color-on-primary: #ffffff;
+  --color-on-tertiary-fixed: #001945;
+  --color-error-container: #ffdad6;
+  --color-primary: #1A8081;
+  --color-on-surface-variant: #3f4949;
+  --color-primary-fixed-dim: #86d2d3;
+  --color-surface: #f5fafa;
+  --color-surface-variant: #dae4e5;
+  --color-surface-container-high: #e1e9e9;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #001945;
+  --color-inverse-surface: #2e3131;
+  --color-secondary: #4a6363;
+  --color-surface-bright: #f5fafa;
+  --color-tertiary-container: #dbe1ff;
+  --color-primary-fixed: #a2eef0;
+  --color-tertiary-fixed: #dbe1ff;
+  --color-inverse-on-surface: #eff1f1;
+  --color-error-dim: #ffb4ab;
+  --color-inverse-primary: #86d2d3;
+  --color-surface-dim: #d5dbdb;
+  --color-on-error-container: #410002;
+  --color-error: #ba1a1a;
+  --color-secondary-container: #cde7e8;
+  --color-primary-dim: #00696a;
+  --color-tertiary: #485d92;
+  --color-outline: #6f7979;
+  --color-surface-container: #e7eeee;
+  --color-on-primary-fixed: #002020;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-primary-fixed-variant: #004f50;
+  --color-surface-tint: #00696a;
+
+  --color-on-surface: #1a1c1c;
+  --color-on-surface-variant: #3f4948;
+  --color-on-background: #1a1c1c;
+  --color-background: #f5fafa;
+
+  --color-outline: #6f7979;
+  --color-outline-variant: #bfc8c8;
+
+  --color-inverse-surface: #2e3131;
+  --color-inverse-on-surface: #eff1f1;
+
+  --color-error: #ba1a1a;
+  --color-error-dim: #ffb4ab;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #410002;
+
+  /* Fonts */
+  --font-headline: 'Manrope', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-label: 'Manrope', sans-serif;
 }
 
-/* Minimalist global resets */
+/* Global resets */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
   margin: 0;
+  font-family: 'Manrope', system-ui, sans-serif;
+  background-color: #f5fafa;
+  color: #1a1c1c;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Remove default focus outlines for a cleaner look, substituting with custom styles where needed */
 *:focus-visible {
-  outline: 2px solid #6366f1;
-  /* Indigo-500 */
+  outline: 2px solid #1A8081;
   outline-offset: 2px;
 }
 
-/* ── Image skeleton shimmer ────────────────────────────────────────────────── */
-/* Used by LazyImage in ItemCard.jsx */
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
+/* Shared Stitch utility classes */
+.gradient-primary {
+  background: linear-gradient(135deg, #1A8081 0%, #004f50 100%);
+}
 
-  100% {
-    background-position: -200% 0;
-  }
+.glass-nav {
+  background: rgba(245, 250, 250, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Image skeleton shimmer ─────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

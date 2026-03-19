@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import API from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import StitchNavbar from '../components/StitchNavbar';
+import StitchFooter from '../components/StitchFooter';
 
 const CATEGORIES = ['Books', 'Cycles', 'Tech', 'Furniture', 'Other'];
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair'];
 
 export default function ItemListing() {
-    const { token, user } = useAuth();
+    const { token } = useAuth();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -33,26 +34,21 @@ export default function ItemListing() {
         if (images.length + files.length > 5) {
             return setError('You can only upload up to 5 images');
         }
-
         setError('');
         const newImages = [...images, ...files];
         setImages(newImages);
-
         const newPreviews = files.map(file => URL.createObjectURL(file));
         setPreviews([...previews, ...newPreviews]);
     };
 
     const removeImage = (index) => {
-        const newImages = images.filter((_, i) => i !== index);
-        const newPreviews = previews.filter((_, i) => i !== index);
-        setImages(newImages);
-        setPreviews(newPreviews);
+        setImages(images.filter((_, i) => i !== index));
+        setPreviews(previews.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (images.length === 0) return setError('At least one image is required');
-
         setLoading(true);
         setError('');
 
@@ -64,10 +60,7 @@ export default function ItemListing() {
             const response = await API.post('/items', data, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-
-            if (response.data.success) {
-                navigate('/');
-            }
+            if (response.data.success) navigate('/');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create listing');
         } finally {
@@ -75,159 +68,198 @@ export default function ItemListing() {
         }
     };
 
-
     return (
-        <main className="flex-grow bg-gray-50/50 p-6 flex items-start justify-center pb-24">
-            <div className="w-full max-w-4xl grid lg:grid-cols-5 gap-10">
+        <div className="bg-background text-on-surface min-h-screen flex flex-col">
+            <StitchNavbar />
 
-                {/* Header Information */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div>
-                        <h1 className="text-4xl font-black text-gray-900 tracking-tight leading-tight">List an Item</h1>
-                        <p className="text-lg text-gray-500 font-medium mt-3">Reach thousands of students on campus. Fast, safe, and easy.</p>
+            <main className="pt-32 pb-24 px-6 md:px-12 lg:px-24 max-w-[1440px] mx-auto flex-grow w-full">
+                {/* Header */}
+                <header className="mb-16">
+                    <h1 className="text-5xl font-extrabold tracking-tighter text-primary mb-4 leading-tight">List an Item</h1>
+                    <p className="text-lg text-secondary font-medium max-w-2xl">
+                        Give your pre-loved gear a new home. Reach thousands of students across campus instantly.
+                    </p>
+                </header>
+
+                {/* Error */}
+                {error && (
+                    <div className="mb-8 p-4 bg-error-container text-on-error-container rounded-lg text-sm font-semibold">
+                        {error}
                     </div>
+                )}
 
-                    <div className="bg-indigo-600 rounded-3xl p-8 text-white shadow-xl shadow-indigo-100 hidden lg:block">
-                        <h3 className="text-xl font-bold mb-4">Pro Tips for Sellers</h3>
-                        <ul className="space-y-4 opacity-90 font-medium">
-                            <li className="flex gap-3 text-sm">
-                                <span className="bg-white/20 px-2 py-1 rounded h-fit leading-none mt-0.5">1</span>
-                                Take clear photos in natural light.
-                            </li>
-                            <li className="flex gap-3 text-sm">
-                                <span className="bg-white/20 px-2 py-1 rounded h-fit leading-none mt-0.5">2</span>
-                                Be honest about the item's condition.
-                            </li>
-                            <li className="flex gap-3 text-sm">
-                                <span className="bg-white/20 px-2 py-1 rounded h-fit leading-none mt-0.5">3</span>
-                                Set a fair price to sell faster.
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                {/* Form Section */}
-                <form onSubmit={handleSubmit} className="lg:col-span-3 bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-gray-200/40 border border-gray-100 space-y-8">
-                    {error && (
-                        <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold border border-red-100">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="space-y-6">
-                        {/* Title */}
-                        <div>
-                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Item Title</label>
-                            <input
-                                type="text"
-                                name="title"
-                                required
-                                placeholder="e.g. Hero Cycle - Good Condition"
-                                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-semibold text-gray-900"
-                                value={formData.title}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        {/* Price & Category Grid */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Price (₹)</label>
-                                <input
-                                    type="number"
-                                    name="price"
-                                    required
-                                    placeholder="0"
-                                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-semibold text-gray-900"
-                                    value={formData.price}
-                                    onChange={handleChange}
-                                />
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+                    {/* ── Left Column: Form ── */}
+                    <form onSubmit={handleSubmit} className="lg:col-span-8 space-y-12">
+                        {/* Image upload */}
+                        <section>
+                            <div className="flex justify-between items-end mb-6">
+                                <h3 className="text-xl font-bold text-on-surface">Images (Max 5)</h3>
+                                <span className="text-sm font-medium text-outline">{images.length} / 5 selected</span>
                             </div>
-                            <div>
-                                <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Category</label>
-                                <select
-                                    name="category"
-                                    required
-                                    className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-semibold text-gray-900 appearance-none cursor-pointer"
-                                    value={formData.category}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Select Category</option>
-                                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Condition */}
-                        <div>
-                            <label className="block text-sm font-black text-gray-700 mb-3 ml-1 uppercase tracking-wider">Item Condition</label>
-                            <div className="flex flex-wrap gap-3">
-                                {CONDITIONS.map(c => (
-                                    <button
-                                        key={c}
-                                        type="button"
-                                        onClick={() => setFormData({ ...formData, condition: c })}
-                                        className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 ${formData.condition === c
-                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
-                                            : 'bg-white text-gray-600 border-gray-100 hover:border-indigo-200'
-                                            }`}
-                                    >
-                                        {c}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Description */}
-                        <div>
-                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Description</label>
-                            <textarea
-                                name="description"
-                                required
-                                rows="4"
-                                placeholder="Describe your item in detail (original price, usage, defects if any)..."
-                                className="w-full px-6 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all outline-none font-medium text-gray-900 resize-none"
-                                value={formData.description}
-                                onChange={handleChange}
-                            ></textarea>
-                        </div>
-
-                        {/* Image Upload */}
-                        <div>
-                            <label className="block text-sm font-black text-gray-700 mb-2 ml-1 uppercase tracking-wider">Images (Max 5)</label>
-                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {/* Add photo button */}
+                                {images.length < 5 && (
+                                    <label className="aspect-square bg-surface-container rounded-lg border-2 border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container-high transition-colors group">
+                                        <span className="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors">add_a_photo</span>
+                                        <p className="mt-2 text-xs font-bold text-outline uppercase tracking-widest">Add Photo</p>
+                                        <input type="file" className="hidden" onChange={handleFileChange} multiple accept="image/*" />
+                                    </label>
+                                )}
+                                {/* Previews */}
                                 {previews.map((src, i) => (
-                                    <div key={i} className="aspect-square relative group rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                                    <div key={i} className="aspect-square rounded-lg overflow-hidden relative group">
                                         <img src={src} alt="" className="w-full h-full object-cover" />
                                         <button
                                             type="button"
                                             onClick={() => removeImage(i)}
-                                            className="absolute top-1 right-1 bg-white/90 p-1 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute top-2 right-2 bg-white/90 p-1.5 text-error rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                                         >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                                            <span className="material-symbols-outlined text-[18px]">close</span>
                                         </button>
                                     </div>
                                 ))}
-                                {images.length < 5 && (
-                                    <label className="aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-indigo-300 transition-all cursor-pointer flex flex-col items-center justify-center text-gray-400">
-                                        <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-                                        <span className="text-[10px] font-black uppercase">Add</span>
-                                        <input type="file" className="hidden" onChange={handleFileChange} multiple accept="image/*" />
-                                    </label>
-                                )}
+                                {/* Empty placeholders */}
+                                {Array.from({ length: Math.max(0, 3 - previews.length) }).map((_, i) => (
+                                    <div key={`ph-${i}`} className="aspect-square bg-surface-container-low rounded-lg" />
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* Listing details */}
+                        <section className="bg-surface-container-lowest p-10 rounded-xl shadow-[0_40px_80px_rgba(0,102,103,0.03)] space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Item Title</label>
+                                    <input
+                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60"
+                                        name="title"
+                                        placeholder="e.g. Organic Chemistry Textbook (12th Edition)"
+                                        type="text"
+                                        required
+                                        value={formData.title}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Price (₹)</label>
+                                    <div className="relative">
+                                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-outline font-bold">₹</span>
+                                        <input
+                                            className="w-full bg-surface-container pl-12 pr-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface"
+                                            name="price"
+                                            placeholder="0"
+                                            type="number"
+                                            required
+                                            value={formData.price}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Category</label>
+                                    <select
+                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface appearance-none cursor-pointer"
+                                        name="category"
+                                        required
+                                        value={formData.category}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Select Category</option>
+                                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Condition */}
+                            <div>
+                                <label className="block text-sm font-bold text-primary mb-4 uppercase tracking-wider">Item Condition</label>
+                                <div className="flex flex-wrap gap-3">
+                                    {CONDITIONS.map(c => (
+                                        <button
+                                            key={c}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, condition: c })}
+                                            className={`px-8 py-3 rounded-full font-bold text-sm transition-all ${
+                                                formData.condition === c
+                                                    ? 'bg-primary-container text-on-primary-container shadow-lg shadow-primary-container/20'
+                                                    : 'bg-surface-container text-outline hover:bg-surface-container-high'
+                                            }`}
+                                        >
+                                            {c}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Description</label>
+                                <textarea
+                                    className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60 resize-none"
+                                    name="description"
+                                    placeholder="Tell other students why they should buy this. Mention any wear and tear or special features."
+                                    rows="5"
+                                    required
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </section>
+
+                        {/* Submit */}
+                        <div className="pt-8">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full md:w-auto px-16 py-5 bg-primary-container text-on-primary-container font-extrabold text-lg rounded-full shadow-[0_20px_40px_rgba(26,128,129,0.3)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-60 disabled:pointer-events-none"
+                            >
+                                {loading ? 'Posting...' : 'Post Listing'}
+                            </button>
+                        </div>
+                    </form>
+
+                    {/* ── Right Column: Sidebar ── */}
+                    <aside className="lg:col-span-4 space-y-8">
+                        {/* Pro Tips */}
+                        <div className="bg-surface-container p-8 rounded-xl relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16" />
+                            <h3 className="text-xl font-black text-primary mb-6 flex items-center gap-3">
+                                <span className="material-symbols-outlined text-primary-container">lightbulb</span>
+                                Pro Tips for Sellers
+                            </h3>
+                            <ul className="space-y-6">
+                                {[
+                                    { title: 'Take clear photos', desc: 'Natural lighting works best. Show the item from multiple angles.' },
+                                    { title: 'Be honest', desc: 'Clearly mention any scratches or highlights to build trust.' },
+                                    { title: 'Set a fair price', desc: 'Check similar listings to ensure your price is competitive.' },
+                                ].map((tip, i) => (
+                                    <li key={i} className="flex gap-4">
+                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                                            <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-on-surface text-sm">{tip.title}</p>
+                                            <p className="text-xs text-outline leading-relaxed mt-1">{tip.desc}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Trust badge */}
+                        <div className="p-8 rounded-xl border border-primary-container/10 bg-surface-container-lowest flex items-start gap-5">
+                            <span className="material-symbols-outlined text-primary-container text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
+                            <div>
+                                <p className="font-bold text-primary text-sm mb-1 uppercase tracking-tight">Safe Exchange Guarantee</p>
+                                <p className="text-sm text-secondary leading-relaxed">Always meet in well-lit, campus-designated safe zones for transactions.</p>
                             </div>
                         </div>
-                    </div>
+                    </aside>
+                </div>
+            </main>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50"
-                    >
-                        {loading ? 'Posting Item...' : 'Post Listing'}
-                    </button>
-                </form>
-            </div>
-        </main>
+            <StitchFooter />
+        </div>
     );
 }

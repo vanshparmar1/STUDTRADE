@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Checkout | STUDTRADE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#121d1d",
+              "primary-container": "#9ef0f1",
+              "on-secondary-fixed-variant": "#004e4f",
+              "on-secondary-container": "#002021",
+              "on-surface": "#171d1d",
+              "tertiary-dim": "#a2c9ff",
+              "on-secondary-fixed": "#002021",
+              "outline-variant": "#bfc8c8",
+              "surface-container-low": "#eff4f4",
+              "secondary-fixed": "#9ef0f1",
+              "on-secondary": "#ffffff",
+              "on-tertiary-fixed-variant": "#004a77",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#001d35",
+              "error-container": "#ffdad6",
+              "primary": "#1A8081",
+              "on-surface-variant": "#3f4948",
+              "primary-fixed-dim": "#80d4d5",
+              "surface": "#f5fafa",
+              "surface-variant": "#dbe4e4",
+              "surface-container-high": "#e1e9e9",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#001d35",
+              "inverse-surface": "#2c3131",
+              "secondary": "#4a6363",
+              "surface-bright": "#f5fafa",
+              "tertiary-container": "#d1e4ff",
+              "primary-fixed": "#9ceaea",
+              "tertiary-fixed": "#d1e4ff",
+              "inverse-on-surface": "#eff1f1",
+              "error-dim": "#ffb4ab",
+              "inverse-primary": "#80d4d5",
+              "surface-dim": "#d5dbdb",
+              "on-error-container": "#410002",
+              "error": "#ba1a1a",
+              "secondary-container": "#cde7e8",
+              "primary-dim": "#56bcbd",
+              "tertiary": "#4a5f7f",
+              "outline": "#6f7979",
+              "surface-container": "#e7eeee",
+              "on-primary-fixed": "#002020",
+              "surface-container-lowest": "#ffffff",
+              "on-primary-fixed-variant": "#004f50",
+              "surface-tint": "#006a6b",
+              "surface-container-highest": "#dbe4e4",
+              "secondary-dim": "#b1cccb",
+              "on-error": "#ffffff",
+              "tertiary-fixed-dim": "#b2c8e8",
+              "on-primary-container": "#002020",
+              "background": "#f5fafa",
+              "secondary-fixed-dim": "#b1cccb"
+            },
+            fontFamily: {
+              "headline": ["Manrope", "sans-serif"],
+              "body": ["Manrope", "sans-serif"],
+              "label": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "9999px", "lg": "9999px", "xl": "9999px", "full": "9999px", "sm": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body { font-family: 'Manrope', sans-serif; background-color: #f5fafa; }
+      .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+      .shadow-soft { box-shadow: 0px 12px 32px rgba(26, 128, 129, 0.05); }
+      .bg-primary-gradient { background: linear-gradient(135deg, #1A8081 0%, #006a6b 100%); }
+      input, select, textarea { border-radius: 9999px !important; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- Header Navigation -->
+<nav class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-surface-variant">
+<div class="flex justify-between items-center px-6 max-w-7xl mx-auto py-2">
+<div class="flex items-center gap-4">
+<a class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low" href="#">arrow_back</a>
+<img alt="STUDTRADE" class="w-auto object-contain h-24" src="https://lh3.googleusercontent.com/aida/ADBb0ugP-8-ftVAg1tKVfZsYut3HJTdhm3RDUGNOBTm4M8NiX1pQxaudsc7Pl91pslH6TT496Qq19owS3HsGlrgXibC1hP4Dij91KypjBozSJ3y3EiFHMWB-Of6Mv_DYO5KS66GcN7KuZai5_WR_sIuvj5ByF-_wppFu2ly3MAzh1JP-WD0mi5HXGNZKYd8gXyI147TUx6JNjkognsf1gRKmvqUurbJy_Borem7TgdbOuszcszmkL3MEXYVfPByv7uSzmLLOD1KlDoZ70g"/>
+</div>
+<div class="flex items-center gap-6">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Secure Checkout</span>
+<span class="material-symbols-outlined text-primary" data-icon="lock">lock</span>
+</div>
+</div>
+</nav>
+<main class="pt-24 pb-20 px-6 max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Left Column: Forms -->
+<div class="lg:col-span-7 space-y-12">
+<!-- Hero Header Integration -->
+<header class="relative rounded-lg overflow-hidden h-48 mb-8">
+<img alt="Student Lifestyle Backdrop" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT7nmOl0QoXdZRS89O_KV6Eqe_wtFW5g7fCJxRWqf037X4j2Uf7-In9DmwGZRScK8TnsJ701xmNZjIZGy1lK2MB2wEEuqk0fngP0oKLK0uNh6hurPW2MI67XyOyclw53M8b1ka9HSjGeDTrD-BYnxdZZ5NGq65f48vw7hD1yvqc3wyLKUWjXT5B79sHwOJTswtwXbTKfTt5gmeJoYw4fMWbLMtsszF2xegVFD4w4r3lohn0tM-MmwgoVpTvKjEsr6qnjDYBgw5Lkg"/>
+<div class="absolute inset-0 bg-gradient-to-r from-inverse-surface/60 to-transparent flex items-center px-10">
+<h1 class="text-4xl font-extrabold text-white tracking-tight">Finalize Order</h1>
+</div>
+</header>
+<!-- Delivery Details Section -->
+<section class="bg-surface-container-lowest p-8 rounded-xl shadow-soft">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary" data-icon="local_shipping">local_shipping</span>
+<h2 class="text-xl font-bold tracking-tight">Delivery Details</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="md:col-span-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-4">Full Name</label>
+<input class="w-full bg-surface-container-low border-none px-6 py-3 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="Alex Student" type="text"/>
+</div>
+<div class="md:col-span-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-4">Shipping Address</label>
+<input class="w-full bg-surface-container-low border-none px-6 py-3 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="123 University Ave, Room 402" type="text"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-4">City</label>
+<input class="w-full bg-surface-container-low border-none px-6 py-3 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="Cambridge" type="text"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-4">Postal Code</label>
+<input class="w-full bg-surface-container-low border-none px-6 py-3 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="CB2 1TN" type="text"/>
+</div>
+</div>
+</section>
+<!-- Payment Section -->
+<section class="bg-surface-container-lowest p-8 rounded-xl shadow-soft">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+<h2 class="text-xl font-bold tracking-tight">Payment Method</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Option: Card -->
+<label class="relative flex items-center p-5 rounded-full bg-surface-container-low border-2 border-transparent hover:bg-surface-container-high transition-all cursor-pointer group has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+<input checked="" class="sr-only peer" name="payment" type="radio"/>
+<span class="material-symbols-outlined mr-3 text-on-surface-variant peer-checked:text-primary" data-icon="credit_card">credit_card</span>
+<div>
+<p class="font-bold text-sm">Credit / Debit Card</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Visa, Mastercard, Amex</p>
+</div>
+<div class="ml-auto w-6 h-6 rounded-full border-2 border-outline-variant peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center transition-all">
+<div class="w-2.5 h-2.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+</div>
+</label>
+<!-- Option: Mobile Pay -->
+<label class="relative flex items-center p-5 rounded-full bg-surface-container-low border-2 border-transparent hover:bg-surface-container-high transition-all cursor-pointer group has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+<input class="sr-only peer" name="payment" type="radio"/>
+<span class="material-symbols-outlined mr-3 text-on-surface-variant peer-checked:text-primary" data-icon="smartphone">smartphone</span>
+<div>
+<p class="font-bold text-sm">Mobile Pay</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Apple Pay, Google Pay</p>
+</div>
+<div class="ml-auto w-6 h-6 rounded-full border-2 border-outline-variant peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center transition-all">
+<div class="w-2.5 h-2.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+</div>
+</label>
+</div>
+<!-- Card Details -->
+<div class="mt-8 pt-8 border-t border-surface-container-high grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="md:col-span-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-4">Card Number</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none px-6 py-3 pr-14 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="0000 0000 0000 0000" type="text"/>
+<span class="absolute right-6 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm" data-icon="credit_card">credit_card</span>
+</div>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-4">Expiry Date</label>
+<input class="w-full bg-surface-container-low border-none px-6 py-3 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="MM/YY" type="text"/>
+</div>
+<div>
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 ml-4">CVV</label>
+<input class="w-full bg-surface-container-low border-none px-6 py-3 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="***" type="password"/>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Summary Card -->
+<div class="lg:col-span-5 lg:sticky lg:top-24">
+<aside class="bg-surface-container-lowest rounded-xl shadow-soft overflow-hidden">
+<div class="p-8">
+<h2 class="text-xl font-bold tracking-tight mb-8">Order Summary</h2>
+<!-- Product Item -->
+<div class="flex gap-6 mb-8 group">
+<div class="w-24 h-24 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Premium Headphones" class="w-full h-full object-cover transition-transform group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs9NkO35XoCxvC7zIXE0i_IOVf79jPX6exMIeqc3YyrhfDPA6e1ubHXbEWTf1JoF4Fwoja88oSkNdpsCnkjBLNJs0lT-uDRNAmlYICWDjS05clZxAN-gPgefjKDMjoKu0k_EVpWOi09Avdyfrqj1W-NfrVdGiDpiV_rq_3X9k_vWeUaUTkIXpQKN4XDLIdsCzR0HsrI7lksymhgxB43aGrR7NZVQX8RJt26Rnm57jkEwrglLIeIwk6J2dF4FUshSzq2nFfWZy8zEs"/>
+</div>
+<div class="flex-grow flex flex-col justify-center">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-bold text-on-surface leading-tight">Sony WH-1000XM5</h3>
+<span class="font-bold text-primary">$299.00</span>
+</div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant mb-4">Edition: Midnight Blue</p>
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-surface-container-low rounded-full px-2 py-1 gap-4">
+<button class="material-symbols-outlined text-sm hover:text-primary transition-colors p-1 rounded-full">remove</button>
+<span class="text-sm font-bold">1</span>
+<button class="material-symbols-outlined text-sm hover:text-primary transition-colors p-1 rounded-full">add</button>
+</div>
+<button class="text-[10px] font-black text-error uppercase tracking-widest ml-auto hover:underline">Remove</button>
+</div>
+</div>
+</div>
+<!-- Price Breakdown -->
+<div class="space-y-4 pt-8 border-t border-surface-container">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Subtotal</span>
+<span class="font-semibold">$299.00</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Student Discount (10%)</span>
+<span class="font-semibold text-primary">-$29.90</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant">Shipping</span>
+<span class="font-semibold text-primary">Free</span>
+</div>
+<div class="flex justify-between items-end pt-6">
+<span class="text-lg font-bold">Order Total</span>
+<div class="text-right">
+<span class="block text-3xl font-black text-primary tracking-tighter">$269.10</span>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Includes VAT</span>
+</div>
+</div>
+</div>
+<!-- CTA -->
+<button class="w-full mt-10 py-5 bg-primary-gradient text-white rounded-full font-bold text-lg tracking-tight shadow-lg shadow-primary/30 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all">
+                            Complete Purchase
+                        </button>
+<p class="mt-6 text-center text-[10px] text-on-surface-variant leading-relaxed px-4">
+                            By clicking "Complete Purchase", you agree to our <a class="underline hover:text-primary" href="#">Terms of Service</a> and <a class="underline hover:text-primary" href="#">Privacy Policy</a>. All transactions are encrypted.
+                        </p>
+</div>
+<!-- Trust Bar -->
+<div class="bg-surface-container-low px-8 py-5 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="verified_user">verified_user</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary">Verified Student Deal</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="inventory_2">inventory_2</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">In Stock</span>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-white border-t border-surface-variant">
+<div class="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
+<div class="col-span-1">
+<img alt="STUDTRADE" class="h-6 w-auto object-contain mb-6 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all" src="https://lh3.googleusercontent.com/aida/ADBb0ugP-8-ftVAg1tKVfZsYut3HJTdhm3RDUGNOBTm4M8NiX1pQxaudsc7Pl91pslH6TT496Qq19owS3HsGlrgXibC1hP4Dij91KypjBozSJ3y3EiFHMWB-Of6Mv_DYO5KS66GcN7KuZai5_WR_sIuvj5ByF-_wppFu2ly3MAzh1JP-WD0mi5HXGNZKYd8gXyI147TUx6JNjkognsf1gRKmvqUurbJy_Borem7TgdbOuszcszmkL3MEXYVfPByv7uSzmLLOD1KlDoZ70g"/>
+<p class="text-sm text-on-surface-variant leading-relaxed">Digital Sanctuary for Students. Curating the tools you need for the journey ahead.</p>
+</div>
+<div>
+<h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface mb-8">Support</h4>
+<ul class="space-y-4 text-sm text-on-surface-variant">
+<li><a class="hover:text-primary transition-colors" href="#">Help Center</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Order Tracking</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Student Verification</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface mb-8">Company</h4>
+<ul class="space-y-4 text-sm text-on-surface-variant">
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Sustainability</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Digital Wellness</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface mb-8">Legal</h4>
+<ul class="space-y-4 text-sm text-on-surface-variant">
+<li><a class="hover:text-primary transition-colors" href="#">Terms</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Privacy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Cookies</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-8 py-8 border-t border-surface-container flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">© 2024 STUDTRADE. Digital Sanctuary for Students.</p>
+<div class="flex gap-6">
+<span class="material-symbols-outlined text-outline-variant text-lg">credit_card</span>
+<span class="material-symbols-outlined text-outline-variant text-lg">contactless</span>
+<span class="material-symbols-outlined text-outline-variant text-lg">security</span>
+</div>
+</div>
+</footer>
+</body></html>
