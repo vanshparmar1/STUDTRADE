@@ -71,12 +71,15 @@ const StitchNavbar = ({ links = defaultLinks, showSearch = true, activeLink = ''
 
         {/* Right: Cart + Profile */}
         <div className="flex items-center gap-2">
-          <button
-            className="p-2 hover:bg-[var(--color-surface-container-high)] rounded-full transition-all"
-            aria-label="Cart"
-          >
-            <span className="material-symbols-outlined text-[var(--color-on-surface-variant)]">shopping_cart</span>
-          </button>
+          {isAuthenticated && (
+            <Link
+              to="/cart"
+              className="p-2 hover:bg-[var(--color-surface-container-high)] rounded-full transition-all flex items-center justify-center relative group"
+              aria-label="Cart"
+            >
+              <span className="material-symbols-outlined text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-on-surface)] transition-colors">shopping_cart</span>
+            </Link>
+          )}
           
           <div className="relative profile-dropdown">
             <button

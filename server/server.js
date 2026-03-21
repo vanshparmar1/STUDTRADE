@@ -14,6 +14,9 @@ import adminRouter from './routes/admin.routes.js';
 import itemRouter from './routes/item.routes.js';
 import userRouter from './routes/user.routes.js';
 import reportRouter from './routes/report.routes.js';
+import cartRouter from './routes/cart.routes.js';
+import orderRouter from './routes/order.routes.js';
+import adRouter from './routes/ad.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +37,9 @@ app.use('/api/admin', adminRouter);
 app.use('/api/items', itemRouter);
 app.use('/api/users', userRouter);
 app.use('/api/reports', reportRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/orders', orderRouter);
+app.use('/api/ads', adRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use(notFound);

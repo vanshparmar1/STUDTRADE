@@ -206,7 +206,6 @@ const MarketplaceGrid = () => {
                     verified={item.seller?.verified ?? false}
                     title={item.title}
                     subtitle={`${item.category} • ${item.condition}`}
-                    seller={{ name: item.seller?.name ?? 'Student' }}
                   />
                 ))}
               </div>
