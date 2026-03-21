@@ -113,7 +113,7 @@ export const getAllItems = asyncHandler(async (req, res) => {
 
     const [items, total] = await Promise.all([
         Item.find(filter, search ? { score: { $meta: 'textScore' } } : {})
-            .populate('seller', 'name')          // name only — no PII
+            .populate('seller', '_id')           // _id only — no PII exposed
             .sort(sortOptions)
             .skip(skip)
             .limit(perPage),
@@ -139,7 +139,7 @@ export const getSingleItem = asyncHandler(async (req, res) => {
         req.params.id,
         { $inc: { views: 1 } },
         { new: true, runValidators: true }
-    ).populate('seller', 'name');               // name only — no PII
+    ).populate('seller', '_id');                // _id only — no PII exposed
 
     if (!item) {
         return res.status(404).json({

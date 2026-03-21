@@ -1,4 +1,7 @@
 import Report from '../models/Report.js';
+import Order from '../models/Order.js';
+import User from '../models/User.js';
+import Item from '../models/Item.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // ─── @desc    Get all reports ────────────────────────────────────────────────
@@ -74,5 +77,67 @@ export const reviewReport = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         data: report,
+    });
+});
+
+// ─── @desc    Get all orders (admin) ─────────────────────────────────────────
+// ─── @route   GET /api/admin/orders ──────────────────────────────────────────
+// ─── @access  Private/Admin ──────────────────────────────────────────────────
+export const getAllOrders = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 20 } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const perPage = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
+    const skip = (pageNum - 1) * perPage;
+
+    const [orders, total] = await Promise.all([
+        Order.find()
+            .populate('buyer', 'name email studtradeID')
+            .populate('seller', 'name email studtradeID')
+            .populate('item', 'title images price category condition')
+            .sort('-createdAt')
+            .skip(skip)
+            .limit(perPage),
+        Order.countDocuments(),
+    ]);
+
+    res.status(200).json({
+        success: true,
+        count: orders.length,
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / perPage),
+        data: orders,
+    });
+});
+
+// ─── @desc    Get platform dashboard stats ───────────────────────────────────
+// ─── @route   GET /api/admin/dashboard ─────────────────────────────────────
+// ─── @access  Private/Admin ───────────────────────────────────────────────
+export const getDashboardStats = asyncHandler(async (req, res) => {
+    const [
+        totalOrders,
+        totalUsers,
+        totalItems,
+        revenueResult,
+    ] = await Promise.all([
+        Order.countDocuments(),
+        User.countDocuments(),
+        Item.countDocuments(),
+        Order.aggregate([
+            { $group: { _id: null, totalCommission: { $sum: '$commission' } } },
+        ]),
+    ]);
+
+    const totalRevenue = revenueResult[0]?.totalCommission ?? 0;
+
+    res.status(200).json({
+        success: true,
+        data: {
+            totalOrders,
+            totalRevenue: Math.round(totalRevenue * 100) / 100,
+            totalUsers,
+            totalItems,
+        },
     });
 });

@@ -9,10 +9,9 @@ import { useNavigate } from 'react-router-dom';
  *   verified    — boolean
  *   title       — string
  *   subtitle    — string (condition/type)
- *   seller      — { name, avatar }
  *   itemId      — string (for router navigation)
  */
-const StitchProductCard = ({ image, price, verified, title, subtitle, seller, itemId }) => {
+const StitchProductCard = ({ image, price, verified, title, subtitle, itemId }) => {
   const navigate = useNavigate();
 
   return (
@@ -47,27 +46,17 @@ const StitchProductCard = ({ image, price, verified, title, subtitle, seller, it
         <p className="text-xs text-[var(--color-on-surface-variant)] mb-4">{subtitle}</p>
 
         {/* Bottom row */}
-        <div className="mt-auto flex items-center justify-between">
-          {/* Seller */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-[var(--color-surface-container-highest)] overflow-hidden border border-white flex items-center justify-center">
-              {seller?.avatar ? (
-                <img src={seller.avatar} alt={seller.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[8px] font-bold text-[var(--color-on-primary-container)]">
-                  {seller?.name?.slice(0, 2).toUpperCase() ?? 'ST'}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px] font-medium text-[var(--color-on-surface-variant)]">{seller?.name ?? 'Student'}</span>
-          </div>
-
+        <div className="mt-auto pt-2">
           {/* CTA */}
           <button
-            onClick={() => navigate(itemId ? `/item/${itemId}` : '/marketplace')}
-            className="gradient-primary text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full transition-transform active:scale-95"
+            onClick={(e) => {
+              e.stopPropagation(); // prevent clicking card from also clicking this if they overlap
+              navigate(itemId ? `/item/${itemId}` : '/marketplace');
+            }}
+            className="w-full gradient-primary text-white text-xs font-bold uppercase tracking-widest py-3 rounded-full transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-sm"
           >
             Buy Now
+            <span className="material-symbols-outlined text-[14px]">shopping_bag</span>
           </button>
         </div>
       </div>

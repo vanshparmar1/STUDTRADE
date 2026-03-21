@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import StitchNavbar from '../components/StitchNavbar';
 import StitchFooter from '../components/StitchFooter';
 import API from '../api/axios';
+import toast from 'react-hot-toast';
 
 const PLACEHOLDER_IMG = 'https://placehold.co/600x600?text=No+Image';
 
@@ -14,6 +15,7 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeThumb, setActiveThumb] = useState(0);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -36,6 +38,20 @@ const ProductDetailPage = () => {
       window.scrollTo(0, 0);
     }
   }, [id]);
+
+  const handleAddToCart = async () => {
+    try {
+      setAddingToCart(true);
+      const { data } = await API.post('/cart/add', { itemId: item._id });
+      if (data.success) {
+        toast.success(data.message || 'Added to cart');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to add to cart');
+    } finally {
+      setAddingToCart(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -139,18 +155,7 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
-            {/* Seller Info */}
-            <div className="flex items-center gap-4 py-4 border-y border-[var(--color-surface-container-highest)]">
-              <div className="w-12 h-12 bg-[var(--color-primary-container)] text-[var(--color-on-primary-container)] rounded-full flex items-center justify-center font-bold text-lg">
-                {(item.seller?.name || '?').charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="font-bold text-[var(--color-on-surface)] text-sm">Sold by {item.seller?.name || 'Student User'}</p>
-                <p className="text-xs text-[var(--color-on-surface-variant)] uppercase tracking-wider mt-0.5">
-                  Listed {new Date(item.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
+
 
             {/* Description */}
             <div className="p-6 bg-[var(--color-surface-container-low)] rounded-2xl">
@@ -167,15 +172,23 @@ const ProductDetailPage = () => {
             <div className="flex flex-col gap-4 pt-4">
               <button
                 onClick={() => navigate('/buy')}
-                className="bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold py-5 rounded-2xl text-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                className="bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold py-4 rounded-2xl text-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
               >
-                Contact Seller
-                <span className="material-symbols-outlined">chat</span>
+                Buy Now
+                <span className="material-symbols-outlined">shopping_bag</span>
               </button>
               <div className="flex gap-3">
-                <button className="flex-1 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[var(--color-surface-container-highest)] transition-colors">
-                  <span className="material-symbols-outlined text-[var(--color-outline)]">favorite</span>
-                  Wishlist
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addingToCart}
+                  className="flex-1 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[var(--color-surface-container-highest)] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {addingToCart ? (
+                    <span className="material-symbols-outlined animate-spin text-[var(--color-outline)]">refresh</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-[var(--color-outline)]">add_shopping_cart</span>
+                  )}
+                  {addingToCart ? 'Adding...' : 'Add to Cart'}
                 </button>
                 <button
                   onClick={() => {

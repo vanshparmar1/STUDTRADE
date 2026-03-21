@@ -1,7 +1,9 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import StitchNavbar from '../components/StitchNavbar';
 import StitchFooter from '../components/StitchFooter';
+import API from '../api/axios';
+import toast from 'react-hot-toast';
 
 const HERO_IMG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDDHi33oD8O2bjUCA6Hdt5WmM3cUm5nOziIT1-oSpgAwXa2tOQR9ln9Qf04pMKd_y3os62k0N2Ey0lfvdIhYZnMMFsnCvLtg6gKiK_SbNDSPNU4A0ciAAjn4-h-By6sesa5icE4G1UjdGRb19E359rb2AWs8_l9YU79IOA4g9TJMC7iBdADqmN_YEeGLzFmUTZ3d8PbF56WyZyAdBIcN7VyorTE70kgf-vRBirFoFl-I_YXFn_tJM8cd-VmwMyWo5kxl4t61lTiqIk';
 
@@ -32,6 +34,28 @@ const FEATURED = [
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [ads, setAds] = useState([]);
+
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const { data } = await API.get('/ads');
+        if (data.success) setAds(data.data);
+      } catch (err) {
+        console.error('Failed to fetch ads', err);
+      }
+    };
+    fetchAds();
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.unauthorized) {
+      toast.error('Access Denied: Admin privileges required', { id: 'unauthorized-toast' });
+      // Clear the state so the toast doesn't re-appear on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   return (
     <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen">
@@ -112,6 +136,36 @@ const LandingPage = () => {
             </div>
           </div>
         </section>
+
+        {/* ── Sponsored Ads ── */}
+        {ads.length > 0 && (
+          <section className="max-w-7xl mx-auto px-6 py-10">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-on-surface-variant)]">Sponsored Offers</span>
+              <div className="h-px flex-1 bg-[var(--color-surface-container)]" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {ads.map((ad) => (
+                <a 
+                  key={ad._id} 
+                  href={ad.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block relative rounded-3xl overflow-hidden group shadow-sm hover:shadow-xl transition-all aspect-[21/9] md:aspect-[16/9]"
+                  style={{ boxShadow: '0px 12px 32px rgba(26,128,129,0.05)' }}
+                >
+                  <img src={ad.image} alt={ad.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-[var(--color-surface-container)]" />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 pt-16">
+                    <div className="inline-block bg-[var(--color-primary)] text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded flex items-center gap-1 w-max mb-2">
+                       Ad <span className="material-symbols-outlined text-[10px]">open_in_new</span>
+                    </div>
+                    <h3 className="text-white font-bold text-base md:text-lg leading-snug line-clamp-2">{ad.title}</h3>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── Featured ── */}
         <section className="max-w-7xl mx-auto px-6 py-24">

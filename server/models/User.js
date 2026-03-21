@@ -71,6 +71,26 @@ const userSchema = new mongoose.Schema(
             default: [],
         },
 
+        // ── Cart items
+        cartItems: {
+            type: [
+                {
+                    item: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'Item',
+                        required: true,
+                    },
+                    quantity: {
+                        type: Number,
+                        required: true,
+                        min: [1, 'Quantity must be at least 1'],
+                        default: 1,
+                    },
+                },
+            ],
+            default: [],
+        },
+
         // ── Platform-specific unique identifier (auto-generated, immutable)
         studtradeID: {
             type: String,
