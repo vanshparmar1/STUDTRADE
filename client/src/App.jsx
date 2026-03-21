@@ -19,6 +19,7 @@ import LandingPage from './pages/LandingPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import BuyPage from './pages/BuyPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
+import CartPage from './pages/CartPage';
 
 
 // Layout wrapper for the legacy UI (old Navbar + footer)
@@ -44,12 +45,13 @@ function App() {
       <Route path="/success" element={<OrderSuccessPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
       <Route path="/sell" element={<ProtectedRoute><ItemListing /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
 
       {/* ── Legacy UI (wrapped with old Navbar) ── */}
       <Route element={<LegacyLayout />}>
         <Route path="/seller/:id" element={<SellerProfile />} />
-        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
       </Route>
     </Routes>
   );
