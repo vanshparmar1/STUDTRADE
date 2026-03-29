@@ -21,6 +21,7 @@ import BuyPage from './pages/BuyPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import CartPage from './pages/CartPage';
 import RazorpayCheckout from './pages/RazorpayCheckout';
+import TermsPolicies from './pages/TermsPolicies';
 
 
 // Layout wrapper for the legacy UI (old Navbar + footer)
@@ -44,6 +45,7 @@ function App() {
       <Route path="/item/:id" element={<ProductDetailPage />} />
       <Route path="/buy" element={<BuyPage />} />
       <Route path="/success" element={<OrderSuccessPage />} />
+      <Route path="/terms" element={<TermsPolicies />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/checkout/:productId" element={<ProtectedRoute><RazorpayCheckout /></ProtectedRoute>} />
