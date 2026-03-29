@@ -17,6 +17,7 @@ import reportRouter from './routes/report.routes.js';
 import cartRouter from './routes/cart.routes.js';
 import orderRouter from './routes/order.routes.js';
 import adRouter from './routes/ad.routes.js';
+import paymentRouter from './routes/payment.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,6 +41,7 @@ app.use('/api/reports', reportRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/ads', adRouter);
+app.use('/api/payment', paymentRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use(notFound);

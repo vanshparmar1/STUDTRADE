@@ -171,7 +171,7 @@ const ProductDetailPage = () => {
             {/* CTAs */}
             <div className="flex flex-col gap-4 pt-4">
               <button
-                onClick={() => navigate('/buy')}
+                onClick={() => navigate('/checkout/' + item._id)}
                 className="bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold py-4 rounded-2xl text-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
               >
                 Buy Now
