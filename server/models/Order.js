@@ -74,6 +74,26 @@ const orderSchema = new mongoose.Schema(
             min: [0, 'Commission cannot be negative'],
         },
 
+        // ── Razorpay payment tracking
+        razorpayOrderId: {
+            type: String,
+            default: null,
+        },
+
+        razorpayPaymentId: {
+            type: String,
+            default: null,
+        },
+
+        paymentStatus: {
+            type: String,
+            enum: {
+                values: ['pending', 'paid', 'failed'],
+                message: 'Payment status must be pending, paid, or failed',
+            },
+            default: 'pending',
+        },
+
         // ── Order lifecycle
         status: {
             type: String,
