@@ -20,7 +20,7 @@ const OrderSuccessPage = () => (
       </div>
     </header>
 
-    <main className="flex-1 pt-24 pb-12 px-6 flex flex-col items-center justify-center">
+    <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full flex flex-col items-center justify-center">
       <div className="max-w-2xl w-full text-center">
         {/* Check icon */}
         <div className="relative inline-block mb-12">
@@ -58,7 +58,7 @@ const OrderSuccessPage = () => (
           <div className="bg-white p-6 px-10 flex items-center justify-between rounded-3xl">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-[var(--color-surface-container-low)] rounded-full overflow-hidden">
-                <img src={PRODUCT_IMG} alt="Product" className="w-full h-full object-cover" />
+                <img src={PRODUCT_IMG} alt="Product" className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit]" />
               </div>
               <div className="text-left">
                 <p className="font-bold text-[var(--color-on-surface)]">Minimalist Study Set</p>

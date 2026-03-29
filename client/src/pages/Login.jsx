@@ -38,7 +38,7 @@ export default function Login() {
                 <div className="absolute top-[60%] -right-[10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[120px]" />
             </div>
 
-            <main className="flex-grow flex items-center justify-center p-6 sm:p-12 lg:p-24">
+            <main className="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 max-w-7xl mx-auto w-full">
                 <div className="w-full max-w-lg">
                     <div className="bg-surface-container-lowest shadow-[0_40px_80px_rgba(0,102,103,0.06)] rounded-xl overflow-hidden border border-outline-variant/10">
                         <div className="p-8 sm:p-12">

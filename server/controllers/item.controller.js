@@ -7,6 +7,13 @@ import asyncHandler from '../utils/asyncHandler.js';
 export const createItem = asyncHandler(async (req, res) => {
     const { title, description, price, category, condition } = req.body;
 
+    // ── Build the pickup Address from potential flat fields OR nested objects ────
+    const pickupAddress = {
+        fullAddress: req.body['pickupAddress.fullAddress'] || req.body.pickupAddress?.fullAddress,
+        city: req.body['pickupAddress.city'] || req.body.pickupAddress?.city,
+        pincode: req.body['pickupAddress.pincode'] || req.body.pickupAddress?.pincode,
+    };
+
     // (required fields, length limits, and price/enum validation are pre-checked
     // by validate(createItemRules) middleware before this controller runs)
 
@@ -27,6 +34,7 @@ export const createItem = asyncHandler(async (req, res) => {
         price: Number(price),
         category,
         condition,
+        pickupAddress,
         images: imageUrls,
         seller: req.user._id,
         status: 'available',

@@ -95,9 +95,9 @@ export default function Register() {
             <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-container/5 blur-[120px] -z-10 rounded-full" />
             <div className="fixed bottom-[-10%] right-[-10%] w-[35%] h-[35%] bg-primary/5 blur-[100px] -z-10 rounded-full" />
 
-            <main className="w-full max-w-xl">
-                <div className="bg-surface-container-lowest rounded-xl shadow-[0_20px_50px_rgba(26,128,129,0.06)] overflow-hidden">
-                    <div className="p-10 md:p-16">
+            <main className="w-full max-w-md mx-auto px-4 sm:px-6 py-8 md:py-12 flex flex-col items-center justify-center z-10 relative">
+                <div className="w-full bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden border border-outline-variant/30 flex flex-col">
+                    <div className="p-6 sm:p-8 md:p-10 w-full">
                         {/* Brand */}
                         <div className="flex flex-col items-center mb-12">
                             <Link to="/" className="mb-0">
@@ -122,7 +122,7 @@ export default function Register() {
                             {renderField('email', 'College Email', 'school', 'alex@university.edu', 'email')}
                             {renderField('phone', 'Phone Number', 'smartphone', '+1 (555) 000-0000', 'tel', true)}
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 gap-6">
                                 {renderField('password', 'Password', 'lock', '••••••••', 'password')}
                                 {renderField('confirmPassword', 'Confirm Password', 'lock_reset', '••••••••', 'password')}
                             </div>
@@ -150,7 +150,7 @@ export default function Register() {
                             {/* Submit */}
                             <div className="pt-4">
                                 <button
-                                    className="w-full py-4 bg-primary-container text-on-primary-container font-extrabold text-lg rounded-full shadow-[0_12px_30px_rgba(26,128,129,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-60 disabled:pointer-events-none"
+                                    className="w-full py-4 gradient-primary text-white font-extrabold text-lg rounded-full shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:pointer-events-none"
                                     type="submit"
                                     disabled={loading}
                                 >
@@ -183,10 +183,10 @@ export default function Register() {
                 </div>
 
                 {/* Support */}
-                <div className="mt-8 flex justify-center items-center gap-2 text-outline text-sm font-medium">
+                <div className="mt-8 flex justify-center items-center gap-2 text-outline text-sm font-medium w-full">
                     <span className="material-symbols-outlined text-sm">help_outline</span>
-                    <span>Need help with registration?</span>
-                    <span className="text-primary-container hover:underline cursor-pointer">Contact Support</span>
+                    <span>Need help?</span>
+                    <span className="text-primary hover:underline cursor-pointer font-bold">Contact Support</span>
                 </div>
             </main>
         </div>

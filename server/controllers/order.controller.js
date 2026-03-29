@@ -7,11 +7,18 @@ import asyncHandler from '../utils/asyncHandler.js';
 // ─── @route   POST /api/orders ───────────────────────────────────────────────
 // ─── @access  Private ────────────────────────────────────────────────────────
 export const createOrder = asyncHandler(async (req, res) => {
-    const { name, phone, address, paymentMethod } = req.body;
+    const { deliveryAddress, paymentMethod } = req.body;
 
     // ── Validate required fields ─────────────────────────────────────────────
-    if (!name || !phone || !address || !paymentMethod) {
-        const error = new Error('All fields are required: name, phone, address, paymentMethod');
+    if (
+        !deliveryAddress?.name ||
+        !deliveryAddress?.phone ||
+        !deliveryAddress?.fullAddress ||
+        !deliveryAddress?.city ||
+        !deliveryAddress?.pincode ||
+        !paymentMethod
+    ) {
+        const error = new Error('All fields are required: deliveryAddress (name, phone, fullAddress, city, pincode), paymentMethod');
         error.statusCode = 400;
         throw error;
     }
@@ -49,9 +56,7 @@ export const createOrder = asyncHandler(async (req, res) => {
             item: item._id,
             buyer: req.user._id,
             seller: item.seller,
-            name,
-            phone,
-            address,
+            deliveryAddress,
             paymentMethod,
             price: item.price,
             commission,
@@ -74,8 +79,15 @@ export const createOrder = asyncHandler(async (req, res) => {
         { status: 'sold' }
     );
 
-    // ── Clear the user's cart ───────────────────────────────────────────────
+    // ── Clear the user's cart AND save delivery address to profile ──────────
     user.cartItems = [];
+    user.address = {
+        fullAddress: deliveryAddress.fullAddress,
+        city:        deliveryAddress.city,
+        pincode:     deliveryAddress.pincode,
+        // preserve landmark if already set
+        landmark:    user.address?.landmark,
+    };
     await user.save();
 
     // ── Return populated orders ─────────────────────────────────────────────
@@ -89,6 +101,8 @@ export const createOrder = asyncHandler(async (req, res) => {
         message: `${orders.length} order(s) placed successfully`,
         count: orders.length,
         data: populated,
+        // Return updated address so caller can refresh AuthContext
+        savedAddress: user.address,
     });
 });
 

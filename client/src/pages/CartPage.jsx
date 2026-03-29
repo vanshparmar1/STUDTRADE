@@ -65,7 +65,7 @@ const CartPage = () => {
     <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen flex flex-col">
       <StitchNavbar activeLink="" />
 
-      <main className="flex-1 pt-28 pb-20 max-w-7xl mx-auto px-6 w-full">
+      <main className="flex-1 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <h1 className="text-3xl font-extrabold mb-8 tracking-tight text-[var(--color-on-surface)]">
           Your Shopping Cart
         </h1>
@@ -89,18 +89,18 @@ const CartPage = () => {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Cart Items */}
             <div className="lg:col-span-8 flex flex-col gap-6">
               {cart.map((entry) => (
                 <div
                   key={entry._id}
-                  className="flex flex-col sm:flex-row gap-6 p-6 bg-[var(--color-surface-container-low)] rounded-3xl items-start sm:items-center relative group transition-all hover:shadow-md border border-transparent hover:border-[var(--color-surface-container-highest)]"
+                  className="flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 sm:p-6 bg-[var(--color-surface-container-low)] rounded-3xl items-start sm:items-center relative group transition-all hover:shadow-md border border-transparent hover:border-[var(--color-surface-container-highest)]"
                 >
                   <img
                     src={entry.item.images[0]}
                     alt={entry.item.title}
-                    className="w-24 h-24 object-cover rounded-2xl bg-[var(--color-surface-container)] shrink-0 cursor-pointer"
+                    className="w-full h-48 sm:w-24 sm:h-24 object-cover object-center rounded-2xl max-w-full overflow-hidden bg-[var(--color-surface-container)] shrink-0 cursor-pointer"
                     onClick={() => navigate(`/item/${entry.item._id}`)}
                   />
                   <div className="flex-1">
@@ -118,8 +118,8 @@ const CartPage = () => {
                       {entry.item.condition}
                     </p>
                   </div>
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-4 sm:mt-0 gap-4">
-                    <div className="text-right">
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-2 sm:mt-0 gap-4">
+                    <div className="text-left sm:text-right w-full sm:w-auto flex justify-between sm:block items-center">
                       <p className="font-extrabold text-xl tracking-tight text-[var(--color-on-surface)]">
                         {formatPrice(entry.item.price * entry.quantity)}
                       </p>
@@ -131,10 +131,11 @@ const CartPage = () => {
                     </div>
                     <button
                       onClick={() => removeItem(entry.item._id)}
-                      className="text-[var(--color-error)] hover:bg-[var(--color-error)]/10 p-2 rounded-full transition-colors flex items-center justify-center shrink-0"
+                      className="text-[var(--color-error)] border border-[var(--color-error)]/20 sm:border-none bg-[var(--color-error)]/5 sm:bg-transparent hover:bg-[var(--color-error)]/10 px-4 py-2.5 sm:p-2 rounded-xl sm:rounded-full transition-colors flex items-center justify-center shrink-0 w-full sm:w-auto gap-2"
                       title="Remove from cart"
                     >
                       <span className="material-symbols-outlined">delete</span>
+                      <span className="sm:hidden font-bold text-sm">Remove Item</span>
                     </button>
                   </div>
                 </div>

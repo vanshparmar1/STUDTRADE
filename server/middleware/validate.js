@@ -34,7 +34,13 @@
 const checkField = (body, { field, label, rules }) => {
     // Guard: if body is undefined (e.g. multipart without multer running first), treat all required fields as missing
     if (!body) return rules.required ? `${label} is required` : null;
-    const raw = body[field];
+
+    // Support dot-notation for nested fields (e.g. 'pickupAddress.fullAddress')
+    // Fallback: Check if the exact key string exists directly (useful for FormData flat submissions)
+    const raw = body[field] !== undefined 
+        ? body[field] 
+        : field.split('.').reduce((obj, key) => (obj != null ? obj[key] : undefined), body);
+        
     const isEmpty = raw === undefined || raw === null || String(raw).trim() === '';
 
     // required
