@@ -92,8 +92,8 @@ export const getAllOrders = asyncHandler(async (req, res) => {
 
     const [orders, total] = await Promise.all([
         Order.find()
-            .populate('buyer', 'name email studtradeID')
-            .populate('seller', 'name email studtradeID')
+            .populate('buyer', 'name email phone studtradeID')
+            .populate('seller', 'name email phone studtradeID')
             .populate('item', 'title images price category condition')
             .sort('-createdAt')
             .skip(skip)
@@ -108,6 +108,57 @@ export const getAllOrders = asyncHandler(async (req, res) => {
         page: pageNum,
         totalPages: Math.ceil(total / perPage),
         data: orders,
+    });
+});
+
+// ─── @desc    Update order status ────────────────────────────────────────────
+// ─── @route   PATCH /api/admin/orders/:id ─────────────────────────────────────
+// ─── @access  Private/Admin+Manager ──────────────────────────────────────────
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+
+    // Allowlist — prevents operator injection and invalid values
+    const VALID_TRANSITIONS = {
+        pending:   'confirmed',
+        confirmed: 'delivered',
+    };
+    const ALLOWED_STATUSES = Object.values(VALID_TRANSITIONS);
+
+    if (!status || !ALLOWED_STATUSES.includes(status)) {
+        return res.status(400).json({
+            success: false,
+            message: `Invalid status. Allowed values: ${ALLOWED_STATUSES.join(', ')}`,
+        });
+    }
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Enforce transition chain: pending → confirmed → delivered
+    const expectedCurrent = Object.keys(VALID_TRANSITIONS).find(
+        (k) => VALID_TRANSITIONS[k] === status
+    );
+    if (order.status !== expectedCurrent) {
+        return res.status(400).json({
+            success: false,
+            message: `Cannot move to "${status}" from "${order.status}". Expected current status: "${expectedCurrent}".`,
+        });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.status(200).json({
+        success: true,
+        message: `Order status updated to "${status}"`,
+        data: {
+            _id: order._id,
+            status: order.status,
+            updatedAt: order.updatedAt,
+        },
     });
 });
 
