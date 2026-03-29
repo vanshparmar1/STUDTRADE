@@ -55,6 +55,37 @@ export const createItemRules = [
             enum: VALID_CONDITIONS,
         },
     },
+    // ── Pickup address ──────────────────────────────────────────────────────
+    {
+        field: 'pickupAddress.fullAddress',
+        label: 'Pickup address',
+        rules: {
+            required: true,
+            type: 'string',
+            min: 5,
+            max: 300,
+        },
+    },
+    {
+        field: 'pickupAddress.city',
+        label: 'Pickup city',
+        rules: { required: false, type: 'string', max: 100 },
+    },
+    {
+        field: 'pickupAddress.pincode',
+        label: 'Pickup pincode',
+        rules: {
+            required: false,
+            type: 'string',
+            pattern: /^\d{6}$/,
+            patternMessage: 'Pickup pincode must be a 6-digit number',
+        },
+    },
+    {
+        field: 'pickupAddress.landmark',
+        label: 'Pickup landmark',
+        rules: { required: false, type: 'string', max: 200 },
+    },
 ];
 
 export const reportItemRules = [

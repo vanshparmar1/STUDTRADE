@@ -97,7 +97,7 @@ export default function AdminDashboard() {
     <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen flex flex-col">
       <StitchNavbar />
 
-      <main className="flex-1 pt-28 pb-20 max-w-7xl mx-auto px-6 w-full">
+      <main className="flex-1 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight mb-2 text-[var(--color-on-surface)]">Admin Control Panel</h1>
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <p className="font-bold">{o.buyer?.name || 'Unknown'}</p>
+                            <p className="font-bold">{o.deliveryAddress?.name || o.buyer?.name || 'Unknown'}</p>
                             <p className="text-[10px] text-[var(--color-on-surface-variant)]">{o.buyer?.email}</p>
                           </td>
                           <td className="px-6 py-4">
@@ -254,9 +254,8 @@ export default function AdminDashboard() {
                     <thead>
                       <tr className="bg-[var(--color-surface-container-lowest)] text-[10px] font-bold uppercase tracking-widest text-[var(--color-on-surface-variant)] border-b border-[var(--color-outline-variant)]">
                         <th className="px-6 py-4 font-bold">Item</th>
-                        <th className="px-6 py-4 font-bold">Buyer</th>
-                        <th className="px-6 py-4 font-bold">Seller</th>
-                        <th className="px-6 py-4 font-bold max-w-[200px]">Address</th>
+                        <th className="px-6 py-4 font-bold max-w-[200px]">Buyer (Delivery)</th>
+                        <th className="px-6 py-4 font-bold max-w-[200px]">Seller (Pickup)</th>
                         <th className="px-6 py-4 font-bold">Method</th>
                         <th className="px-6 py-4 font-bold">Status</th>
                         <th className="px-6 py-4 font-bold text-right">Date</th>
@@ -276,18 +275,17 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
-                              <span className="font-bold flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">person</span>{o.buyer?.name || o.name || 'Unknown'}</span>
-                              <span className="text-[12px] text-[var(--color-on-surface-variant)] flex items-center gap-1.5 mt-0.5"><span className="material-symbols-outlined text-[12px]">call</span>{o.buyer?.phone || o.phone || 'N/A'}</span>
+                              <span className="font-bold flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">person</span>{o.deliveryAddress?.name || o.buyer?.name || 'Unknown'}</span>
+                              <span className="text-[12px] text-[var(--color-on-surface-variant)] flex items-center gap-1.5 mt-0.5"><span className="material-symbols-outlined text-[12px]">call</span>{o.deliveryAddress?.phone || o.buyer?.phone || 'N/A'}</span>
+                              <span className="text-[12px] text-[var(--color-on-surface-variant)] flex items-start gap-1.5 mt-1.5 whitespace-normal break-words max-w-[250px]"><span className="material-symbols-outlined text-[12px] mt-0.5 shrink-0">location_on</span>{o.deliveryAddress?.fullAddress ? `${o.deliveryAddress.fullAddress}${o.deliveryAddress.city ? `, ${o.deliveryAddress.city}` : ''}${o.deliveryAddress.pincode ? ` - ${o.deliveryAddress.pincode}` : ''}` : 'No address provided'}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
                               <span className="font-bold flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">storefront</span>{o.seller?.name || 'Unknown'}</span>
                               <span className="text-[12px] text-[var(--color-on-surface-variant)] flex items-center gap-1.5 mt-0.5"><span className="material-symbols-outlined text-[12px]">call</span>{o.seller?.phone || 'N/A'}</span>
+                              <span className="text-[12px] text-[var(--color-on-surface-variant)] flex items-start gap-1.5 mt-1.5 whitespace-normal break-words max-w-[250px]"><span className="material-symbols-outlined text-[12px] mt-0.5 shrink-0">inventory_2</span>{o.item?.pickupAddress?.fullAddress ? `${o.item.pickupAddress.fullAddress}${o.item.pickupAddress.city ? `, ${o.item.pickupAddress.city}` : ''}${o.item.pickupAddress.pincode ? ` - ${o.item.pickupAddress.pincode}` : ''}` : 'Pickup address not specified'}</span>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 max-w-[200px] truncate">
-                            <span className="text-[12px] text-[var(--color-on-surface-variant)]" title={o.address || 'N/A'}>{o.address || 'N/A'}</span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-bold uppercase text-[10px] tracking-widest">{o.paymentMethod || 'Unknown'}</span>
@@ -345,7 +343,7 @@ export default function AdminDashboard() {
                     {reports.map((report) => (
                         <div key={report._id} className="bg-white border border-[var(--color-surface-variant)] rounded-3xl p-6 shadow-sm hover:shadow-md transition-all">
                             <div className="flex flex-col md:flex-row gap-6">
-                                <img src={report.item?.images?.[0] || 'https://placehold.co/100x100'} alt="" className="w-full md:w-32 h-32 object-cover rounded-2xl bg-[var(--color-surface-container)] shrink-0" />
+                                <img src={report.item?.images?.[0] || 'https://placehold.co/100x100'} alt="" className="w-full md:w-32 h-32 object-cover object-center rounded-2xl max-w-full overflow-hidden bg-[var(--color-surface-container)] shrink-0" />
 
                                 <div className="flex-grow">
                                     <div className="flex justify-between items-start mb-4">

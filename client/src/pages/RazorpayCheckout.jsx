@@ -146,7 +146,7 @@ const RazorpayCheckout = () => {
         return (
             <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen">
                 <NavBar />
-                <main className="flex-1 flex flex-col items-center justify-center min-h-screen pt-24 pb-20">
+                <main className="flex-1 flex flex-col items-center justify-center min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
                     <span className="material-symbols-outlined animate-spin text-[var(--color-primary)] text-4xl mb-4">refresh</span>
                     <p className="font-semibold uppercase tracking-widest text-sm text-[var(--color-on-surface-variant)]">Initializing Payment...</p>
                 </main>
@@ -158,7 +158,7 @@ const RazorpayCheckout = () => {
         return (
             <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen">
                 <NavBar />
-                <main className="flex-1 flex flex-col items-center justify-center min-h-screen pt-24 pb-20 px-6 text-center">
+                <main className="flex-1 flex flex-col items-center justify-center min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full text-center">
                     <span className="material-symbols-outlined text-6xl text-[var(--color-error)] mb-4">error_outline</span>
                     <h2 className="text-2xl font-bold mb-4">{error}</h2>
                     <button
@@ -177,7 +177,7 @@ const RazorpayCheckout = () => {
         return (
             <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen">
                 <NavBar />
-                <main className="flex-1 flex flex-col items-center justify-center min-h-screen pt-24 pb-20 px-6 text-center">
+                <main className="flex-1 flex flex-col items-center justify-center min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full text-center">
                     <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6">
                         <span className="material-symbols-outlined text-green-600 text-6xl">check_circle</span>
                     </div>
@@ -198,13 +198,13 @@ const RazorpayCheckout = () => {
         <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen">
             <NavBar />
             
-            <main className="pt-24 pb-20 px-6 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start justify-center">
+            <main className="pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start justify-center">
                     
                     {/* Left: Product Info Hero */}
                     <div className="lg:col-span-6 lg:col-start-1 space-y-10">
                         <div className="relative rounded-3xl overflow-hidden h-64 shadow-lg border border-[var(--color-surface-container)]">
-                            <img src={itemData?.images?.[0] || HERO_BG} alt={itemData?.title} className="w-full h-full object-cover" />
+                            <img src={itemData?.images?.[0] || HERO_BG} alt={itemData?.title} className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-3xl" />
                             <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-inverse-surface)]/80 to-transparent flex flex-col justify-end p-8">
                                 <span className="text-xs font-bold uppercase tracking-widest text-[var(--color-primary)] mb-2">Item Details</span>
                                 <h1 className="text-3xl font-extrabold text-white tracking-tight leading-tight">{itemData?.title}</h1>

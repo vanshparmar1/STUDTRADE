@@ -94,7 +94,7 @@ export const getAllOrders = asyncHandler(async (req, res) => {
         Order.find()
             .populate('buyer', 'name email phone studtradeID')
             .populate('seller', 'name email phone studtradeID')
-            .populate('item', 'title images price category condition')
+            .populate('item', 'title images price category condition pickupAddress')
             .sort('-createdAt')
             .skip(skip)
             .limit(perPage),

@@ -57,7 +57,7 @@ const ProductDetailPage = () => {
     return (
       <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen flex flex-col">
         <StitchNavbar activeLink="Shop" />
-        <main className="flex-1 flex items-center justify-center pt-28 pb-20">
+        <main className="flex-1 flex items-center justify-center pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
           <div className="flex flex-col items-center gap-4 text-[var(--color-on-surface-variant)]">
             <span className="material-symbols-outlined text-4xl animate-spin text-[var(--color-primary)]">refresh</span>
             <p className="font-semibold uppercase tracking-widest text-sm">Loading details...</p>
@@ -72,13 +72,13 @@ const ProductDetailPage = () => {
     return (
       <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen flex flex-col">
         <StitchNavbar activeLink="Shop" />
-        <main className="flex-1 flex items-center justify-center pt-28 pb-20">
+        <main className="flex-1 flex items-center justify-center pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
           <div className="text-center">
             <span className="material-symbols-outlined text-6xl text-[var(--color-error)] mb-4">error_outline</span>
             <h2 className="text-2xl font-bold mb-4">{error || 'Item not found'}</h2>
             <button
               onClick={() => navigate('/marketplace')}
-              className="px-6 py-2 bg-[var(--color-primary)] text-white font-bold rounded-full hover:bg-[var(--color-primary)]/90"
+              className="px-6 py-2.5 bg-[var(--color-primary)] text-white font-bold rounded-full hover:opacity-90 hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
             >
               Back to Marketplace
             </button>
@@ -98,15 +98,15 @@ const ProductDetailPage = () => {
     <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen flex flex-col">
       <StitchNavbar activeLink="Shop" />
 
-      <main className="flex-1 pt-28 pb-20 max-w-7xl mx-auto px-6 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <main className="flex-1 pt-28 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Gallery */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             <div className="aspect-[4/5] bg-[var(--color-surface-container-low)] rounded-3xl overflow-hidden relative group">
               <img
                 src={mainImage}
                 alt={item.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit] group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute top-6 right-6">
                 <span className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full font-bold text-[var(--color-on-surface)] shadow-sm text-sm flex items-center gap-2">
@@ -118,16 +118,18 @@ const ProductDetailPage = () => {
             
             {/* Thumbnails (only show if more than 1 image) */}
             {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 gap-3 sm:gap-4 mt-4 lg:mt-0">
                 {images.map((src, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveThumb(i)}
-                    className={`aspect-square rounded-2xl overflow-hidden transition-all ${
-                      activeThumb === i ? 'ring-2 ring-[var(--color-primary)] opacity-100' : 'opacity-60 hover:opacity-100'
+                  className={`aspect-square rounded-2xl overflow-hidden transition-all duration-200 ${
+                      activeThumb === i
+                        ? 'ring-2 ring-[var(--color-primary)] opacity-100 shadow-md'
+                        : 'opacity-60 hover:opacity-100 hover:ring-1 hover:ring-[var(--color-outline-variant)] hover:shadow-sm'
                     } bg-[var(--color-surface-container-low)]`}
                   >
-                    <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                    <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit]" />
                   </button>
                 ))}
               </div>
@@ -172,7 +174,7 @@ const ProductDetailPage = () => {
             <div className="flex flex-col gap-4 pt-4">
               <button
                 onClick={() => navigate('/checkout/' + item._id)}
-                className="bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold py-4 rounded-2xl text-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                className="bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold py-4 rounded-2xl text-lg shadow-md hover:shadow-xl hover:-translate-y-1 active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2"
               >
                 Buy Now
                 <span className="material-symbols-outlined">shopping_bag</span>
@@ -181,7 +183,7 @@ const ProductDetailPage = () => {
                 <button
                   onClick={handleAddToCart}
                   disabled={addingToCart}
-                  className="flex-1 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[var(--color-surface-container-highest)] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="flex-1 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[var(--color-surface-container-highest)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {addingToCart ? (
                     <span className="material-symbols-outlined animate-spin text-[var(--color-outline)]">refresh</span>
@@ -195,7 +197,7 @@ const ProductDetailPage = () => {
                     navigator.clipboard.writeText(window.location.href);
                     alert('Link copied to clipboard!');
                   }}
-                  className="w-16 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] py-4 rounded-2xl flex items-center justify-center hover:bg-[var(--color-surface-container-highest)] transition-colors"
+                  className="w-16 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] py-4 rounded-2xl flex items-center justify-center hover:bg-[var(--color-surface-container-highest)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
                   title="Share Item"
                 >
                   <span className="material-symbols-outlined">share</span>

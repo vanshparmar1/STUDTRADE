@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import API from '../api/axios';
 import toast from 'react-hot-toast';
 
@@ -27,8 +28,16 @@ const InputField = ({ label, ...props }) => (
 
 const BuyPage = () => {
   const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
+  
   const [payMethod, setPayMethod] = useState('COD');
-  const [form, setForm] = useState({ name: '', phone: '', address: '' });
+  const [form, setForm] = useState({ 
+    name: user?.name || '', 
+    phone: user?.phone || '', 
+    fullAddress: user?.address?.fullAddress || '',
+    city: user?.address?.city || '',
+    pincode: user?.address?.pincode || '',
+  });
 
   // ── Cart data ────────────────────────────────────────────────────────────────
   const [cart, setCart] = useState([]);
@@ -66,12 +75,20 @@ const BuyPage = () => {
     try {
       setSubmitting(true);
       const { data } = await API.post('/orders', {
-        name: form.name,
-        phone: form.phone,
-        address: form.address,
+        deliveryAddress: {
+          name: form.name,
+          phone: form.phone,
+          fullAddress: form.fullAddress,
+          city: form.city,
+          pincode: form.pincode,
+        },
         paymentMethod: payMethod,
       });
       if (data.success) {
+        // ── Persist delivery address to profile for autofill next time ──────
+        if (data.savedAddress) {
+          updateUser({ address: data.savedAddress });
+        }
         toast.success(`${data.count} order(s) placed!`);
         navigate('/success');
       }
@@ -104,41 +121,47 @@ const BuyPage = () => {
         </div>
       </nav>
 
-      <main className="pt-24 pb-20 px-6 max-w-7xl mx-auto">
+      <main className="pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Left: Forms */}
             <div className="lg:col-span-7 space-y-10">
               {/* Hero banner */}
               <div className="relative rounded-3xl overflow-hidden h-48">
-                <img src={HERO_BG} alt="Checkout" className="w-full h-full object-cover" />
+                <img src={HERO_BG} alt="Checkout" className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-3xl" />
                 <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-inverse-surface)]/60 to-transparent flex items-center px-10">
                   <h1 className="text-4xl font-extrabold text-white tracking-tight">Finalize Order</h1>
                 </div>
               </div>
 
               {/* Delivery */}
-              <section className="bg-white p-8 rounded-3xl" style={{ boxShadow: '0px 12px 32px rgba(26,128,129,0.05)' }}>
-                <div className="flex items-center gap-3 mb-8">
+              <section className="bg-white p-5 sm:p-8 rounded-3xl" style={{ boxShadow: '0px 12px 32px rgba(26,128,129,0.05)' }}>
+                <div className="flex items-center gap-3 mb-6 sm:mb-8">
                   <span className="material-symbols-outlined text-[var(--color-primary)]">local_shipping</span>
                   <h2 className="text-xl font-bold tracking-tight">Delivery Details</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="md:col-span-1">
                     <InputField label="Full Name" name="name" value={form.name} onChange={handleChange} placeholder="Alex Student" type="text" />
                   </div>
-                  <div className="md:col-span-2">
-                    <InputField label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="9876543210" type="tel" />
+                  <div className="md:col-span-1">
+                    <InputField label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="9876543210" type="tel" pattern="[6-9][0-9]{9}" title="Valid 10-digit Indian mobile number" />
                   </div>
                   <div className="md:col-span-2">
-                    <InputField label="Campus Address / Hostel Room" name="address" value={form.address} onChange={handleChange} placeholder="Hostel D, Room 214, IIIT Bhopal" type="text" />
+                    <InputField label="Campus Address / Hostel Room" name="fullAddress" value={form.fullAddress} onChange={handleChange} placeholder="Hostel D, Room 214, Campus" type="text" />
+                  </div>
+                  <div className="md:col-span-1">
+                    <InputField label="City" name="city" value={form.city} onChange={handleChange} placeholder="Hostel City / Campus Town" type="text" />
+                  </div>
+                  <div className="md:col-span-1">
+                    <InputField label="Pincode" name="pincode" value={form.pincode} onChange={handleChange} placeholder="395007" type="text" pattern="\d{6}" title="6-digit pincode" />
                   </div>
                 </div>
               </section>
 
               {/* Payment */}
-              <section className="bg-white p-8 rounded-3xl" style={{ boxShadow: '0px 12px 32px rgba(26,128,129,0.05)' }}>
-                <div className="flex items-center gap-3 mb-8">
+              <section className="bg-white p-5 sm:p-8 rounded-3xl" style={{ boxShadow: '0px 12px 32px rgba(26,128,129,0.05)' }}>
+                <div className="flex items-center gap-3 mb-6 sm:mb-8">
                   <span className="material-symbols-outlined text-[var(--color-primary)]">payments</span>
                   <h2 className="text-xl font-bold tracking-tight">Payment Method</h2>
                 </div>
@@ -165,8 +188,8 @@ const BuyPage = () => {
             {/* Right: Order summary */}
             <div className="lg:col-span-5 lg:sticky lg:top-24">
               <aside className="bg-white rounded-3xl overflow-hidden" style={{ boxShadow: '0px 12px 32px rgba(26,128,129,0.05)' }}>
-                <div className="p-8">
-                  <h2 className="text-xl font-bold tracking-tight mb-6">Order Summary</h2>
+                <div className="p-5 sm:p-8">
+                  <h2 className="text-xl font-bold tracking-tight mb-4 sm:mb-6">Order Summary</h2>
 
                   {/* Cart items list */}
                   {cartLoading ? (
@@ -214,32 +237,34 @@ const BuyPage = () => {
                   </div>
 
                   {/* Submit */}
-                  <button
-                    type="submit"
-                    disabled={submitting || cartLoading || cart.length === 0}
-                    className="w-full mt-8 py-5 gradient-primary text-white rounded-full font-bold text-lg tracking-tight shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-3"
-                  >
-                    {submitting ? (
-                      <>
-                        <span className="material-symbols-outlined animate-spin text-2xl">refresh</span>
-                        Placing Order…
-                      </>
-                    ) : (
-                      <>
-                        Complete Purchase
-                        <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-                      </>
-                    )}
-                  </button>
-                  <p className="mt-4 text-center text-[10px] text-[var(--color-on-surface-variant)] leading-relaxed px-4">
-                    By clicking "Complete Purchase", you agree to our{' '}
-                    <a href="#" className="underline hover:text-[var(--color-primary)]">Terms of Service</a> and{' '}
-                    <a href="#" className="underline hover:text-[var(--color-primary)]">Privacy Policy</a>.
-                  </p>
+                  <div className="fixed sm:static bottom-0 left-0 w-full p-4 sm:p-0 bg-white sm:bg-transparent border-t sm:border-none border-[var(--color-surface-container)] z-40">
+                    <button
+                      type="submit"
+                      disabled={submitting || cartLoading || cart.length === 0}
+                      className="w-full sm:mt-8 py-4 sm:py-5 gradient-primary text-white rounded-full font-bold text-lg tracking-tight shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 flex items-center justify-center gap-3"
+                    >
+                      {submitting ? (
+                        <>
+                          <span className="material-symbols-outlined animate-spin text-2xl">refresh</span>
+                          Placing Order…
+                        </>
+                      ) : (
+                        <>
+                          Complete Purchase
+                          <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                        </>
+                      )}
+                    </button>
+                    <p className="hidden sm:block mt-4 text-center text-[10px] text-[var(--color-on-surface-variant)] leading-relaxed px-4">
+                      By clicking "Complete Purchase", you agree to our{' '}
+                      <a href="#" className="underline hover:text-[var(--color-primary)]">Terms of Service</a> and{' '}
+                      <a href="#" className="underline hover:text-[var(--color-primary)]">Privacy Policy</a>.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Trust bar */}
-                <div className="bg-[var(--color-surface-container-low)] px-8 py-5 flex justify-between items-center">
+                <div className="bg-[var(--color-surface-container-low)] px-5 sm:px-8 py-5 flex justify-between items-center mb-16 sm:mb-0">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[var(--color-primary)] text-sm">verified_user</span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-primary)]">Verified Student Deal</span>

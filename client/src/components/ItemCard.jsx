@@ -64,7 +64,7 @@ function LazyImage({ src, alt, className = '' }) {
                         decoding="async"        // offload decode to a background thread
                         onLoad={() => setLoaded(true)}
                         onError={() => { setLoaded(true); setErrored(true); }}
-                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'} ${className}`}
+                        className={`absolute inset-0 w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit] transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'} ${className}`}
                     />
                 )
             )}

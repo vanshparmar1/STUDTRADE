@@ -5,7 +5,7 @@ const LOGO = '/logo.png';
 
 const StitchFooter = () => (
   <footer className="bg-[var(--color-surface-container-low)] border-t border-[var(--color-surface-variant)]">
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-8 px-8 py-12 max-w-7xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8 px-8 py-12 max-w-7xl mx-auto">
       {/* Brand */}
       <div className="md:col-span-1">
         <Link to="/">
