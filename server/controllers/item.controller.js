@@ -167,8 +167,11 @@ export const updateItem = asyncHandler(async (req, res) => {
         });
     }
 
-    // Make sure user is item owner or admin
-    if (item.seller.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Make sure user is item owner, admin, or manager
+    if (
+        item.seller.toString() !== req.user._id.toString() &&
+        !['admin', 'manager'].includes(req.user.role)
+    ) {
         return res.status(403).json({
             success: false,
             message: 'Not authorized to update this item',

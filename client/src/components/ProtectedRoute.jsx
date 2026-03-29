@@ -21,8 +21,11 @@ export default function ProtectedRoute({ children, requiredRole }) {
     }
 
     // Role check (optional) — redirect home with a 403-style state
-    if (requiredRole && user?.role !== requiredRole) {
-        return <Navigate to="/" state={{ unauthorized: true }} replace />;
+    if (requiredRole) {
+        const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+        if (!roles.includes(user?.role)) {
+            return <Navigate to="/" state={{ unauthorized: true }} replace />;
+        }
     }
 
     return children;
