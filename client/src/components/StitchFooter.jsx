@@ -30,8 +30,14 @@ const StitchFooter = () => (
       <div>
         <h5 className="text-xs font-bold uppercase tracking-widest text-[var(--color-on-surface)] mb-6">Resources</h5>
         <ul className="space-y-3 text-sm text-[var(--color-on-surface-variant)] font-medium">
-          {[['Help', '#'], ['Careers', '#'], ['Community', '#'], ['Blog', '#']].map(([label, href]) => (
-            <li key={label}><a href={href} className="hover:text-[var(--color-primary)] transition-colors">{label}</a></li>
+          {[['Help', '/terms#help'], ['Careers', '#'], ['Community', '#'], ['Blog', '#']].map(([label, href]) => (
+            <li key={label}>
+              {href.startsWith('/') ? (
+                <Link to={href} className="hover:text-[var(--color-primary)] transition-colors">{label}</Link>
+              ) : (
+                <a href={href} className="hover:text-[var(--color-primary)] transition-colors">{label}</a>
+              )}
+            </li>
           ))}
         </ul>
       </div>
@@ -40,8 +46,8 @@ const StitchFooter = () => (
       <div>
         <h5 className="text-xs font-bold uppercase tracking-widest text-[var(--color-on-surface)] mb-6">Legal</h5>
         <ul className="space-y-3 text-sm text-[var(--color-on-surface-variant)] font-medium">
-          {[['Terms', '#'], ['Privacy', '#'], ['Cookies', '#']].map(([label, href]) => (
-            <li key={label}><a href={href} className="hover:text-[var(--color-primary)] transition-colors">{label}</a></li>
+          {[['Terms', '/terms'], ['Privacy', '/terms'], ['Cookies', '/terms']].map(([label, href]) => (
+            <li key={label}><Link to={href} className="hover:text-[var(--color-primary)] transition-colors">{label}</Link></li>
           ))}
         </ul>
       </div>
