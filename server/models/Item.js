@@ -62,6 +62,36 @@ const itemSchema = new mongoose.Schema(
             index: true,
         },
 
+        // ── Pickup location (seller's address for logistics) ────────────────
+        pickupAddress: {
+            fullAddress: {
+                type: String,
+                required: [true, 'Pickup full address is required'],
+                trim: true,
+                maxlength: [300, 'Full address cannot exceed 300 characters'],
+            },
+            city: {
+                type: String,
+                trim: true,
+                maxlength: [100, 'City cannot exceed 100 characters'],
+            },
+            pincode: {
+                type: String,
+                trim: true,
+                validate: {
+                    validator(v) {
+                        return !v || /^\d{6}$/.test(v);
+                    },
+                    message: 'Pincode must be a 6-digit number',
+                },
+            },
+            landmark: {
+                type: String,
+                trim: true,
+                maxlength: [200, 'Landmark cannot exceed 200 characters'],
+            },
+        },
+
         // ── Lifecycle & Analytics ──────────────────────────────────────────
         status: {
             type: String,

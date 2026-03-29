@@ -63,30 +63,30 @@ const LandingPage = () => {
 
       <main className="pt-20">
         {/* ── Hero ── */}
-        <section className="max-w-7xl mx-auto px-6 py-12 md:py-24">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 md:py-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-center text-center md:text-left">
+            <div className="space-y-6 md:space-y-8 flex flex-col items-center md:items-start">
               <span className="text-xs text-[var(--color-primary)] font-bold uppercase tracking-widest">
                 The Digital Sanctuary for Students
               </span>
-              <h1 className="text-5xl md:text-7xl font-extrabold text-[var(--color-on-surface)] leading-[1.1] tracking-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-[var(--color-on-surface)] leading-[1.15] md:leading-[1.1] tracking-tight">
                 Trade Smarter,{' '}
                 <br />
                 <span className="text-[var(--color-primary)]">Live Better.</span>
               </h1>
-              <p className="text-lg text-[var(--color-on-surface-variant)] max-w-md leading-relaxed">
+              <p className="text-base md:text-lg text-[var(--color-on-surface-variant)] max-w-md leading-relaxed mx-auto md:mx-0">
                 Join the curated marketplace built for university life. Buy, sell, and swap items within your trusted student community.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 pt-2 md:pt-4 w-full sm:w-auto">
                 <button
                   onClick={() => navigate('/register')}
-                  className="gradient-primary text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-lg active:scale-95 transition-all"
+                  className="gradient-primary text-white px-8 py-4 rounded-full font-bold text-lg hover:opacity-90 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 w-full sm:w-auto self-center flex items-center justify-center"
                 >
                   Start Trading
                 </button>
                 <button
                   onClick={() => navigate('/marketplace')}
-                  className="bg-[var(--color-surface-container-high)] text-[var(--color-primary)] px-8 py-4 rounded-full font-bold text-lg hover:bg-[var(--color-surface-container-highest)] transition-all"
+                  className="bg-[var(--color-surface-container-high)] text-[var(--color-primary)] px-8 py-4 rounded-full font-bold text-lg hover:bg-[var(--color-surface-container-highest)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 w-full sm:w-auto self-center flex items-center justify-center"
                 >
                   Explore Catalog
                 </button>
@@ -99,7 +99,7 @@ const LandingPage = () => {
               <img
                 src={HERO_IMG}
                 alt="STUDTRADE student trading app"
-                className="relative z-10 w-full rounded-3xl object-cover aspect-[4/3]"
+                className="relative z-10 w-full rounded-3xl object-cover object-center aspect-[4/3] overflow-hidden max-w-full"
                 style={{ boxShadow: '0px 20px 40px rgba(26,28,28,0.04)' }}
               />
             </div>
@@ -107,8 +107,8 @@ const LandingPage = () => {
         </section>
 
         {/* ── Categories ── */}
-        <section className="bg-[var(--color-surface-container-low)] py-20 px-6">
-          <div className="max-w-7xl mx-auto">
+        <section className="bg-[var(--color-surface-container-low)] py-12 md:py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="flex justify-between items-end mb-12">
               <div>
                 <span className="text-xs uppercase tracking-widest text-[var(--color-on-surface-variant)] font-semibold">Browse by</span>
@@ -118,12 +118,12 @@ const LandingPage = () => {
                 View All <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {CATEGORIES.map(({ icon, label, count, bg, color }) => (
                 <button
                   key={label}
                   onClick={() => navigate('/marketplace')}
-                  className="bg-white p-8 rounded-3xl hover:-translate-y-2 transition-transform cursor-pointer flex flex-col items-center text-center"
+                  className="bg-white p-6 md:p-8 rounded-3xl hover:-translate-y-2 hover:shadow-xl active:scale-[0.98] transition-all duration-200 cursor-pointer flex flex-col items-center text-center"
                   style={{ boxShadow: '0px 20px 40px rgba(26,28,28,0.04)' }}
                 >
                   <div className={`w-16 h-16 ${bg} rounded-full flex items-center justify-center mb-4`}>
@@ -139,22 +139,22 @@ const LandingPage = () => {
 
         {/* ── Sponsored Ads ── */}
         {ads.length > 0 && (
-          <section className="max-w-7xl mx-auto px-6 py-10">
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 md:py-12">
             <div className="flex items-center gap-3 mb-6">
               <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-on-surface-variant)]">Sponsored Offers</span>
               <div className="h-px flex-1 bg-[var(--color-surface-container)]" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {ads.map((ad) => (
                 <a 
                   key={ad._id} 
                   href={ad.link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="block relative rounded-3xl overflow-hidden group shadow-sm hover:shadow-xl transition-all aspect-[21/9] md:aspect-[16/9]"
+                  className="block relative rounded-3xl overflow-hidden group shadow-sm hover:shadow-xl transition-all aspect-[4/3] sm:aspect-[21/9] md:aspect-[16/9]"
                   style={{ boxShadow: '0px 12px 32px rgba(26,128,129,0.05)' }}
                 >
-                  <img src={ad.image} alt={ad.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-[var(--color-surface-container)]" />
+                  <img src={ad.image} alt={ad.title} className="w-full h-full object-cover object-center rounded-3xl max-w-full overflow-hidden group-hover:scale-105 transition-transform duration-500 bg-[var(--color-surface-container)]" />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 pt-16">
                     <div className="inline-block bg-[var(--color-primary)] text-white text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded flex items-center gap-1 w-max mb-2">
                        Ad <span className="material-symbols-outlined text-[10px]">open_in_new</span>
@@ -168,12 +168,12 @@ const LandingPage = () => {
         )}
 
         {/* ── Featured ── */}
-        <section className="max-w-7xl mx-auto px-6 py-24">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12 md:py-20">
           <div className="flex items-center gap-4 mb-12">
             <h2 className="text-3xl font-bold text-[var(--color-on-surface)]">Featured Opportunities</h2>
             <div className="h-px flex-1 bg-[var(--color-surface-container)]" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {FEATURED.map(({ badge, price, title, desc, btnLabel, img }) => (
               <div
                 key={title}
@@ -187,7 +187,7 @@ const LandingPage = () => {
                   <div className="absolute top-4 right-4 z-10 bg-white/70 backdrop-blur-md text-[var(--color-on-surface)] text-sm font-bold px-3 py-1 rounded-full">
                     {price}
                   </div>
-                  <img src={img} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={img} alt={title} className="w-full h-full object-cover object-center rounded-t-3xl max-w-full overflow-hidden group-hover:scale-105 transition-transform duration-500" />
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-2">
@@ -198,7 +198,7 @@ const LandingPage = () => {
                   <p className="text-[var(--color-on-surface-variant)] text-sm mb-4">{desc}</p>
                   <button
                     onClick={() => navigate('/item/1')}
-                    className="w-full py-3 rounded-full text-sm font-bold border border-[var(--color-outline)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] transition-all"
+                    className="w-full py-3 rounded-full text-sm font-bold border border-[var(--color-outline)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] transition-all duration-200"
                   >
                     {btnLabel}
                   </button>
@@ -209,9 +209,9 @@ const LandingPage = () => {
         </section>
 
         {/* ── CTA Banner ── */}
-        <section className="max-w-7xl mx-auto px-6 mb-24">
-          <div className="gradient-primary p-12 md:p-20 rounded-3xl flex flex-col items-center text-center space-y-8">
-            <h2 className="text-3xl md:text-5xl font-extrabold text-white max-w-2xl leading-tight">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mb-12 md:mb-24">
+          <div className="gradient-primary p-8 sm:p-12 md:p-20 rounded-3xl flex flex-col items-center text-center space-y-6 md:space-y-8">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white max-w-2xl leading-tight">
               Ready to declutter your dorm and fill your wallet?
             </h2>
             <p className="text-white/80 max-w-md font-medium">

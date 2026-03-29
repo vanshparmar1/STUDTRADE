@@ -25,31 +25,48 @@ const orderSchema = new mongoose.Schema(
             index: true,
         },
 
-        // ── Buyer contact details (snapshot at order time)
-        name: {
-            type: String,
-            required: [true, 'Name is required'],
-            trim: true,
-            maxlength: [100, 'Name cannot exceed 100 characters'],
-        },
-
-        phone: {
-            type: String,
-            required: [true, 'Phone number is required'],
-            trim: true,
-            validate: {
-                validator(v) {
-                    return /^[6-9]\d{9}$/.test(v);
-                },
-                message: 'Please provide a valid 10-digit Indian mobile number',
+        // ── Delivery address (snapshot at order time — immutable)
+        deliveryAddress: {
+            name: {
+                type: String,
+                required: [true, 'Recipient name is required'],
+                trim: true,
+                maxlength: [100, 'Name cannot exceed 100 characters'],
             },
-        },
-
-        address: {
-            type: String,
-            required: [true, 'Address is required'],
-            trim: true,
-            maxlength: [500, 'Address cannot exceed 500 characters'],
+            phone: {
+                type: String,
+                required: [true, 'Phone number is required'],
+                trim: true,
+                validate: {
+                    validator(v) {
+                        return /^[6-9]\d{9}$/.test(v);
+                    },
+                    message: 'Please provide a valid 10-digit Indian mobile number',
+                },
+            },
+            fullAddress: {
+                type: String,
+                required: [true, 'Full address is required'],
+                trim: true,
+                maxlength: [500, 'Address cannot exceed 500 characters'],
+            },
+            city: {
+                type: String,
+                required: [true, 'City is required'],
+                trim: true,
+                maxlength: [100, 'City cannot exceed 100 characters'],
+            },
+            pincode: {
+                type: String,
+                required: [true, 'Pincode is required'],
+                trim: true,
+                validate: {
+                    validator(v) {
+                        return /^\d{6}$/.test(v);
+                    },
+                    message: 'Pincode must be a 6-digit number',
+                },
+            },
         },
 
         // ── Payment

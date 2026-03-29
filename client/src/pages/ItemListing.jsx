@@ -9,7 +9,7 @@ const CATEGORIES = ['Books', 'Cycles', 'Tech', 'Furniture', 'Other'];
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair'];
 
 export default function ItemListing() {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -18,6 +18,9 @@ export default function ItemListing() {
         price: '',
         category: '',
         condition: '',
+        'pickupAddress.fullAddress': user?.address?.fullAddress || '',
+        'pickupAddress.city': user?.address?.city || '',
+        'pickupAddress.pincode': user?.address?.pincode || '',
     });
 
     const [images, setImages] = useState([]);
@@ -72,7 +75,7 @@ export default function ItemListing() {
         <div className="bg-background text-on-surface min-h-screen flex flex-col">
             <StitchNavbar />
 
-            <main className="pt-32 pb-24 px-6 md:px-12 lg:px-24 max-w-[1440px] mx-auto flex-grow w-full">
+            <main className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-grow w-full">
                 {/* Header */}
                 <header className="mb-16">
                     <h1 className="text-5xl font-extrabold tracking-tighter text-primary mb-4 leading-tight">List an Item</h1>
@@ -88,7 +91,7 @@ export default function ItemListing() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
                     {/* ── Left Column: Form ── */}
                     <form onSubmit={handleSubmit} className="lg:col-span-8 space-y-12">
                         {/* Image upload */}
@@ -109,7 +112,7 @@ export default function ItemListing() {
                                 {/* Previews */}
                                 {previews.map((src, i) => (
                                     <div key={i} className="aspect-square rounded-lg overflow-hidden relative group">
-                                        <img src={src} alt="" className="w-full h-full object-cover" />
+                                        <img src={src} alt="" className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit]" />
                                         <button
                                             type="button"
                                             onClick={() => removeImage(i)}
@@ -128,7 +131,7 @@ export default function ItemListing() {
 
                         {/* Listing details */}
                         <section className="bg-surface-container-lowest p-10 rounded-xl shadow-[0_40px_80px_rgba(0,102,103,0.03)] space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Item Title</label>
                                     <input
@@ -204,6 +207,55 @@ export default function ItemListing() {
                                     value={formData.description}
                                     onChange={handleChange}
                                 />
+                            </div>
+                        </section>
+
+                        {/* ── Pickup Address Section ── */}
+                        <section className="bg-surface-container-lowest p-10 rounded-xl shadow-[0_40px_80px_rgba(0,102,103,0.03)] space-y-8">
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className="material-symbols-outlined text-primary text-[28px]">location_on</span>
+                                <h3 className="text-xl font-bold text-on-surface tracking-tight">Pickup Location</h3>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Campus Address / Hostel Room</label>
+                                    <input
+                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60"
+                                        name="pickupAddress.fullAddress"
+                                        placeholder="e.g. Hostel D, Room 214"
+                                        type="text"
+                                        required
+                                        value={formData['pickupAddress.fullAddress']}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">City</label>
+                                    <input
+                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface"
+                                        name="pickupAddress.city"
+                                        placeholder="City"
+                                        type="text"
+                                        required
+                                        value={formData['pickupAddress.city']}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Pincode</label>
+                                    <input
+                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface"
+                                        name="pickupAddress.pincode"
+                                        placeholder="Pincode (e.g. 395007)"
+                                        type="text"
+                                        pattern="\d{6}"
+                                        title="6-digit pincode"
+                                        required
+                                        value={formData['pickupAddress.pincode']}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
                         </section>
 

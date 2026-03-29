@@ -37,6 +37,7 @@ const MarketplaceGrid = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const q = searchParams.get('q') || '';
 
@@ -83,13 +84,66 @@ const MarketplaceGrid = () => {
 
   const formatPrice = (price) => `₹${price.toLocaleString('en-IN')}`;
 
+  const renderFilters = () => (
+    <div className="space-y-8">
+      {/* Category */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-outline)] mb-4 px-2">Category</h3>
+        <ul className="space-y-1">
+          {CATEGORIES_FILTER.map((cat, i) => (
+            <li key={cat}>
+              <button
+                onClick={() => { setActiveCategory(cat); setIsMobileFilterOpen(false); }}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl w-full text-sm transition-all duration-200 ${
+                  activeCategory === cat
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-semibold shadow-sm'
+                    : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] hover:text-[var(--color-on-surface)] active:scale-[0.97]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">{ICONS[i]}</span>
+                {cat}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Condition */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-outline)] mb-4 px-2">Condition</h3>
+        <div className="space-y-2 px-2">
+          {CONDITIONS.map((c) => (
+            <label key={c} className="flex items-center gap-3 text-sm text-[var(--color-on-surface-variant)] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={conditions.includes(c)}
+                onChange={() => toggleCondition(c)}
+                className="rounded border-[var(--color-outline-variant)] accent-[var(--color-primary)]"
+              />
+              {c}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="pt-6 border-t border-[var(--color-surface-container)]">
+        <button
+          onClick={() => { setActiveCategory('All Items'); setConditions([]); setIsMobileFilterOpen(false); }}
+          className="w-full py-3 rounded-full border border-[var(--color-outline-variant)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--color-surface-container-high)] hover:border-[var(--color-outline)] active:scale-[0.97] transition-all duration-200"
+        >
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen">
       <StitchNavbar activeLink="Explore" />
 
-      <main className="pt-24 pb-20 max-w-7xl mx-auto px-6">
+      <main className="pt-24 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         {/* Hero banner */}
-        <header className="mb-12 relative overflow-hidden rounded-3xl bg-[var(--color-surface-container-low)] p-12 flex flex-col md:flex-row items-center justify-between">
+        <header className="mb-10 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-primary-container)]/30 to-[var(--color-surface-container-low)] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="z-10 relative max-w-xl">
             <h1 className="text-5xl font-extrabold tracking-tight text-[var(--color-on-surface)] mb-4">
               The Student <span className="text-[var(--color-primary)]">Marketplace</span>
@@ -100,64 +154,36 @@ const MarketplaceGrid = () => {
           </div>
         </header>
 
-        <div className="flex flex-col md:flex-row gap-10">
-          {/* Sidebar */}
-          <aside className="w-full md:w-64 space-y-8">
-            {/* Category */}
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-outline)] mb-4 px-2">Category</h3>
-              <ul className="space-y-1">
-                {CATEGORIES_FILTER.map((cat, i) => (
-                  <li key={cat}>
-                    <button
-                      onClick={() => setActiveCategory(cat)}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-full w-full text-sm transition-all ${
-                        activeCategory === cat
-                          ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-medium'
-                          : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-sm">{ICONS[i]}</span>
-                      {cat}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Condition */}
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-outline)] mb-4 px-2">Condition</h3>
-              <div className="space-y-2 px-2">
-                {CONDITIONS.map((c) => (
-                  <label key={c} className="flex items-center gap-3 text-sm text-[var(--color-on-surface-variant)] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={conditions.includes(c)}
-                      onChange={() => toggleCondition(c)}
-                      className="rounded border-[var(--color-outline-variant)] accent-[var(--color-primary)]"
-                    />
-                    {c}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-[var(--color-surface-container)]">
-              <button
-                onClick={() => { setActiveCategory('All Items'); setConditions([]); }}
-                className="w-full py-3 rounded-full border border-[var(--color-outline-variant)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--color-surface-container-high)] transition-all"
-              >
-                Clear Filters
-              </button>
-            </div>
+        <div className="flex flex-col md:flex-row gap-10 relative">
+          {/* Desktop Sidebar */}
+          <aside className="hidden md:block w-64 flex-shrink-0">
+            {renderFilters()}
           </aside>
 
+          {/* Mobile Filter Drawer Overlay */}
+          <div className={`md:hidden fixed inset-0 z-50 transition-all duration-300 ${isMobileFilterOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsMobileFilterOpen(false)} />
+            <div className={`absolute top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-2xl p-6 overflow-y-auto transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col ${isMobileFilterOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+              <div className="flex justify-between items-center mb-8 pb-4 border-b border-[var(--color-surface-container)]">
+                <h2 className="text-xl font-extrabold">Filters</h2>
+                <button 
+                  onClick={() => setIsMobileFilterOpen(false)} 
+                  className="p-2 bg-[var(--color-surface-container-low)] rounded-full hover:bg-[var(--color-surface-container-high)] active:scale-95 transition-all text-[var(--color-on-surface-variant)]"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              <div className="flex-1">
+                {renderFilters()}
+              </div>
+            </div>
+          </div>
+
           {/* Main grid */}
-          <section className="flex-1">
+          <section className="flex-1 min-w-0">
             {/* Sort bar */}
-            <div className="flex justify-between items-center mb-8 bg-white p-4 rounded-full shadow-sm">
-              <span className="text-sm text-[var(--color-on-surface-variant)] font-medium ml-4">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8 bg-white p-4 sm:p-5 rounded-3xl shadow-sm">
+              <span className="text-sm text-[var(--color-on-surface-variant)] font-medium sm:ml-4">
                 {loading && items.length === 0 ? (
                   'Loading…'
                 ) : (
@@ -165,15 +191,27 @@ const MarketplaceGrid = () => {
                 )}
                 {q && <span className="ml-1">for "<strong>{q}</strong>"</span>}
               </span>
-              <div className="flex items-center gap-2 mr-4">
-                <span className="text-xs uppercase tracking-widest text-[var(--color-outline)] font-bold">Sort by:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-transparent border-none text-sm font-semibold focus:ring-0 cursor-pointer text-[var(--color-on-surface)]"
+              
+              <div className="flex justify-between sm:justify-end items-center gap-4 sm:mr-4 border-t sm:border-t-0 pt-4 sm:pt-0 border-[var(--color-surface-container-low)]">
+                {/* Mobile Filter Toggle Button */}
+                <button 
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="md:hidden flex items-center gap-2 bg-[var(--color-surface-container-high)] px-4 py-2 rounded-xl text-sm font-bold text-[var(--color-on-surface)] active:scale-95 transition-all"
                 >
-                  {SORT_OPTIONS.map((o) => <option key={o}>{o}</option>)}
-                </select>
+                  <span className="material-symbols-outlined text-[18px]">tune</span>
+                  <span className="hidden sm:inline">Filters</span>
+                </button>
+                
+                <div className="flex items-center gap-2 bg-[var(--color-surface-container-low)] sm:bg-transparent px-3 py-1.5 sm:px-0 sm:py-0 rounded-xl">
+                  <span className="text-xs uppercase tracking-widest text-[var(--color-outline)] font-bold">Sort by:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-transparent border-none text-sm font-semibold focus:ring-0 cursor-pointer text-[var(--color-on-surface)] pr-8 sm:pr-0"
+                  >
+                    {SORT_OPTIONS.map((o) => <option key={o}>{o}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -196,7 +234,7 @@ const MarketplaceGrid = () => {
 
             {/* Product grid */}
             {items.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {items.map((item) => (
                   <StitchProductCard
                     key={item._id}
@@ -206,6 +244,7 @@ const MarketplaceGrid = () => {
                     verified={item.seller?.verified ?? false}
                     title={item.title}
                     subtitle={`${item.category} • ${item.condition}`}
+                    sold={item.status === 'sold'}
                   />
                 ))}
               </div>
@@ -213,7 +252,7 @@ const MarketplaceGrid = () => {
 
             {/* Loading skeleton */}
             {loading && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-6">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="rounded-3xl bg-[var(--color-surface-container-low)] animate-pulse">
                     <div className="aspect-square rounded-t-3xl bg-[var(--color-surface-container)]" />
@@ -231,7 +270,7 @@ const MarketplaceGrid = () => {
               <div className="mt-16 flex flex-col items-center">
                 <button
                   onClick={handleLoadMore}
-                  className="bg-[var(--color-surface-container-high)] text-[var(--color-primary)] px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[var(--color-surface-container-highest)] transition-all mb-4"
+                  className="bg-[var(--color-surface-container-high)] text-[var(--color-primary)] px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[var(--color-surface-container-highest)] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] transition-all duration-200 mb-4"
                 >
                   Load More Items
                 </button>

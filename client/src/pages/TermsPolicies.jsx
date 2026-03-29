@@ -22,7 +22,7 @@ const TermsPolicies = () => {
     <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen">
       <StitchNavbar />
 
-      <main className="pt-24 pb-20 max-w-4xl mx-auto px-6 md:px-12">
+      <main className="pt-24 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="space-y-4 mb-12 border-b border-[var(--color-surface-variant)] pb-8">
           <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--color-on-surface)] tracking-tight">
             Terms & POLICIES
