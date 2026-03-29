@@ -51,7 +51,7 @@ function App() {
       <Route path="/checkout/:productId" element={<ProtectedRoute><RazorpayCheckout /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
       <Route path="/sell" element={<ProtectedRoute><ItemListing /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute requiredRole={['admin', 'manager']}><AdminDashboard /></ProtectedRoute>} />
 
       {/* ── Legacy UI (wrapped with old Navbar) ── */}
       <Route element={<LegacyLayout />}>

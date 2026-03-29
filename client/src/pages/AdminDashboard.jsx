@@ -24,9 +24,15 @@ export default function AdminDashboard() {
   const [reportsLoading, setReportsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
 
+  // ─── Filters ────────────────────────────────────────────────────────
+  const [orderFilter, setOrderFilter] = useState('');
+  const filteredOrders = orderFilter ? orders.filter(o => o.status === orderFilter) : orders;
+
   useEffect(() => {
     if (activeTab === 'overview') {
       fetchDashboardStats();
+      fetchOrders();
+    } else if (activeTab === 'orders') {
       fetchOrders();
     } else if (activeTab === 'reports') {
       fetchReports();
@@ -102,7 +108,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex bg-[var(--color-surface-container-low)] p-1.5 rounded-2xl w-full md:w-auto overflow-hidden">
-            {['overview', 'reports'].map((tab) => (
+            {['overview', 'orders', 'reports'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -175,7 +181,7 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody className="text-sm">
-                      {orders.map((o) => (
+                      {orders.slice(0, 5).map((o) => (
                         <tr key={o._id} className="border-b border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-low)] transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
@@ -196,6 +202,98 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase ${
+                              o.status === 'pending' ? 'bg-amber-100 text-amber-700' : 
+                              o.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' : 
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {o.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <p className="font-bold text-[var(--color-on-surface-variant)] text-xs">{formatDate(o.createdAt)}</p>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB: ORDERS ─────────────────────────────────────────────────── */}
+        {activeTab === 'orders' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Manage Orders</h2>
+              <select
+                  value={orderFilter}
+                  onChange={(e) => setOrderFilter(e.target.value)}
+                  className="bg-white border text-sm border-[var(--color-outline-variant)] rounded-xl px-4 py-2 font-bold text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)] shadow-sm transition-all"
+              >
+                  <option value="">All Orders</option>
+                  <option value="pending">Pending</option>
+                  <option value="delivered">Delivered</option>
+              </select>
+            </div>
+
+            <div className="bg-white border border-[var(--color-surface-variant)] rounded-3xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                {ordersLoading ? (
+                  <div className="flex justify-center py-20">
+                    <span className="material-symbols-outlined animate-spin text-3xl text-[var(--color-primary)]">refresh</span>
+                  </div>
+                ) : filteredOrders.length === 0 ? (
+                  <div className="text-center py-20 text-[var(--color-on-surface-variant)]">
+                    <span className="material-symbols-outlined text-4xl block opacity-30 mb-2">receipt_long</span>
+                    <p className="font-medium">No orders matched criteria.</p>
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-[var(--color-surface-container-lowest)] text-[10px] font-bold uppercase tracking-widest text-[var(--color-on-surface-variant)] border-b border-[var(--color-outline-variant)]">
+                        <th className="px-6 py-4 font-bold">Item</th>
+                        <th className="px-6 py-4 font-bold">Buyer</th>
+                        <th className="px-6 py-4 font-bold">Seller</th>
+                        <th className="px-6 py-4 font-bold max-w-[200px]">Address</th>
+                        <th className="px-6 py-4 font-bold">Method</th>
+                        <th className="px-6 py-4 font-bold">Status</th>
+                        <th className="px-6 py-4 font-bold text-right">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm">
+                      {filteredOrders.map((o) => (
+                        <tr key={o._id} className="border-b border-[var(--color-outline-variant)]/50 hover:bg-[var(--color-surface-container-low)] transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <img src={o.item?.images?.[0] || 'https://placehold.co/40x40'} className="w-10 h-10 rounded-lg object-cover border border-[var(--color-outline-variant)] shrink-0" alt="" />
+                              <div>
+                                <p className="font-bold text-[var(--color-on-surface)] truncate max-w-[150px]" title={o.item?.title || 'Unknown Item'}>{o.item?.title || 'Unknown Item'}</p>
+                                <p className="text-[10px] font-bold text-[var(--color-primary)]">{formatPrice(o.price)}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="font-bold flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">person</span>{o.buyer?.name || o.name || 'Unknown'}</span>
+                              <span className="text-[12px] text-[var(--color-on-surface-variant)] flex items-center gap-1.5 mt-0.5"><span className="material-symbols-outlined text-[12px]">call</span>{o.buyer?.phone || o.phone || 'N/A'}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="font-bold flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">storefront</span>{o.seller?.name || 'Unknown'}</span>
+                              <span className="text-[12px] text-[var(--color-on-surface-variant)] flex items-center gap-1.5 mt-0.5"><span className="material-symbols-outlined text-[12px]">call</span>{o.seller?.phone || 'N/A'}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 max-w-[200px] truncate">
+                            <span className="text-[12px] text-[var(--color-on-surface-variant)]" title={o.address || 'N/A'}>{o.address || 'N/A'}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-bold uppercase text-[10px] tracking-widest">{o.paymentMethod || 'Unknown'}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase ${
                               o.status === 'pending' ? 'bg-amber-100 text-amber-700' : 
                               o.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' : 
                               'bg-gray-100 text-gray-700'
