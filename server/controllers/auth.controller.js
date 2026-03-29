@@ -6,7 +6,11 @@ import asyncHandler from '../utils/asyncHandler.js';
 // ─── @route   POST /api/auth/register ───────────────────────────────────────
 // ─── @access  Public ────────────────────────────────────────────────────────
 export const register = asyncHandler(async (req, res) => {
-    const { name, email, password, phone } = req.body;
+    // Destructure `role` out of the body just to discard it —
+    // role is NEVER assignable from the API. It always defaults to 'user'
+    // and can only be changed directly in the database by a super-admin.
+    // eslint-disable-next-line no-unused-vars
+    const { name, email, password, phone, role: _discardedRole, ...rest } = req.body;
 
     // ── Check for duplicate email ─────────────────────────────────────────────
     // (field presence, format, and phone pattern are pre-validated by validate() middleware)
@@ -17,7 +21,7 @@ export const register = asyncHandler(async (req, res) => {
         throw error;
     }
 
-    // ── 5. Create user ───────────────────────────────────────────────────────
+    // ── Create user — role is always forced to schema default ("user") ──────
     const user = await User.create({ name, email, password, phone });
 
     // ── 6. Issue JWT ─────────────────────────────────────────────────────────
