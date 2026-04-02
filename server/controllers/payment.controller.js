@@ -41,7 +41,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     const razorpayOrder = await razorpay.orders.create({
         amount: Math.round(finalAmount * 100), // Convert ₹ → paise
         currency: 'INR',
-        receipt: `receipt_${item._id}_${Date.now()}`,
+        receipt: `rcpt_${item._id.toString().slice(-6)}_${Date.now()}`,
         notes: {
             productId: item._id.toString(),
             basePrice: basePrice.toString(),
