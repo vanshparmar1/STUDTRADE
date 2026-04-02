@@ -83,6 +83,12 @@ export const errorHandler = (err, req, res, next) => {
         ({ statusCode, message } = handleJWTExpiredError());
     }
 
+    // ── Razorpay: API Errors ──
+    else if (err.error && err.error.description) {
+        statusCode = err.statusCode || 400;
+        message = err.error.description;
+    }
+
     res.status(statusCode).json({
         success: false,
         message,
