@@ -299,14 +299,7 @@ export default function ItemListing() {
                             </ul>
                         </div>
 
-                        {/* Trust badge */}
-                        <div className="p-8 rounded-xl border border-primary-container/10 bg-surface-container-lowest flex items-start gap-5">
-                            <span className="material-symbols-outlined text-primary-container text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
-                            <div>
-                                <p className="font-bold text-primary text-sm mb-1 uppercase tracking-tight">Safe Exchange Guarantee</p>
-                                <p className="text-sm text-secondary leading-relaxed">Always meet in well-lit, campus-designated safe zones for transactions.</p>
-                            </div>
-                        </div>
+
                     </aside>
                 </div>
             </main>
