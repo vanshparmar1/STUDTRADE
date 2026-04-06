@@ -205,16 +205,7 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
-            {/* Trust badge */}
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-[var(--color-secondary-container)]/30 border border-[var(--color-secondary-container)]/50">
-              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white shrink-0">
-                <span className="material-symbols-outlined rtl:rotate-180">verified_user</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[var(--color-on-surface)] uppercase tracking-tight">Meet on Campus</p>
-                <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5 leading-relaxed">Arrange to meet in a safe, public campus location to inspect the item.</p>
-              </div>
-            </div>
+
           </div>
         </div>
       </main>
