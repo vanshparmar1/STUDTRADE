@@ -6,7 +6,6 @@ import Counter from './Counter.js';
 // ─── Schema Definition ────────────────────────────────────────────────────────
 const userSchema = new mongoose.Schema(
     {
-        // ── Identity
         name: {
             type: String,
             required: [true, 'Name is required'],
@@ -15,7 +14,6 @@ const userSchema = new mongoose.Schema(
             maxlength: [50, 'Name cannot exceed 50 characters'],
         },
 
-        // ── College email — restricted to @iiitbhopal.ac.in
         email: {
             type: String,
             required: [true, 'College email is required'],
@@ -23,20 +21,18 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             trim: true,
             index: true,
-            match: [
-                /^[a-zA-Z0-9._%+-]+@iiitbhopal\.ac\.in$/,
-                'Only @iiitbhopal.ac.in email addresses are allowed',
-            ],
+           match: [
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    'Please provide a valid email address',
+],
         },
 
-        // ── Phone — optional, Indian mobile number (10 digits, starts with 6-9)
         phone: {
             type: String,
             trim: true,
             default: null,
             validate: {
                 validator(v) {
-                    // Allow null/empty (optional field), but reject malformed values
                     if (!v) return true;
                     return /^[6-9]\d{9}$/.test(v);
                 },
@@ -44,7 +40,6 @@ const userSchema = new mongoose.Schema(
             },
         },
 
-        // ── Password — excluded from all query results by default
         password: {
             type: String,
             required: [true, 'Password is required'],
@@ -52,7 +47,6 @@ const userSchema = new mongoose.Schema(
             select: false,
         },
 
-        // ── Role-based access control
         role: {
             type: String,
             enum: {
@@ -62,7 +56,29 @@ const userSchema = new mongoose.Schema(
             default: 'user',
         },
 
-        // ── Delivery address (all fields optional — user fills at checkout)
+        isEmailVerified: {
+            type: Boolean,
+            default: false,
+        },
+
+        emailOtp: {
+            type: String,
+            default: null,
+            select: false,
+        },
+
+  emailOtpExpires: {
+    type: Date,
+    default: null,
+    select: false,
+},
+
+emailOtpAttempts: {
+    type: Number,
+    default: 0,
+    select: false,
+},
+
         address: {
             fullAddress: {
                 type: String,
@@ -90,7 +106,7 @@ const userSchema = new mongoose.Schema(
                 maxlength: [200, 'Landmark cannot exceed 200 characters'],
             },
         },
-        // ── Saved / Wishlist items
+
         savedItems: {
             type: [{
                 type: mongoose.Schema.Types.ObjectId,
@@ -99,7 +115,6 @@ const userSchema = new mongoose.Schema(
             default: [],
         },
 
-        // ── Cart items
         cartItems: {
             type: [
                 {
@@ -119,7 +134,6 @@ const userSchema = new mongoose.Schema(
             default: [],
         },
 
-        // ── Platform-specific unique identifier (auto-generated, immutable)
         studtradeID: {
             type: String,
             unique: true,
@@ -128,42 +142,8 @@ const userSchema = new mongoose.Schema(
         },
     },
     {
-        timestamps: true, // auto-manages createdAt & updatedAt
+        timestamps: true,
     }
 );
 
-// ─── Pre-save: auto-generate studtradeID on first save & hash password ────────
-userSchema.pre('save', async function () {
-    // Generate studtradeID only on document creation
-    if (this.isNew && !this.studtradeID) {
-        const counter = await Counter.findOneAndUpdate(
-            { _id: 'studtradeID' },
-            { $inc: { seq: 1 } },
-            { new: true, upsert: true }
-        );
-        // e.g. ST-0001
-        this.studtradeID = `ST-${String(counter.seq).padStart(4, '0')}`;
-    }
-
-    // Only re-hash if password field was actually modified
-    if (!this.isModified('password')) return;
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-});
-
-// ─── Instance method: compare plain-text password with stored hash ────────────
-userSchema.methods.matchPassword = async function (enteredPassword) {
-    return bcrypt.compare(enteredPassword, this.password);
-};
-
-// ─── Sanitize output: strip __v from toJSON responses ────────────────────────
-userSchema.set('toJSON', {
-    transform(_doc, ret) {
-        delete ret.__v;
-        return ret;
-    },
-});
-
-const User = mongoose.model('User', userSchema);
-
-export default User;
+export default mongoose.model("User",userSchema);

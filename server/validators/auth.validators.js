@@ -20,8 +20,8 @@ export const registerRules = [
         rules: {
             required: true,
             type: 'string',
-            pattern: /^[a-zA-Z0-9._%+-]+@iiitbhopal\.ac\.in$/,
-            patternMessage: 'Only @iiitbhopal.ac.in email addresses are allowed',
+          pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+patternMessage: 'Please provide a valid email address',
         },
     },
     {
@@ -34,7 +34,6 @@ export const registerRules = [
             max: 128,
         },
     },
-    // phone is optional — only validate format when provided
     {
         field: 'phone',
         label: 'Phone',
@@ -50,11 +49,53 @@ export const loginRules = [
     {
         field: 'email',
         label: 'Email',
-        rules: { required: true, type: 'string' },
+        rules: {
+            required: true,
+            type: 'string',
+        },
     },
     {
         field: 'password',
         label: 'Password',
-        rules: { required: true, type: 'string' },
+        rules: {
+            required: true,
+            type: 'string',
+        },
+    },
+];
+
+export const verifyEmailOtpRules = [
+    {
+        field: 'email',
+        label: 'Email',
+        rules: {
+            required: true,
+            type: 'string',
+          pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+patternMessage: 'Please provide a valid email address',
+        },
+    },
+    {
+        field: 'otp',
+        label: 'OTP',
+        rules: {
+            required: true,
+            type: 'string',
+            pattern: /^\d{6}$/,
+            patternMessage: 'OTP must be exactly 6 digits',
+        },
+    },
+];
+
+export const resendEmailOtpRules = [
+    {
+        field: 'email',
+        label: 'Email',
+        rules: {
+            required: true,
+            type: 'string',
+           pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+patternMessage: 'Please provide a valid email address',
+        },
     },
 ];
