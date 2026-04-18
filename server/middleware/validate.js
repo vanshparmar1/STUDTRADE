@@ -68,16 +68,20 @@ const checkField = (body, { field, label, rules }) => {
         }
     }
 
-    if (rules.type === 'string' || rules.type === undefined) {
-        const str = String(value);
-        // min / max for strings (lengths)
-        if (rules.min !== undefined && str.length < rules.min) {
-            return `${label} must be at least ${rules.min} characters`;
-        }
-        if (rules.max !== undefined && str.length > rules.max) {
-            return `${label} cannot exceed ${rules.max} characters`;
-        }
+   if (rules.type === 'string') {
+    if (typeof value !== 'string') {
+        return `${label} must be a string`;
     }
+
+    const str = value.trim();
+
+    if (rules.min !== undefined && str.length < rules.min) {
+        return `${label} must be at least ${rules.min} characters`;
+    }
+    if (rules.max !== undefined && str.length > rules.max) {
+        return `${label} cannot exceed ${rules.max} characters`;
+    }
+}
 
     // pattern
     if (rules.pattern && !rules.pattern.test(String(value))) {

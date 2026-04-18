@@ -1,36 +1,119 @@
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import sendOtpEmail from '../utils/sendOtpEmail.js';
 
-// ─── @desc    Register a new user ───────────────────────────────────────────
+// helper function
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+
+// ─── @desc    Register a new user and send email OTP ────────────────────────
 // ─── @route   POST /api/auth/register ───────────────────────────────────────
-// ─── @access  Public ────────────────────────────────────────────────────────
+// ─── @access  Public ─────────────────────────────────────────────────────────
 export const register = asyncHandler(async (req, res) => {
-    // Destructure `role` out of the body just to discard it —
-    // role is NEVER assignable from the API. It always defaults to 'user'
-    // and can only be changed directly in the database by a super-admin.
-    // eslint-disable-next-line no-unused-vars
     const { name, email, password, phone, role: _discardedRole, ...rest } = req.body;
 
-    // ── Check for duplicate email ─────────────────────────────────────────────
-    // (field presence, format, and phone pattern are pre-validated by validate() middleware)
     const existingUser = await User.findOne({ email: email.toLowerCase() });
+
     if (existingUser) {
         const error = new Error('An account with this email already exists');
         error.statusCode = 409;
         throw error;
     }
 
-    // ── Create user — role is always forced to schema default ("user") ──────
-    const user = await User.create({ name, email, password, phone });
+    // create user first
+    const user = await User.create({
+        name,
+        email: email.toLowerCase(),
+        password,
+        phone,
+        isEmailVerified: false,
+    });
 
-    // ── 6. Issue JWT ─────────────────────────────────────────────────────────
-    const token = generateToken(user._id);
+    // generate otp
+    const otp = generateOtp();
+    const hashedOtp = await bcrypt.hash(otp, 10);
 
-    // ── 7. Return sanitized user + token ─────────────────────────────────────
+    user.emailOtp = hashedOtp;
+    user.emailOtpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    await user.save();
+
+    // send email
+    await sendOtpEmail(user.email, otp);
+
     res.status(201).json({
         success: true,
-        message: 'Registration successful',
+        message: 'Registration successful. OTP sent to your email',
+        email: user.email,
+    });
+});
+
+
+// ─── @desc    Verify email OTP ──────────────────────────────────────────────
+// ─── @route   POST /api/auth/verify-email-otp ───────────────────────────────
+// ─── @access  Public ─────────────────────────────────────────────────────────
+export const verifyEmailOtp = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const user = await User.findOne({ email: normalizedEmail })
+        .select('+emailOtp +emailOtpExpires +emailOtpAttempts');
+
+    if (!user) {
+        const error = new Error('User not found');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (user.isEmailVerified) {
+        const error = new Error('Email is already verified');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (!user.emailOtp || !user.emailOtpExpires) {
+        const error = new Error('No OTP found. Please request a new one');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (user.emailOtpExpires < new Date()) {
+        const error = new Error('OTP has expired');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    user.emailOtpAttempts += 1;
+
+    if (user.emailOtpAttempts > 5) {
+        const error = new Error('Too many attempts. Please request a new OTP');
+        error.statusCode = 429;
+        throw error;
+    }
+
+    const isOtpValid = await bcrypt.compare(otp.trim(), user.emailOtp);
+
+    if (!isOtpValid) {
+        await user.save();
+        const error = new Error('Invalid OTP');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    user.isEmailVerified = true;
+    user.emailOtp = null;
+    user.emailOtpExpires = null;
+    user.emailOtpAttempts = 0;
+
+    await user.save();
+
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+        success: true,
+        message: 'Email verified successfully',
         token,
         user: {
             id: user._id,
@@ -44,19 +127,59 @@ export const register = asyncHandler(async (req, res) => {
     });
 });
 
+
+// ─── @desc    Resend email OTP ──────────────────────────────────────────────
+// ─── @route   POST /api/auth/resend-email-otp ───────────────────────────────
+// ─── @access  Public ─────────────────────────────────────────────────────────
+export const resendEmailOtp = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+        const error = new Error('User not found');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (user.isEmailVerified) {
+        const error = new Error('Email is already verified');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const otp = generateOtp();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
+    user.emailOtp = hashedOtp;
+    user.emailOtpExpires = new Date(Date.now() + 5 * 60 * 1000);
+    await user.save();
+
+    await sendOtpEmail(user.email, otp);
+
+    res.status(200).json({
+        success: true,
+        message: 'OTP resent successfully',
+    });
+});
+
 // ─── @desc    Login an existing user ────────────────────────────────────────
 // ─── @route   POST /api/auth/login ──────────────────────────────────────────
 // ─── @access  Public ────────────────────────────────────────────────────────
 export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    // (required-field check handled by validate(loginRules) middleware)
-    // Explicitly include password field (excluded by default via select:false)
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
 
     if (!user || !(await user.matchPassword(password))) {
         const error = new Error('Invalid email or password');
         error.statusCode = 401;
+        throw error;
+    }
+
+    if (!user.isEmailVerified) {
+        const error = new Error('Please verify your email before logging in');
+        error.statusCode = 403;
         throw error;
     }
 
@@ -79,7 +202,7 @@ export const login = asyncHandler(async (req, res) => {
 
 // ─── @desc    Get current logged-in user ────────────────────────────────────
 // ─── @route   GET /api/auth/me ──────────────────────────────────────────────
-// ─── @access  Private (requires JWT via protect middleware) ─────────────────
+// ─── @access  Private ───────────────────────────────────────────────────────
 export const getMe = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
