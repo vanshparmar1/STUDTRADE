@@ -1,8 +1,20 @@
 import { Router } from 'express';
-import { register, login, getMe } from '../controllers/auth.controller.js';
+
+import {
+    register,
+    login,
+    getMe,
+    verifyEmailOtp,
+    resendEmailOtp,
+} from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { registerRules, loginRules } from '../validators/auth.validators.js';
+import {
+    registerRules,
+    loginRules,
+    verifyEmailOtpRules,
+    resendEmailOtpRules,
+} from '../validators/auth.validators.js';
 import { loginLimiter } from '../config/rateLimiter.js';
 
 const router = Router();
@@ -10,6 +22,8 @@ const router = Router();
 // ─── Public Routes ──────────────────────────────────────────────────────────
 router.post('/register', validate(registerRules), register);
 router.post('/login', loginLimiter, validate(loginRules), login);
+router.post('/verify-email-otp', validate(verifyEmailOtpRules), verifyEmailOtp);
+router.post('/resend-email-otp', validate(resendEmailOtpRules), resendEmailOtp);
 
 // ─── Protected Routes ───────────────────────────────────────────────────────
 router.get('/me', protect, getMe);
