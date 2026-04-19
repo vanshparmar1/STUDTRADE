@@ -1,12 +1,23 @@
 import crypto from 'crypto';
+import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import Item from '../models/Item.js';
-import razorpay from '../utils/razorpayInstance.js';
 import asyncHandler from '../utils/asyncHandler.js';
+
+// ─── Configure Cashfree SDK ─────────────────────────────────────────────────
+const cfEnvironment = process.env.NODE_ENV === 'production'
+    ? CFEnvironment.PRODUCTION
+    : CFEnvironment.SANDBOX;
+
+const cashfree = new Cashfree(
+    cfEnvironment,
+    process.env.CASHFREE_APP_ID,
+    process.env.CASHFREE_SECRET_KEY
+);
 
 // ─── Platform fee percentage (10%) ───────────────────────────────────────────
 const PLATFORM_FEE_RATE = 0.10;
 
-// ─── @desc    Create a Razorpay order with platform fee ──────────────────────
+// ─── @desc    Create a Cashfree order with platform fee ──────────────────────
 // ─── @route   POST /api/payment/create-order ─────────────────────────────────
 // ─── @access  Private ────────────────────────────────────────────────────────
 export const createOrder = asyncHandler(async (req, res) => {
@@ -35,23 +46,36 @@ export const createOrder = asyncHandler(async (req, res) => {
     // ── Calculate pricing server-side ───────────────────────────────────────
     const basePrice = item.price;
     const platformFee = Math.round(basePrice * PLATFORM_FEE_RATE * 100) / 100;
-    const finalAmount = basePrice + platformFee;
+    const finalAmount = Math.round((basePrice + platformFee) * 100) / 100;
 
-    // ── Create Razorpay order (amount in paise) ─────────────────────────────
-    const razorpayOrder = await razorpay.orders.create({
-        amount: Math.round(finalAmount * 100), // Convert ₹ → paise
-        currency: 'INR',
-        receipt: `rcpt_${item._id.toString().slice(-6)}_${Date.now()}`,
-        notes: {
-            productId: item._id.toString(),
-            basePrice: basePrice.toString(),
-            platformFee: platformFee.toString(),
+    // ── Generate a unique order ID ─────────────────────────────────────────
+    const orderId = `order_${item._id.toString().slice(-6)}_${Date.now()}`;
+
+    // ── Create Cashfree order (amount in INR, not paise) ────────────────────
+    const orderRequest = {
+        order_amount: finalAmount,
+        order_currency: 'INR',
+        order_id: orderId,
+        customer_details: {
+            customer_id: req.user._id.toString(),
+            customer_phone: req.user.phone || '9999999999',
+            customer_email: req.user.email,
+            customer_name: req.user.name,
         },
-    });
+        order_meta: {
+            notify_url: null, // We'll verify via API call instead of webhook for now
+        },
+        order_note: `Purchase: ${item.title}`,
+    };
+
+    const response = await cashfree.PGCreateOrder(orderRequest);
+    const cfOrder = response.data;
 
     res.status(201).json({
         success: true,
-        orderId: razorpayOrder.id,
+        orderId: cfOrder.order_id,
+        cfOrderId: cfOrder.cf_order_id,
+        paymentSessionId: cfOrder.payment_session_id,
         finalAmount,
         breakdown: {
             basePrice,
@@ -60,46 +84,46 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
 });
 
-// ─── @desc    Verify Razorpay payment signature ─────────────────────────────
+// ─── @desc    Verify Cashfree payment status ────────────────────────────────
 // ─── @route   POST /api/payment/verify ──────────────────────────────────────
 // ─── @access  Private ───────────────────────────────────────────────────────
 export const verifyPayment = asyncHandler(async (req, res) => {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { orderId } = req.body;
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-        const error = new Error(
-            'All fields are required: razorpay_order_id, razorpay_payment_id, razorpay_signature'
-        );
+    if (!orderId) {
+        const error = new Error('orderId is required');
         error.statusCode = 400;
         throw error;
     }
 
-    // ── Construct expected signature ────────────────────────────────────────
-    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
-    const expectedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-        .update(body)
-        .digest('hex');
+    // ── Fetch payment status from Cashfree server-side ──────────────────────
+    const response = await cashfree.PGOrderFetchPayments(orderId);
+    const payments = response.data;
 
-    // ── Timing-safe comparison to prevent timing attacks ────────────────────
-    const isSignatureValid = crypto.timingSafeEqual(
-        Buffer.from(expectedSignature),
-        Buffer.from(razorpay_signature)
-    );
-
-    if (!isSignatureValid) {
-        const error = new Error('Payment verification failed — invalid signature');
+    if (!payments || payments.length === 0) {
+        const error = new Error('No payments found for this order');
         error.statusCode = 400;
         throw error;
     }
 
-    // ── Signature matches — payment is authentic ────────────────────────────
+    // Find the successful payment
+    const successfulPayment = payments.find(p => p.payment_status === 'SUCCESS');
+
+    if (!successfulPayment) {
+        const error = new Error('Payment not completed or failed');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    // ── Payment is verified ─────────────────────────────────────────────────
     res.status(200).json({
         success: true,
         message: 'Payment verified successfully',
         data: {
-            orderId: razorpay_order_id,
-            paymentId: razorpay_payment_id,
+            orderId: orderId,
+            paymentId: successfulPayment.cf_payment_id?.toString(),
+            paymentAmount: successfulPayment.payment_amount,
+            paymentMethod: successfulPayment.payment_group,
         },
     });
 });
