@@ -11,6 +11,7 @@ import SellerProfile from './pages/SellerProfile';
 // Stitch UI Pages (standalone, own navbar/footer)
 import Register from './pages/Register';
 import Login from './pages/Login';
+import VerifyEmail from './pages/VerifyEmail';
 import ItemListing from './pages/ItemListing';
 
 // New Stitch UI Pages (own navbar/footer built-in)
@@ -48,6 +49,7 @@ function App() {
       <Route path="/terms" element={<TermsPolicies />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/checkout/:productId" element={<ProtectedRoute><RazorpayCheckout /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
       <Route path="/sell" element={<ProtectedRoute><ItemListing /></ProtectedRoute>} />

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
-import { useAuth } from '../context/AuthContext';
 
 /* ── Client-side validation ─────────────────────────────────────────────── */
 function validate(form) {
@@ -15,7 +14,7 @@ function validate(form) {
 }
 
 export default function Register() {
-    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const [form, setForm] = useState({
         name: '',
@@ -51,7 +50,8 @@ export default function Register() {
                 phone: form.phone.trim() || undefined,
                 password: form.password,
             });
-            login(data.token, data.user, '/');
+            // Backend returns { success, message, email } — navigate to OTP verification
+            navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
         } catch (err) {
             setServerError(err?.response?.data?.message || 'Something went wrong. Please try again.');
         } finally {
