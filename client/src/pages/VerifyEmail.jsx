@@ -262,11 +262,11 @@ export default function VerifyEmail() {
                                         <label className="text-sm font-semibold text-on-surface-variant">
                                             Enter verification code
                                         </label>
-                                        <div className="flex items-center gap-2 sm:gap-3" onPaste={handlePaste}>
+                                        <div className="flex items-center justify-center gap-1.5 sm:gap-2" onPaste={handlePaste}>
                                             {otp.map((digit, idx) => (
                                                 <React.Fragment key={idx}>
                                                     {idx === 3 && (
-                                                        <div className="w-3 flex items-center justify-center">
+                                                        <div className="w-2 flex items-center justify-center mx-0.5">
                                                             <div className="w-2 h-0.5 bg-outline-variant rounded-full" />
                                                         </div>
                                                     )}
@@ -280,11 +280,11 @@ export default function VerifyEmail() {
                                                         onKeyDown={(e) => handleKeyDown(idx, e)}
                                                         disabled={loading || verified}
                                                         className={`
-                                                            w-12 h-14 sm:w-14 sm:h-16
-                                                            text-center text-xl sm:text-2xl font-extrabold
+                                                            w-10 h-12 sm:w-12 sm:h-14
+                                                            text-center text-lg sm:text-xl font-extrabold
                                                             bg-surface-container-low rounded-xl
                                                             border-2 transition-all duration-200
-                                                            focus:ring-0 focus:outline-none
+                                                            focus:ring-0 focus:outline-none shrink-0
                                                             disabled:opacity-50
                                                             ${digit
                                                                 ? 'border-primary bg-primary-container/10 text-primary'
