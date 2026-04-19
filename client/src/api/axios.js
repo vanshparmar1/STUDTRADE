@@ -7,7 +7,7 @@ const USER_KEY = 'studtrade_user';
 
 /**
  * In dev: VITE_API_URL is unset → baseURL = '/api' → Vite proxy forwards to localhost:5000
- * In prod: VITE_API_URL = 'https://studtrade.onrender.com' → requests go directly to Render
+ * In prod: VITE_API_URL = 'https://your-app.up.railway.app' → requests go directly to Railway
  */
 const BASE_URL = import.meta.env.VITE_API_URL
     ? `${import.meta.env.VITE_API_URL}/api`
