@@ -1,14 +1,23 @@
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
-
 const sendOtpEmail = async (to, otp) => {
+    console.log(`\n========================================`);
+    console.log(`[DEV] OTP for ${to}: ${otp}`);
+    console.log(`========================================\n`);
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.warn('EMAIL_USER or EMAIL_PASS not provided. Skipping actual email send.');
+        return;
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
     await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to,

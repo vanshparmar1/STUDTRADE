@@ -61,7 +61,7 @@ API.interceptors.response.use(
 
             // Redirect — using window.location for a hard reset to clear all state
             // Only redirect if we're not already on the login/register pages
-            if (!['/login', '/register'].includes(window.location.pathname)) {
+            if (!['/login', '/register', '/verify-email'].includes(window.location.pathname)) {
                 window.location.href = '/login';
             }
         } else {
