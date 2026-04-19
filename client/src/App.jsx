@@ -21,7 +21,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import BuyPage from './pages/BuyPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import CartPage from './pages/CartPage';
-import RazorpayCheckout from './pages/RazorpayCheckout';
+import CashfreeCheckout from './pages/CashfreeCheckout';
 import TermsPolicies from './pages/TermsPolicies';
 
 
@@ -50,7 +50,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/checkout/:productId" element={<ProtectedRoute><RazorpayCheckout /></ProtectedRoute>} />
+      <Route path="/checkout/:productId" element={<ProtectedRoute><CashfreeCheckout /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
       <Route path="/sell" element={<ProtectedRoute><ItemListing /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute requiredRole={['admin', 'manager']}><AdminDashboard /></ProtectedRoute>} />
