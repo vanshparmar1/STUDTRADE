@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
     const { login } = useAuth();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -24,7 +25,19 @@ export default function Login() {
                 login(data.token, data.user, '/');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            const status = err.response?.status;
+            const msg = err.response?.data?.message || 'Login failed. Please check your credentials.';
+
+            // If email not verified (403), redirect to OTP verification & resend
+            if (status === 403 && msg.toLowerCase().includes('verify')) {
+                try {
+                    await API.post('/auth/resend-email-otp', { email: formData.email });
+                } catch (_) { /* ignore resend errors */ }
+                navigate(`/verify-email?email=${encodeURIComponent(formData.email.toLowerCase())}`);
+                return;
+            }
+
+            setError(msg);
         } finally {
             setLoading(false);
         }

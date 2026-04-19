@@ -146,4 +146,38 @@ emailOtpAttempts: {
     }
 );
 
-export default mongoose.model("User",userSchema);
+// ─── Pre-save: auto-generate studtradeID on first save & hash password ────────
+userSchema.pre('save', async function () {
+    // Generate studtradeID only on document creation
+    if (this.isNew && !this.studtradeID) {
+        const counter = await Counter.findOneAndUpdate(
+            { _id: 'studtradeID' },
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true }
+        );
+        // e.g. ST-0001
+        this.studtradeID = `ST-${String(counter.seq).padStart(4, '0')}`;
+    }
+
+    // Only re-hash if password field was actually modified
+    if (!this.isModified('password')) return;
+    const salt = await bcrypt.genSalt(12);
+    this.password = await bcrypt.hash(this.password, salt);
+});
+
+// ─── Instance method: compare plain-text password with stored hash ────────────
+userSchema.methods.matchPassword = async function (enteredPassword) {
+    return bcrypt.compare(enteredPassword, this.password);
+};
+
+// ─── Sanitize output: strip __v from toJSON responses ────────────────────────
+userSchema.set('toJSON', {
+    transform(_doc, ret) {
+        delete ret.__v;
+        return ret;
+    },
+});
+
+const User = mongoose.model('User', userSchema);
+
+export default User;
