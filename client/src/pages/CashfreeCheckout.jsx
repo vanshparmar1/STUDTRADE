@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { load } from '@cashfreepayments/cashfree-js';
 import API from '../api/axios';
 import toast from 'react-hot-toast';
 
 const LOGO = '/logo.png';
-const HERO_BG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCT7nmOl0QoXdZRS89O_KV6Eqe_wtFW5g7fCJxRWqf037X4j2Uf7-In9DmwGZRScK8TnsJ701xmNZjIZGy1lK2MB2wEEuqk0fngP0oKLK0uNh6hurPW2MI67XyOyclw53M8b1ka9HSjGeDTrD-BYnxdZZ5NGq65f48vw7hD1yvqc3wyLKUWjXT5B79sHwOJTswtwXbTKfTt5gmeJoYw4fMWbLMtsszF2xegVFD4w4r3lohn0tM-MmwgoVpTvKjEsr6qnjDYBgw5Lkg';
 
-const RazorpayCheckout = () => {
+const CashfreeCheckout = () => {
     const { productId } = useParams();
     const navigate = useNavigate();
+    const cashfreeRef = useRef(null);
 
     // ─── State ─────────────────────────────────────────────────────────────
     const [loading, setLoading] = useState(true);
@@ -16,8 +17,23 @@ const RazorpayCheckout = () => {
     const [orderData, setOrderData] = useState(null);
     const [itemData, setItemData] = useState(null);
     const [error, setError] = useState('');
-
     const [status, setStatus] = useState('idle'); // idle | success | failure
+
+    // ─── Initialize Cashfree SDK ───────────────────────────────────────────
+    useEffect(() => {
+        const initCashfree = async () => {
+            try {
+                const sdk = await load({
+                    mode: import.meta.env.PROD ? 'production' : 'sandbox',
+                });
+                cashfreeRef.current = sdk;
+            } catch (err) {
+                console.error('Failed to load Cashfree SDK:', err);
+                toast.error('Payment system failed to initialize');
+            }
+        };
+        initCashfree();
+    }, []);
 
     // ─── Fetch Product & Create Order ──────────────────────────────────────
     useEffect(() => {
@@ -33,7 +49,7 @@ const RazorpayCheckout = () => {
                 const fetchedItem = itemRes.data.data;
                 setItemData(fetchedItem);
 
-                // 2. Create Razorpay order on backend
+                // 2. Create Cashfree order on backend
                 const orderRes = await API.post('/payment/create-order', { productId });
                 if (orderRes.data.success) {
                     setOrderData(orderRes.data);
@@ -55,37 +71,36 @@ const RazorpayCheckout = () => {
         }
     }, [productId]);
 
-    // ─── Handle Razorpay Payment ───────────────────────────────────────────
-    const handlePayment = () => {
-        if (!orderData || !orderData.orderId) {
+    // ─── Handle Cashfree Payment ───────────────────────────────────────────
+    const handlePayment = async () => {
+        if (!orderData?.paymentSessionId || !cashfreeRef.current) {
             toast.error('Payment initialization failed. Please try again.');
             return;
         }
 
-        const options = {
-            // Ideally should be safely injected or from API if possible, but test key is mostly public-facing
-            key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YourTestKeyHere', 
-            amount: Math.round(orderData.finalAmount * 100), // in paise
-            currency: 'INR',
-            name: 'STUDTRADE Marketplace',
-            description: `Purchase: ${itemData?.title || 'Item'}`,
-            image: LOGO,
-            order_id: orderData.orderId,
-            handler: async function (response) {
-                // Payment was successful on Razorpay's end, now verify signature
+        try {
+            const result = await cashfreeRef.current.checkout({
+                paymentSessionId: orderData.paymentSessionId,
+                redirectTarget: '_modal', // Opens in a modal overlay
+            });
+
+            if (result.error) {
+                // User closed the popup or payment error
+                toast.error(result.error.message || 'Payment was cancelled');
+                return;
+            }
+
+            if (result.paymentDetails) {
+                // Payment completed on Cashfree's end — verify server-side
+                setSubmitting(true);
                 try {
-                    setSubmitting(true);
                     const verifyRes = await API.post('/payment/verify', {
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_signature: response.razorpay_signature,
+                        orderId: orderData.orderId,
                     });
 
                     if (verifyRes.data.success) {
                         toast.success('Payment successful!');
                         setStatus('success');
-                        // Backend is not marking item as sold right now, so in real prod we would.
-                        // For now we just show success screen.
                     }
                 } catch (err) {
                     toast.error('Payment verification failed.');
@@ -93,29 +108,11 @@ const RazorpayCheckout = () => {
                 } finally {
                     setSubmitting(false);
                 }
-            },
-            prefill: {
-                // Normally you'd get these from logged-in user context
-                name: 'STUDTRADE User',
-                email: 'user@studtrade.com',
-                contact: '9999999999',
-            },
-            theme: {
-                color: '#1a8081' // Matches var(--color-primary) approximately
-            },
-            modal: {
-                ondismiss: function() {
-                    toast.error('Payment cancelled');
-                }
             }
-        };
-
-        const rzp1 = new window.Razorpay(options);
-        rzp1.on('payment.failed', function (response) {
-            toast.error(response.error.description || 'Payment failed/cancelled');
-            setStatus('idle'); // user can retry
-        });
-        rzp1.open();
+        } catch (err) {
+            toast.error('Payment failed. Please try again.');
+            setStatus('idle');
+        }
     };
 
     const formatPrice = (p) => `₹${Number(p).toLocaleString('en-IN')}`;
@@ -204,7 +201,7 @@ const RazorpayCheckout = () => {
                     {/* Left: Product Info Hero */}
                     <div className="lg:col-span-6 lg:col-start-1 space-y-10">
                         <div className="relative rounded-3xl overflow-hidden h-64 shadow-lg border border-[var(--color-surface-container)]">
-                            <img src={itemData?.images?.[0] || HERO_BG} alt={itemData?.title} className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-3xl" />
+                            <img src={itemData?.images?.[0]} alt={itemData?.title} className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-3xl" />
                             <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-inverse-surface)]/80 to-transparent flex flex-col justify-end p-8">
                                 <span className="text-xs font-bold uppercase tracking-widest text-[var(--color-primary)] mb-2">Item Details</span>
                                 <h1 className="text-3xl font-extrabold text-white tracking-tight leading-tight">{itemData?.title}</h1>
@@ -217,7 +214,7 @@ const RazorpayCheckout = () => {
                                 <span className="material-symbols-outlined text-[var(--color-primary)] text-3xl">verified_user</span>
                                 <div>
                                     <h3 className="font-bold text-lg">Safe Deal Program</h3>
-                                    <p className="text-sm text-[var(--color-on-surface-variant)]">Your payment is secure. We verify the signature ensuring no tampering.</p>
+                                    <p className="text-sm text-[var(--color-on-surface-variant)]">Your payment is secure. We verify payment status server-side to ensure authenticity.</p>
                                 </div>
                              </div>
                         </div>
@@ -264,15 +261,14 @@ const RazorpayCheckout = () => {
                                         </>
                                     ) : (
                                         <>
-                                            Pay with Razorpay
+                                            Pay with Cashfree
                                             <span className="material-symbols-outlined">payments</span>
                                         </>
                                     )}
                                 </button>
                                 
                                 <div className="mt-6 flex items-center justify-center gap-2 grayscale opacity-60">
-                                   {/* Simple placeholders for trust indicators */}
-                                   <span className="text-[10px] font-bold tracking-widest uppercase">Secured by Razorpay</span>
+                                   <span className="text-[10px] font-bold tracking-widest uppercase">Secured by Cashfree</span>
                                 </div>
                             </div>
                         </aside>
@@ -284,4 +280,4 @@ const RazorpayCheckout = () => {
     );
 };
 
-export default RazorpayCheckout;
+export default CashfreeCheckout;

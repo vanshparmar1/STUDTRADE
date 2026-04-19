@@ -91,13 +91,13 @@ const orderSchema = new mongoose.Schema(
             min: [0, 'Commission cannot be negative'],
         },
 
-        // ── Razorpay payment tracking
-        razorpayOrderId: {
+        // ── Cashfree payment tracking
+        cashfreeOrderId: {
             type: String,
             default: null,
         },
 
-        razorpayPaymentId: {
+        cashfreePaymentId: {
             type: String,
             default: null,
         },
