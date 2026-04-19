@@ -7,10 +7,10 @@ const router = Router();
 // All payment routes are protected
 router.use(protect);
 
-// POST /api/payment/create-order  — Create a Razorpay order with platform fee
+// POST /api/payment/create-order  — Create a Cashfree order with platform fee
 router.post('/create-order', createOrder);
 
-// POST /api/payment/verify        — Verify Razorpay payment signature
+// POST /api/payment/verify        — Verify Cashfree payment status
 router.post('/verify', verifyPayment);
 
 export default router;
