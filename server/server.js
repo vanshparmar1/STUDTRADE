@@ -53,7 +53,7 @@ app.use(errorHandler);
 // Connect to DB first; only start the HTTP server after the connection is live.
 (async () => {
     await connectDB();
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         if (process.env.NODE_ENV !== 'production') {
             console.log(`✅ Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
         }
