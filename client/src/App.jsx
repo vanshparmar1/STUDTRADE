@@ -22,7 +22,11 @@ import BuyPage from './pages/BuyPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import CartPage from './pages/CartPage';
 import CashfreeCheckout from './pages/CashfreeCheckout';
-import TermsPolicies from './pages/TermsPolicies';
+import TermsConditions from './pages/policies/TermsConditions';
+import PrivacyPolicy from './pages/policies/PrivacyPolicy';
+import RefundCancellation from './pages/policies/RefundCancellation';
+import ShippingDelivery from './pages/policies/ShippingDelivery';
+import ContactUs from './pages/policies/ContactUs';
 
 
 // Layout wrapper for the legacy UI (old Navbar + footer)
@@ -46,7 +50,11 @@ function App() {
       <Route path="/item/:id" element={<ProductDetailPage />} />
       <Route path="/buy" element={<BuyPage />} />
       <Route path="/success" element={<OrderSuccessPage />} />
-      <Route path="/terms" element={<TermsPolicies />} />
+      <Route path="/terms-conditions" element={<TermsConditions />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/refund-cancellation" element={<RefundCancellation />} />
+      <Route path="/shipping-delivery" element={<ShippingDelivery />} />
+      <Route path="/contact-us" element={<ContactUs />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />

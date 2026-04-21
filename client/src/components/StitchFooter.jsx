@@ -30,7 +30,7 @@ const StitchFooter = () => (
       <div>
         <h5 className="text-xs font-bold uppercase tracking-widest text-[var(--color-on-surface)] mb-6">Resources</h5>
         <ul className="space-y-3 text-sm text-[var(--color-on-surface-variant)] font-medium">
-          {[['Help', '/terms#help'], ['Careers', '#'], ['Community', '#'], ['Blog', '#']].map(([label, href]) => (
+          {[['Help', '/contact-us'], ['Careers', '#'], ['Community', '#'], ['Blog', '#']].map(([label, href]) => (
             <li key={label}>
               {href.startsWith('/') ? (
                 <Link to={href} className="hover:text-[var(--color-primary)] transition-colors">{label}</Link>
@@ -42,12 +42,12 @@ const StitchFooter = () => (
         </ul>
       </div>
 
-      {/* Legal */}
+      {/* Legal & Policies */}
       <div>
-        <h5 className="text-xs font-bold uppercase tracking-widest text-[var(--color-on-surface)] mb-6">Legal</h5>
-        <ul className="space-y-3 text-sm text-[var(--color-on-surface-variant)] font-medium">
-          {[['Terms', '/terms'], ['Privacy', '/terms'], ['Cookies', '/terms']].map(([label, href]) => (
-            <li key={label}><Link to={href} className="hover:text-[var(--color-primary)] transition-colors">{label}</Link></li>
+        <h5 className="text-xs font-bold uppercase tracking-widest text-[var(--color-on-surface)] mb-6">Legal & Policies</h5>
+        <ul className="space-y-3 text-sm text-[var(--color-on-surface-variant)] font-medium flex flex-col items-start gap-1">
+          {[['Terms & Conditions', '/terms-conditions'], ['Privacy Policy', '/privacy-policy'], ['Refund & Cancellation', '/refund-cancellation'], ['Shipping & Delivery', '/shipping-delivery'], ['Contact Us', '/contact-us']].map(([label, href]) => (
+            <li key={label}><Link to={href} className="hover:text-[var(--color-primary)] transition-colors block">{label}</Link></li>
           ))}
         </ul>
       </div>
