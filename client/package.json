@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@cashfreepayments/cashfree-js": "^1.0.7",
+    "@fontsource-variable/manrope": "^5.2.8",
     "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.13.6",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.576.0",
+    "material-symbols": "^0.44.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
