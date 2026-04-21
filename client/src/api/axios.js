@@ -16,7 +16,8 @@ const BASE_URL = import.meta.env.VITE_API_URL
 // Create instance
 const API = axios.create({
     baseURL: BASE_URL,
-    withCredentials: true, // required for cookies / credentials (also satisfies CORS credentials mode)
+    // Auth uses localStorage tokens via Authorization header, not cookies.
+    // withCredentials is NOT needed and would trigger Brave Shield's third-party cookie blocking.
 });
 
 // ─── Request Interceptor ───────────────────────────────────────────────────
