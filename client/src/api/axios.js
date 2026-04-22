@@ -7,11 +7,22 @@ const USER_KEY = 'studtrade_user';
 
 /**
  * In dev: VITE_API_URL is unset → baseURL = '/api' → Vite proxy forwards to localhost:5000
- * In prod: VITE_API_URL = 'https://your-app.up.railway.app' → requests go directly to Railway
+ * In prod: set VITE_API_URL in Vercel (no trailing slash), e.g. https://your-app.up.railway.app
  */
-const BASE_URL = import.meta.env.VITE_API_URL
-    ? `${import.meta.env.VITE_API_URL}/api`
-    : '/api';
+function resolveApiBaseUrl() {
+    const raw = import.meta.env.VITE_API_URL?.trim();
+    if (raw) {
+        return `${raw.replace(/\/+$/, '')}/api`;
+    }
+    if (import.meta.env.PROD) {
+        console.error(
+            '[STUDTRADE] VITE_API_URL is missing. Add it in Vercel → Environment Variables, then redeploy.'
+        );
+    }
+    return '/api';
+}
+
+const BASE_URL = resolveApiBaseUrl();
 
 // Create instance
 const API = axios.create({
