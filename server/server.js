@@ -20,6 +20,12 @@ import adRouter from './routes/ad.routes.js';
 import paymentRouter from './routes/payment.routes.js';
 
 const app = express();
+
+// One reverse proxy (Railway, Render, etc.) — correct client IP for rate limits and logs.
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
 // Railway / Render / Fly inject PORT — the app must listen on that value (not a fixed 5000).
 const parsedPort = Number(process.env.PORT);
 const PORT = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 5000;
