@@ -20,7 +20,16 @@ import adRouter from './routes/ad.routes.js';
 import paymentRouter from './routes/payment.routes.js';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+// Railway / Render / Fly inject PORT — the app must listen on that value (not a fixed 5000).
+const parsedPort = Number(process.env.PORT);
+const PORT = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 5000;
+
+if (process.env.RAILWAY_ENVIRONMENT && String(process.env.PORT) === '5000') {
+    console.warn(
+        '⚠️  Railway: PORT is set to 5000. If your public URL returns 502, delete the PORT variable in Railway ' +
+            '(Variables) so the platform can set PORT to match networking (often 8080).'
+    );
+}
 
 // ─── Security Middleware ───────────────────────────────────────────────────────
 // CORP defaults to "same-origin" and breaks browser XHR/fetch when the SPA is on
@@ -60,8 +69,10 @@ app.use(errorHandler);
 (async () => {
     await connectDB();
     app.listen(PORT, '0.0.0.0', () => {
-        if (process.env.NODE_ENV !== 'production') {
-            console.log(`✅ Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
+        const env = process.env.NODE_ENV || 'development';
+        console.log(`✅ HTTP listening on 0.0.0.0:${PORT} [NODE_ENV=${env}]`);
+        if (env !== 'production') {
+            console.warn('   Tip: set NODE_ENV=production on Railway for production behaviour.');
         }
     });
 })();
