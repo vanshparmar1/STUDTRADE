@@ -7,6 +7,8 @@ export const generalLimiter = rateLimit({
     max: 200,                  // 200 requests per window per IP
     standardHeaders: true,     // Return rate limit info in `RateLimit-*` headers
     legacyHeaders: false,
+    // Never throttle CORS preflight — a 429 on OPTIONS surfaces as a browser "Network Error".
+    skip: (req) => req.method === 'OPTIONS',
     message: {
         success: false,
         message: 'Too many requests. Please try again later.',
@@ -20,6 +22,7 @@ export const authLimiter = rateLimit({
     max: 20,                   // 20 attempts per window per IP
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => req.method === 'OPTIONS',
     message: {
         success: false,
         message: 'Too many attempts. Please wait 15 minutes and try again.',
