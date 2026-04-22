@@ -59,7 +59,13 @@ const MarketplaceGrid = () => {
         if (reset) setPage(1);
       }
     } catch (err) {
-      setError('Failed to load items. Please try again.');
+      const apiMsg = err.response?.data?.message;
+      const isNetwork = !err.response && err.message;
+      setError(
+        apiMsg
+          || (isNetwork ? `Cannot reach API (${err.message}). Check VITE_API_URL on Vercel and redeploy.` : null)
+          || 'Failed to load items. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
