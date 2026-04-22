@@ -23,7 +23,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ─── Security Middleware ───────────────────────────────────────────────────────
-app.use(helmet());                         // Sets 15+ secure HTTP response headers
+// CORP defaults to "same-origin" and breaks browser XHR/fetch when the SPA is on
+// another host (e.g. Vercel → Railway). "cross-origin" is correct for a public API.
+app.use(
+    helmet({
+        crossOriginResourcePolicy: { policy: 'cross-origin' },
+    })
+);
 app.use(cors(corsOptions));               // Restrict origins to FRONTEND_URL env var
 app.use(generalLimiter);                  // Global: 200 req / 15 min per IP
 
