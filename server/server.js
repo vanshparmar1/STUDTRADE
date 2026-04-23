@@ -70,6 +70,10 @@ app.use(notFound);
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use(errorHandler);
 
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
+
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 // Connect to DB first; only start the HTTP server after the connection is live.
 (async () => {
