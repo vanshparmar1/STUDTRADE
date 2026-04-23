@@ -12,17 +12,17 @@ const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 // ─── @route   POST /api/auth/register ───────────────────────────────────────
 // ─── @access  Public ─────────────────────────────────────────────────────────
 export const register = asyncHandler(async (req, res) => {
-    const { name, email, password, phone, role: _discardedRole, ...rest } = req.body;
+    const { name, email, password, phone } = req.body;
+
+    console.log("1. Register started:", email);
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
-
     if (existingUser) {
         const error = new Error('An account with this email already exists');
         error.statusCode = 409;
         throw error;
     }
 
-    // create user first
     const user = await User.create({
         name,
         email: email.toLowerCase(),
@@ -30,17 +30,26 @@ export const register = asyncHandler(async (req, res) => {
         phone,
         isEmailVerified: false,
     });
+    console.log("2. User created");
 
-    // generate otp
-    const otp = generateOtp();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
 
     user.emailOtp = hashedOtp;
-    user.emailOtpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    user.emailOtpExpires = new Date(Date.now() + 5 * 60 * 1000);
     await user.save();
+    console.log("3. OTP saved");
 
-    // send email
-    await sendOtpEmail(user.email, otp);
+    try {
+        console.log("4. Sending OTP email...");
+        await sendOtpEmail(user.email, otp);
+        console.log("5. OTP email sent");
+    } catch (mailError) {
+        console.error("MAIL ERROR:", mailError);
+        const error = new Error("User created, but OTP email could not be sent");
+        error.statusCode = 500;
+        throw error;
+    }
 
     res.status(201).json({
         success: true,
@@ -48,7 +57,6 @@ export const register = asyncHandler(async (req, res) => {
         email: user.email,
     });
 });
-
 
 // ─── @desc    Verify email OTP ──────────────────────────────────────────────
 // ─── @route   POST /api/auth/verify-email-otp ───────────────────────────────
