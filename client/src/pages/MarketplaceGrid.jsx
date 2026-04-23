@@ -4,6 +4,7 @@ import StitchNavbar from '../components/StitchNavbar';
 import StitchFooter from '../components/StitchFooter';
 import StitchProductCard from '../components/StitchProductCard';
 import API from '../api/axios';
+import { formatListingAreaFromPickup } from '../utils/listingArea';
 
 // Maps the sidebar labels to the API's category values
 const CATEGORY_MAP = {
@@ -250,6 +251,7 @@ const MarketplaceGrid = () => {
                     verified={item.seller?.verified ?? false}
                     title={item.title}
                     subtitle={`${item.category} • ${item.condition}`}
+                    listingArea={item.listingArea ?? formatListingAreaFromPickup(item.pickupAddress)}
                     sold={item.status === 'sold'}
                   />
                 ))}

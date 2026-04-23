@@ -5,6 +5,7 @@ import StitchFooter from '../components/StitchFooter';
 import API from '../api/axios';
 import toast from 'react-hot-toast';
 import { isOnlineCashfreeCheckout } from '../config/payment';
+import { formatListingAreaFromPickup } from '../utils/listingArea';
 
 const PLACEHOLDER_IMG = 'https://placehold.co/600x600?text=No+Image';
 
@@ -94,6 +95,8 @@ const ProductDetailPage = () => {
   const mainImage = images[activeThumb] || images[0];
 
   const formatPrice = (price) => `₹${Number(price).toLocaleString('en-IN')}`;
+  const listingAreaLabel =
+    item.listingArea ?? formatListingAreaFromPickup(item.pickupAddress);
 
   const handleBuyNow = () => {
     if (isOnlineCashfreeCheckout()) {
@@ -164,6 +167,20 @@ const ProductDetailPage = () => {
                   </span>
                 )}
               </div>
+              {listingAreaLabel ? (
+                <p className="mt-4 flex items-start gap-2 text-sm font-semibold text-[var(--color-primary)]">
+                  <span className="material-symbols-outlined text-lg shrink-0">distance</span>
+                  <span>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--color-outline)] mb-0.5">
+                      Pickup locality
+                    </span>
+                    {listingAreaLabel}
+                    <span className="block text-xs font-normal text-[var(--color-on-surface-variant)] mt-2 leading-relaxed">
+                      Campus or hostel zone (not the full address). Exact pickup is coordinated with the seller after you buy.
+                    </span>
+                  </span>
+                </p>
+              ) : null}
             </div>
 
 

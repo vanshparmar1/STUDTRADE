@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import API from '../api/axios';
 import StitchProductCard from '../components/StitchProductCard';
+import { formatListingAreaFromPickup } from '../utils/listingArea';
 
 export default function SellerProfile() {
     const { id } = useParams();
@@ -106,6 +107,7 @@ export default function SellerProfile() {
                                 verified={seller.verificationStatus === 'approved'}
                                 title={item.title}
                                 subtitle={`${item.category} • ${item.condition}`}
+                                listingArea={item.listingArea ?? formatListingAreaFromPickup(item.pickupAddress)}
                                 sold={item.status === 'sold'}
                             />
                         ))}

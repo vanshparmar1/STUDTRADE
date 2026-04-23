@@ -70,6 +70,12 @@ const itemSchema = new mongoose.Schema(
                 trim: true,
                 maxlength: [300, 'Full address cannot exceed 300 characters'],
             },
+            /** Shown on catalog cards — campus zone (e.g. "North Gate", "Block B hostels"). Not the city name. */
+            locality: {
+                type: String,
+                trim: true,
+                maxlength: [120, 'Locality cannot exceed 120 characters'],
+            },
             city: {
                 type: String,
                 trim: true,
@@ -112,6 +118,23 @@ const itemSchema = new mongoose.Schema(
     }
 );
 
+/**
+ * Public label for catalog cards — campus locality first (no city name).
+ * Falls back to city · PIN for older listings without locality.
+ */
+itemSchema.virtual('listingArea').get(function listingAreaGetter() {
+    const p = this.pickupAddress;
+    if (!p) return null;
+    const locality = (p.locality || '').trim();
+    if (locality) return locality;
+    const city = (p.city || '').trim();
+    const pin = (p.pincode || '').trim();
+    if (city && pin) return `${city} · ${pin}`;
+    if (city) return city;
+    if (pin) return `PIN ${pin}`;
+    return null;
+});
+
 // ─── Indexes ──────────────────────────────────────────────────────────────────
 // Compound index: most common query = "available items in a category, newest first"
 // Covers:  ?status=available&category=Books&sort=-createdAt
@@ -124,13 +147,15 @@ itemSchema.index({ status: 1, price: 1 });
 // Text index for search:  ?q=macbook
 itemSchema.index({ title: 'text', description: 'text' });
 
-// ─── Sanitize JSON output ─────────────────────────────────────────────────────
+// ─── Sanitize JSON output (virtuals: true set on schema options) ──────────────
 itemSchema.set('toJSON', {
+    virtuals: true,
     transform(_doc, ret) {
         delete ret.__v;
         return ret;
     },
 });
+itemSchema.set('toObject', { virtuals: true });
 
 const Item = mongoose.model('Item', itemSchema);
 
