@@ -22,6 +22,7 @@ import BuyPage from './pages/BuyPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import CartPage from './pages/CartPage';
 import CashfreeCheckout from './pages/CashfreeCheckout';
+import OfflinePaymentPage from './pages/OfflinePaymentPage';
 import TermsConditions from './pages/policies/TermsConditions';
 import PrivacyPolicy from './pages/policies/PrivacyPolicy';
 import RefundCancellation from './pages/policies/RefundCancellation';
@@ -59,6 +60,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/checkout/:productId" element={<ProtectedRoute><CashfreeCheckout /></ProtectedRoute>} />
+      <Route path="/offline-pay/:productId" element={<ProtectedRoute><OfflinePaymentPage /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
       <Route path="/sell" element={<ProtectedRoute><ItemListing /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute requiredRole={['admin', 'manager']}><AdminDashboard /></ProtectedRoute>} />
