@@ -4,6 +4,7 @@ import StitchNavbar from '../components/StitchNavbar';
 import StitchFooter from '../components/StitchFooter';
 import API from '../api/axios';
 import toast from 'react-hot-toast';
+import { isOnlineCashfreeCheckout } from '../config/payment';
 
 const PLACEHOLDER_IMG = 'https://placehold.co/600x600?text=No+Image';
 
@@ -94,6 +95,14 @@ const ProductDetailPage = () => {
 
   const formatPrice = (price) => `₹${Number(price).toLocaleString('en-IN')}`;
 
+  const handleBuyNow = () => {
+    if (isOnlineCashfreeCheckout()) {
+      navigate('/checkout/' + item._id);
+      return;
+    }
+    navigate('/offline-pay/' + item._id);
+  };
+
   return (
     <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen flex flex-col">
       <StitchNavbar activeLink="Shop" />
@@ -173,7 +182,8 @@ const ProductDetailPage = () => {
             {/* CTAs */}
             <div className="flex flex-col gap-4 pt-4">
               <button
-                onClick={() => navigate('/checkout/' + item._id)}
+                type="button"
+                onClick={handleBuyNow}
                 className="bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold py-4 rounded-2xl text-lg shadow-md hover:shadow-xl hover:-translate-y-1 active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2"
               >
                 Buy Now
