@@ -1,5 +1,6 @@
 import Item from '../models/Item.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import { toCatalogItem } from '../utils/catalogItem.js';
 
 // ─── @desc    Create a new item listing ──────────────────────────────────────
 // ─── @route   POST /api/items ────────────────────────────────────────────────
@@ -10,8 +11,10 @@ export const createItem = asyncHandler(async (req, res) => {
     // ── Build the pickup Address from potential flat fields OR nested objects ────
     const pickupAddress = {
         fullAddress: req.body['pickupAddress.fullAddress'] || req.body.pickupAddress?.fullAddress,
+        locality: req.body['pickupAddress.locality'] || req.body.pickupAddress?.locality,
         city: req.body['pickupAddress.city'] || req.body.pickupAddress?.city,
         pincode: req.body['pickupAddress.pincode'] || req.body.pickupAddress?.pincode,
+        landmark: req.body['pickupAddress.landmark'] || req.body.pickupAddress?.landmark,
     };
 
     // (required fields, length limits, and price/enum validation are pre-checked
@@ -121,7 +124,7 @@ export const getAllItems = asyncHandler(async (req, res) => {
 
     const [items, total] = await Promise.all([
         Item.find(filter, search ? { score: { $meta: 'textScore' } } : {})
-            .populate('seller', '_id')           // _id only — no PII exposed
+            .populate('seller', '_id') // _id only — no PII exposed
             .sort(sortOptions)
             .skip(skip)
             .limit(perPage),
@@ -134,7 +137,7 @@ export const getAllItems = asyncHandler(async (req, res) => {
         total,
         page: pageNum,
         totalPages: Math.ceil(total / perPage),
-        data: items,
+        data: items.map(toCatalogItem),
     });
 });
 
@@ -195,6 +198,41 @@ export const updateItem = asyncHandler(async (req, res) => {
     if (category !== undefined) allowedUpdates.category = category;
     if (condition !== undefined) allowedUpdates.condition = condition;
     if (images !== undefined) allowedUpdates.images = images;
+
+    const hasFlatPickup = [
+        'pickupAddress.fullAddress',
+        'pickupAddress.locality',
+        'pickupAddress.city',
+        'pickupAddress.pincode',
+        'pickupAddress.landmark',
+    ].some((k) => req.body[k] !== undefined);
+    const nestedPickup =
+        req.body.pickupAddress !== undefined &&
+        req.body.pickupAddress !== null &&
+        typeof req.body.pickupAddress === 'object';
+
+    if (hasFlatPickup || nestedPickup) {
+        const existing = item.pickupAddress?.toObject?.() ?? item.pickupAddress ?? {};
+        const src = nestedPickup ? req.body.pickupAddress : {};
+        const next = {
+            fullAddress:
+                req.body['pickupAddress.fullAddress'] ??
+                src.fullAddress ??
+                existing.fullAddress,
+            locality:
+                req.body['pickupAddress.locality'] ?? src.locality ?? existing.locality,
+            city: req.body['pickupAddress.city'] ?? src.city ?? existing.city,
+            pincode: req.body['pickupAddress.pincode'] ?? src.pincode ?? existing.pincode,
+            landmark: req.body['pickupAddress.landmark'] ?? src.landmark ?? existing.landmark,
+        };
+        const pin = next.pincode && String(next.pincode).trim();
+        if (pin && !/^\d{6}$/.test(pin)) {
+            const error = new Error('Pickup pincode must be a 6-digit number');
+            error.statusCode = 400;
+            throw error;
+        }
+        allowedUpdates.pickupAddress = next;
+    }
 
     const updated = await Item.findByIdAndUpdate(req.params.id, allowedUpdates, {
         new: true,

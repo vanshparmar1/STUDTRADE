@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import Item from '../models/Item.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import { toCatalogItem } from '../utils/catalogItem.js';
 
 // ─── @desc    Get public user profile ──────────────────────────────────────────
 // ─── @route   GET /api/users/:id ───────────────────────────────────────────────
@@ -51,7 +52,7 @@ export const getUserItems = asyncHandler(async (req, res) => {
         total,
         page: pageNum,
         totalPages: Math.ceil(total / perPage),
-        data: items,
+        data: items.map(toCatalogItem),
     });
 });
 
