@@ -53,16 +53,16 @@ const LandingPage = () => {
                 The Digital Sanctuary for Students
               </span>
               <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-[var(--color-on-surface)] leading-[1.15] md:leading-[1.1] tracking-tight">
-                Trade Smarter,{' '}
+                Where Students{' '}
                 <br />
-                <span className="text-[var(--color-primary)]">Live Better.</span>
+                <span className="text-[var(--color-primary)]">Trade Better.</span>
               </h1>
               <p className="text-base md:text-lg text-[var(--color-on-surface-variant)] max-w-md leading-relaxed mx-auto md:mx-0">
-                Join the curated marketplace built for university life. Buy, sell, and swap items within your trusted student community.
+                A centralized, verified marketplace exclusively for the student community to buy, sell, and swap safely.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-2 md:pt-4 w-full sm:w-auto">
                 <button
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/sell')}
                   className="gradient-primary text-white px-8 py-4 rounded-full font-bold text-lg hover:opacity-90 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 w-full sm:w-auto self-center flex items-center justify-center"
                 >
                   Start Trading

@@ -57,8 +57,8 @@ export default function Login() {
                         <div className="p-8 sm:p-12">
                             {/* Brand */}
                             <div className="flex flex-col items-center mb-12">
-                                <Link to="/" className="mb-0">
-                                    <img src="/logo.png" alt="STUDTRADE" className="h-16 w-auto object-contain" />
+                                <Link to="/" className="brand-logo-slot brand-logo-slot--mat-white mb-0 inline-flex">
+                                    <img src="/logo.png" alt="STUDTRADE — Where Students Trade Better" className="h-16 w-auto object-contain" />
                                 </Link>
                                 <h1 className="text-3xl font-extrabold text-primary tracking-tighter mb-2">Welcome back</h1>
                                 <p className="text-on-surface-variant font-medium opacity-70">Access your student sanctuary</p>
