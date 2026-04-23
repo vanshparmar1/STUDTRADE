@@ -15,8 +15,12 @@ const Navbar = () => {
                 <div className="flex justify-between items-center h-16">
 
                     {/* Logo */}
-                    <Link to="/" className="text-2xl font-black tracking-tighter text-indigo-600">
-                        STUD<span className="text-gray-900 font-extrabold">TRADE</span>
+                    <Link to="/" className="brand-logo-slot brand-logo-slot--mat-legacy-nav shrink-0 py-1">
+                        <img
+                            src="/logo.png"
+                            alt="STUDTRADE — Where Students Trade Better"
+                            className="h-9 sm:h-10 w-auto object-contain object-left"
+                        />
                     </Link>
 
                     {/* Desktop nav */}
@@ -36,10 +40,13 @@ const Navbar = () => {
                                 </Link>
                                 <div className="h-4 w-[1px] bg-gray-200 mx-2"></div>
                                 <div className="flex items-center gap-3">
-                                    <div className="text-right">
+                                    <Link
+                                        to="/profile"
+                                        className="text-right hover:opacity-80 transition-opacity"
+                                    >
                                         <p className="text-xs font-black text-gray-900 leading-none">{user?.name}</p>
                                         <p className="text-[10px] font-bold text-gray-400 mt-0.5 uppercase tracking-wider">{user?.role}</p>
-                                    </div>
+                                    </Link>
                                     <button
                                         onClick={logout}
                                         className="px-4 py-2 text-sm font-bold text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
@@ -91,11 +98,18 @@ const Navbar = () => {
                             {user?.role === 'admin' && (
                                 <Link to="/admin" className="block text-lg font-bold text-indigo-600" onClick={() => setMobileOpen(false)}>Admin Panel</Link>
                             )}
-                            <div className="pt-4 border-t border-gray-100">
-                                <p className="text-sm font-black text-gray-900">{user?.name}</p>
+                            <div className="pt-4 border-t border-gray-100 space-y-2">
+                                <Link
+                                    to="/profile"
+                                    onClick={() => setMobileOpen(false)}
+                                    className="block py-3 text-center rounded-2xl font-bold text-gray-900 bg-gray-50 hover:bg-gray-100"
+                                >
+                                    My profile
+                                </Link>
+                                <p className="text-sm font-black text-gray-900 text-center">{user?.name}</p>
                                 <button
                                     onClick={() => { logout(); setMobileOpen(false); }}
-                                    className="mt-3 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-center"
+                                    className="mt-1 w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold text-center"
                                 >
                                     Logout
                                 </button>

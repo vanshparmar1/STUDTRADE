@@ -20,7 +20,7 @@ const StitchNavbar = ({ links = defaultLinks, showSearch = true, activeLink = ''
   const [query, setQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
@@ -50,8 +50,12 @@ const StitchNavbar = ({ links = defaultLinks, showSearch = true, activeLink = ''
             </span>
           </button>
           
-          <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
-            <img src={LOGO} alt="STUDTRADE" className="h-10 sm:h-14 w-auto object-contain" />
+          <Link
+            to="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="brand-logo-slot shrink-0"
+          >
+            <img src={LOGO} alt="STUDTRADE — Where Students Trade Better" className="h-10 sm:h-14 w-auto object-contain" />
           </Link>
           
           <div className="hidden md:flex items-center gap-6 ml-4">
@@ -101,54 +105,50 @@ const StitchNavbar = ({ links = defaultLinks, showSearch = true, activeLink = ''
           )}
           
           <div className="relative profile-dropdown">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 hover:bg-[var(--color-surface-container-high)] rounded-full transition-all duration-200 active:scale-90 flex items-center justify-center"
-              aria-label="Profile"
-            >
-              <span className="material-symbols-outlined text-[var(--color-on-surface-variant)]">account_circle</span>
-            </button>
-            
-            {/* Desktop Profile Dropdown */}
-            {isMenuOpen && (
-              <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] py-3 z-50 border border-[var(--color-surface-variant)] overflow-hidden">
-                {isAuthenticated ? (
-                  <>
-                    <div className="px-5 py-3 border-b border-[var(--color-surface-variant)] mb-2">
-                       <p className="text-[10px] font-bold text-[var(--color-outline)] uppercase tracking-widest mb-1">Account</p>
-                       <p className="text-sm font-bold truncate text-[var(--color-on-surface)]">Student User</p>
-                    </div>
-                    {/* Add Dashboard link for rapid navigation if admin/manager etc. For now standardized base links. */}
-                    <button 
-                      onClick={() => { setIsMenuOpen(false); logout(); }}
-                      className="w-full text-left px-5 py-3 text-sm font-semibold text-[var(--color-error)] hover:bg-[var(--color-error)]/5 flex items-center gap-3 transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg">logout</span>
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  navigate('/profile');
+                }}
+                className="p-2 hover:bg-[var(--color-surface-container-high)] rounded-full transition-all duration-200 active:scale-90 flex items-center justify-center"
+                aria-label="Open profile"
+              >
+                <span className="material-symbols-outlined text-[var(--color-on-surface-variant)]">account_circle</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="p-2 hover:bg-[var(--color-surface-container-high)] rounded-full transition-all duration-200 active:scale-90 flex items-center justify-center"
+                  aria-label="Account menu"
+                >
+                  <span className="material-symbols-outlined text-[var(--color-on-surface-variant)]">account_circle</span>
+                </button>
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] py-3 z-50 border border-[var(--color-surface-variant)] overflow-hidden">
                     <div className="px-5 py-2 mb-2">
-                       <p className="text-[10px] font-bold text-[var(--color-outline)] uppercase tracking-widest leading-none">Welcome</p>
+                      <p className="text-[10px] font-bold text-[var(--color-outline)] uppercase tracking-widest leading-none">Welcome</p>
                     </div>
-                    <Link 
-                      to="/login" 
+                    <Link
+                      to="/login"
                       onClick={() => setIsMenuOpen(false)}
                       className="block px-5 py-3 text-sm font-bold text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] transition-colors"
                     >
                       Login
                     </Link>
-                    <Link 
-                      to="/register" 
+                    <Link
+                      to="/register"
                       onClick={() => setIsMenuOpen(false)}
                       className="block px-5 py-3 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-colors"
                     >
                       Join STUDTRADE
                     </Link>
-                  </>
+                  </div>
                 )}
-              </div>
+              </>
             )}
           </div>
         </div>

@@ -3,13 +3,19 @@ import { Link } from 'react-router-dom';
 
 const LOGO = '/logo.png';
 
+const SOCIAL_LINKS = [
+  { label: 'Facebook', href: 'https://www.facebook.com/share/1PRbNqa4TY/?mibextid=wwXIfr' },
+  { label: 'Instagram', href: 'https://www.instagram.com/stud.trade?igsh=MWFranRidGNzOGhmOA==' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/stud-trade-156328405/' },
+];
+
 const StitchFooter = () => (
   <footer className="bg-[var(--color-surface-container-low)] border-t border-[var(--color-surface-variant)]">
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8 px-8 py-12 max-w-7xl mx-auto">
       {/* Brand */}
       <div className="md:col-span-1">
-        <Link to="/">
-          <img src={LOGO} alt="STUDTRADE" className="h-10 w-auto mb-4 object-contain" />
+        <Link to="/" className="brand-logo-slot brand-logo-slot--mat-low mb-4 inline-flex">
+          <img src={LOGO} alt="STUDTRADE — Where Students Trade Better" className="h-10 w-auto object-contain" />
         </Link>
         <p className="text-[var(--color-on-surface-variant)] text-sm leading-relaxed font-medium">
           The premium editorial marketplace designed for modern campus life. Empowering students through circular economy.
@@ -56,10 +62,18 @@ const StitchFooter = () => (
     {/* Bottom bar */}
     <div className="border-t border-[var(--color-surface-variant)]/50 py-8 px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-[var(--color-on-surface-variant)]/60 text-xs font-semibold gap-4">
       <div>© {new Date().getFullYear()} STUDTRADE. Digital Sanctuary for Students.</div>
-      <div className="flex space-x-6">
-        <a href="#" className="hover:text-[var(--color-primary)]">Twitter</a>
-        <a href="#" className="hover:text-[var(--color-primary)]">Instagram</a>
-        <a href="#" className="hover:text-[var(--color-primary)]">LinkedIn</a>
+      <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+        {SOCIAL_LINKS.map(({ label, href }) => (
+          <a
+            key={label}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[var(--color-primary)] transition-colors"
+          >
+            {label}
+          </a>
+        ))}
       </div>
     </div>
   </footer>
