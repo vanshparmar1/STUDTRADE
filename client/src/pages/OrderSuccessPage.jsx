@@ -10,8 +10,8 @@ const OrderSuccessPage = () => (
     {/* Branding-only nav */}
     <header className="fixed top-0 w-full z-50 glass-nav border-b border-[var(--color-surface-variant)]/50">
       <div className="flex justify-between items-center px-6 py-3 max-w-7xl mx-auto">
-        <Link to="/">
-          <img src={LOGO} alt="STUDTRADE" className="h-10 w-auto object-contain" />
+        <Link to="/" className="brand-logo-slot shrink-0">
+          <img src={LOGO} alt="STUDTRADE — Where Students Trade Better" className="h-10 w-auto object-contain" />
         </Link>
         <div className="flex items-center gap-3">
           <span className="text-sm text-[var(--color-on-surface-variant)] font-semibold uppercase tracking-wider">Secure Checkout</span>

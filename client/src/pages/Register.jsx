@@ -100,8 +100,8 @@ export default function Register() {
                     <div className="p-6 sm:p-8 md:p-10 w-full">
                         {/* Brand */}
                         <div className="flex flex-col items-center mb-12">
-                            <Link to="/" className="mb-0">
-                                <img src="/logo.png" alt="STUDTRADE" className="h-16 w-auto object-contain" />
+                            <Link to="/" className="brand-logo-slot brand-logo-slot--mat-white mb-0 inline-flex">
+                                <img src="/logo.png" alt="STUDTRADE — Where Students Trade Better" className="h-16 w-auto object-contain" />
                             </Link>
                             <h1 className="text-3xl font-extrabold text-primary tracking-tight text-center">Join the community</h1>
                             <p className="text-on-surface-variant mt-2 text-center max-w-xs font-medium">

@@ -23,6 +23,7 @@ import OrderSuccessPage from './pages/OrderSuccessPage';
 import CartPage from './pages/CartPage';
 import CashfreeCheckout from './pages/CashfreeCheckout';
 import OfflinePaymentPage from './pages/OfflinePaymentPage';
+import ProfilePage from './pages/ProfilePage';
 import TermsConditions from './pages/policies/TermsConditions';
 import PrivacyPolicy from './pages/policies/PrivacyPolicy';
 import RefundCancellation from './pages/policies/RefundCancellation';
@@ -38,12 +39,13 @@ const LegacyLayout = () => (
     <footer className="w-full text-center py-8 text-sm font-medium text-gray-400">
       &copy; {new Date().getFullYear()} STUDTRADE. Verified student marketplace.
     </footer>
-    <Toaster position="bottom-right" />
   </div>
 );
 
 function App() {
   return (
+    <>
+      <Toaster position="bottom-center" toastOptions={{ duration: 4000 }} />
     <Routes>
       {/* ── New Stitch UI (standalone, no legacy wrapper) ── */}
       <Route path="/" element={<LandingPage />} />
@@ -62,6 +64,7 @@ function App() {
       <Route path="/checkout/:productId" element={<ProtectedRoute><CashfreeCheckout /></ProtectedRoute>} />
       <Route path="/offline-pay/:productId" element={<ProtectedRoute><OfflinePaymentPage /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/sell" element={<ProtectedRoute><ItemListing /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute requiredRole={['admin', 'manager']}><AdminDashboard /></ProtectedRoute>} />
 
@@ -70,6 +73,7 @@ function App() {
         <Route path="/seller/:id" element={<SellerProfile />} />
       </Route>
     </Routes>
+    </>
   );
 }
 

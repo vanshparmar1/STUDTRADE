@@ -110,8 +110,8 @@ const BuyPage = () => {
             <Link to="/cart" className="material-symbols-outlined text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors p-2 rounded-full hover:bg-[var(--color-surface-container-low)]">
               arrow_back
             </Link>
-            <Link to="/">
-              <img src={LOGO} alt="STUDTRADE" className="h-10 w-auto object-contain" />
+            <Link to="/" className="brand-logo-slot shrink-0">
+              <img src={LOGO} alt="STUDTRADE — Where Students Trade Better" className="h-10 w-auto object-contain" />
             </Link>
           </div>
           <div className="flex items-center gap-3">

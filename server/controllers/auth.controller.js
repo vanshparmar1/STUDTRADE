@@ -7,6 +7,26 @@ import sendOtpEmail from '../utils/sendOtpEmail.js';
 // helper function
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+/** Shape returned to the client for the logged-in user (login, verify, /me, PATCH profile). */
+const toPublicUser = (user) => ({
+    id: user._id,
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone ?? null,
+    role: user.role,
+    studtradeID: user.studtradeID ?? null,
+    isEmailVerified: Boolean(user.isEmailVerified),
+    address: {
+        fullAddress: user.address?.fullAddress ?? '',
+        city: user.address?.city ?? '',
+        pincode: user.address?.pincode ?? '',
+        landmark: user.address?.landmark ?? '',
+    },
+    savedItems: user.savedItems,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+});
 
 // ─── @desc    Register a new user and send email OTP ────────────────────────
 // ─── @route   POST /api/auth/register ───────────────────────────────────────
@@ -123,15 +143,7 @@ export const verifyEmailOtp = asyncHandler(async (req, res) => {
         success: true,
         message: 'Email verified successfully',
         token,
-        user: {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone ?? null,
-            role: user.role,
-            savedItems: user.savedItems,
-            createdAt: user.createdAt,
-        },
+        user: toPublicUser(user),
     });
 });
 
@@ -197,14 +209,7 @@ export const login = asyncHandler(async (req, res) => {
         success: true,
         message: 'Login successful',
         token,
-        user: {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone ?? null,
-            role: user.role,
-            savedItems: user.savedItems,
-        },
+        user: toPublicUser(user),
     });
 });
 
@@ -214,14 +219,79 @@ export const login = asyncHandler(async (req, res) => {
 export const getMe = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
-        data: {
-            _id: req.user._id,
-            name: req.user.name,
-            email: req.user.email,
-            phone: req.user.phone ?? null,
-            role: req.user.role,
-            savedItems: req.user.savedItems,
-            createdAt: req.user.createdAt,
-        },
+        data: toPublicUser(req.user),
+    });
+});
+
+// ─── @desc    Update current user profile ───────────────────────────────────
+// ─── @route   PATCH /api/auth/profile ──────────────────────────────────────
+// ─── @access  Private ───────────────────────────────────────────────────────
+export const updateProfile = asyncHandler(async (req, res) => {
+    const { name, phone, address, currentPassword, newPassword } = req.body;
+
+    const wantsPasswordChange =
+        newPassword !== undefined &&
+        newPassword !== null &&
+        String(newPassword).trim() !== '';
+
+    const user = await User.findById(req.user._id).select(wantsPasswordChange ? '+password' : '');
+
+    if (!user) {
+        const error = new Error('User not found');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (name !== undefined) {
+        user.name = String(name).trim();
+    }
+
+    if (phone !== undefined) {
+        const p = phone === null || phone === undefined ? '' : String(phone).trim();
+        user.phone = p === '' ? null : p;
+    }
+
+    if (address !== undefined && address !== null && typeof address === 'object') {
+        if (!user.address) user.address = {};
+        const allowed = ['fullAddress', 'city', 'pincode', 'landmark'];
+        for (const key of allowed) {
+            if (address[key] !== undefined) {
+                const v = address[key] === null ? '' : String(address[key]).trim();
+                user.address[key] = v;
+            }
+        }
+        const pc = user.address.pincode;
+        if (pc && !/^\d{6}$/.test(pc)) {
+            const error = new Error('Pincode must be a 6-digit number');
+            error.statusCode = 400;
+            throw error;
+        }
+    }
+
+    if (wantsPasswordChange) {
+        const pwd = String(newPassword).trim();
+        const current =
+            currentPassword === undefined || currentPassword === null
+                ? ''
+                : String(currentPassword);
+        if (!current) {
+            const error = new Error('Current password is required to set a new password');
+            error.statusCode = 400;
+            throw error;
+        }
+        if (!(await user.matchPassword(current))) {
+            const error = new Error('Current password is incorrect');
+            error.statusCode = 400;
+            throw error;
+        }
+        user.password = pwd;
+    }
+
+    await user.save();
+    const fresh = await User.findById(req.user._id);
+    res.status(200).json({
+        success: true,
+        message: 'Profile updated successfully',
+        data: toPublicUser(fresh),
     });
 });

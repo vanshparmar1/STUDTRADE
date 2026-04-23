@@ -6,6 +6,7 @@ import {
     getMe,
     verifyEmailOtp,
     resendEmailOtp,
+    updateProfile,
 } from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -14,6 +15,7 @@ import {
     loginRules,
     verifyEmailOtpRules,
     resendEmailOtpRules,
+    updateProfileRules,
 } from '../validators/auth.validators.js';
 import { loginLimiter } from '../config/rateLimiter.js';
 
@@ -27,5 +29,6 @@ router.post('/resend-email-otp', validate(resendEmailOtpRules), resendEmailOtp);
 
 // ─── Protected Routes ───────────────────────────────────────────────────────
 router.get('/me', protect, getMe);
+router.patch('/profile', protect, validate(updateProfileRules), updateProfile);
 
 export default router;

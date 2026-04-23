@@ -67,9 +67,23 @@ export const createItemRules = [
         },
     },
     {
+        field: 'pickupAddress.locality',
+        label: 'Campus locality',
+        rules: {
+            required: true,
+            type: 'string',
+            min: 2,
+            max: 120,
+        },
+    },
+    {
         field: 'pickupAddress.city',
         label: 'Pickup city',
-        rules: { required: false, type: 'string', max: 100 },
+        rules: {
+            required: false,
+            type: 'string',
+            max: 100,
+        },
     },
     {
         field: 'pickupAddress.pincode',

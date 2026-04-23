@@ -99,3 +99,41 @@ patternMessage: 'Please provide a valid email address',
         },
     },
 ];
+
+/** PATCH /api/auth/profile — all fields optional; empty phone clears the number */
+export const updateProfileRules = [
+    {
+        field: 'name',
+        label: 'Name',
+        rules: {
+            type: 'string',
+            min: 2,
+            max: 50,
+        },
+    },
+    {
+        field: 'phone',
+        label: 'Phone',
+        rules: {
+            type: 'string',
+            pattern: /^[6-9]\d{9}$/,
+            patternMessage: 'Phone must be a valid 10-digit Indian mobile number',
+        },
+    },
+    {
+        field: 'newPassword',
+        label: 'New password',
+        rules: {
+            type: 'string',
+            min: 6,
+            max: 128,
+        },
+    },
+    {
+        field: 'currentPassword',
+        label: 'Current password',
+        rules: {
+            type: 'string',
+        },
+    },
+];
