@@ -19,6 +19,7 @@ export default function ItemListing() {
         category: '',
         condition: '',
         'pickupAddress.fullAddress': user?.address?.fullAddress || '',
+        'pickupAddress.locality': '',
         'pickupAddress.city': user?.address?.city || '',
         'pickupAddress.pincode': user?.address?.pincode || '',
     });
@@ -212,18 +213,37 @@ export default function ItemListing() {
 
                         {/* ── Pickup Address Section ── */}
                         <section className="bg-surface-container-lowest p-10 rounded-xl shadow-[0_40px_80px_rgba(0,102,103,0.03)] space-y-8">
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="material-symbols-outlined text-primary text-[28px]">location_on</span>
-                                <h3 className="text-xl font-bold text-on-surface tracking-tight">Pickup Location</h3>
+                            <div className="flex items-start gap-3 mb-8">
+                                <span className="material-symbols-outlined text-primary text-[28px] mt-0.5">location_on</span>
+                                <div>
+                                    <h3 className="text-xl font-bold text-on-surface tracking-tight mb-1.5">Pickup Location</h3>
+                                    <p className="text-sm text-on-surface-variant leading-relaxed">
+                                        <strong>Locality</strong> is the only place label shown on the marketplace. Examples include Kamla Nagar, Nehru Nagar, Harvardhan, and Rivera. Use it so nearby buyers can guess delivery effort. Your full room address stays private until you coordinate after sale.
+                                    </p>
+                                </div>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Campus Address / Hostel Room</label>
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Campus locality (shown on listing)</label>
+                                    <input
+                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60"
+                                        name="pickupAddress.locality"
+                                        placeholder="e.g. Kamla Nagar, Nehru Nagar, Harvardhan, Rivera"
+                                        type="text"
+                                        required
+                                        minLength={2}
+                                        maxLength={120}
+                                        value={formData['pickupAddress.locality']}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Full pickup address (private)</label>
                                     <input
                                         className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60"
                                         name="pickupAddress.fullAddress"
-                                        placeholder="e.g. Hostel D, Room 214"
+                                        placeholder="e.g. Hostel D, Room 214 — for delivery coordination only"
                                         type="text"
                                         required
                                         value={formData['pickupAddress.fullAddress']}
@@ -231,27 +251,25 @@ export default function ItemListing() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">City</label>
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">City (optional)</label>
                                     <input
                                         className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface"
                                         name="pickupAddress.city"
-                                        placeholder="City"
+                                        placeholder="Not shown on catalog"
                                         type="text"
-                                        required
                                         value={formData['pickupAddress.city']}
                                         onChange={handleChange}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Pincode</label>
+                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Pincode (optional)</label>
                                     <input
                                         className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface"
                                         name="pickupAddress.pincode"
-                                        placeholder="Pincode (e.g. 395007)"
+                                        placeholder="6 digits — not shown on catalog"
                                         type="text"
                                         pattern="\d{6}"
                                         title="6-digit pincode"
-                                        required
                                         value={formData['pickupAddress.pincode']}
                                         onChange={handleChange}
                                     />

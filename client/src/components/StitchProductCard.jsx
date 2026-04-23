@@ -9,9 +9,10 @@ import { useNavigate } from 'react-router-dom';
  *   verified    — boolean
  *   title       — string
  *   subtitle    — string (condition/type)
+ *   listingArea — optional campus locality (or legacy city · PIN) for delivery estimates
  *   itemId      — string (for router navigation)
  */
-const StitchProductCard = ({ image, price, verified, title, subtitle, itemId, sold }) => {
+const StitchProductCard = ({ image, price, verified, title, subtitle, listingArea, itemId, sold }) => {
   const navigate = useNavigate();
 
   return (
@@ -50,7 +51,18 @@ const StitchProductCard = ({ image, price, verified, title, subtitle, itemId, so
       {/* Info */}
       <div className="p-4 sm:p-5 flex flex-col flex-1">
         <h3 className="text-sm font-bold text-[var(--color-on-surface)] mb-1 line-clamp-1" title={title}>{title}</h3>
-        <p className="text-xs text-[var(--color-on-surface-variant)] mb-4 truncate text-ellipsis" title={subtitle}>{subtitle}</p>
+        <p className="text-xs text-[var(--color-on-surface-variant)] mb-1 truncate text-ellipsis" title={subtitle}>{subtitle}</p>
+        {listingArea ? (
+          <p
+            className="text-[11px] font-semibold text-[var(--color-primary)] mb-4 flex items-start gap-1 min-h-[1.25rem]"
+            title={`Pickup locality — ${listingArea}`}
+          >
+            <span className="material-symbols-outlined text-[14px] shrink-0 mt-0.5 opacity-90">distance</span>
+            <span className="line-clamp-2 leading-snug">{listingArea}</span>
+          </p>
+        ) : (
+          <p className="text-[10px] text-[var(--color-outline)] mb-4">Campus locality not listed</p>
+        )}
 
         {/* Bottom row (Buttons stack on mobile) */}
         <div className="mt-auto pt-2 flex flex-col sm:flex-row gap-2">
