@@ -261,6 +261,15 @@ export default function ItemListing() {
 
                         {/* Submit */}
                         <div className="pt-8">
+                            <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200/60 flex gap-3 text-amber-900 text-sm">
+                                <span className="material-symbols-outlined shrink-0 text-amber-700">info</span>
+                                <div>
+                                    <p className="font-bold text-amber-900 mb-1">Important: Payment & Fees</p>
+                                    <p className="text-amber-800/90 leading-relaxed">
+                                        You will receive your money <strong>after the delivery</strong> is completed <span className="text-xs opacity-80">(the delivery will be arranged by us)</span>. Please note that a <strong>10% platform fee</strong> will be charged to the seller on the listed price.
+                                    </p>
+                                </div>
+                            </div>
                             <button
                                 type="submit"
                                 disabled={loading}
