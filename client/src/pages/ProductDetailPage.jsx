@@ -207,6 +207,7 @@ const ProductDetailPage = () => {
                 <span className="material-symbols-outlined">shopping_bag</span>
               </button>
               <div className="flex gap-3">
+                {/* TEMPORARILY DISABLED ADD TO CART 
                 <button
                   onClick={handleAddToCart}
                   disabled={addingToCart}
@@ -219,6 +220,7 @@ const ProductDetailPage = () => {
                   )}
                   {addingToCart ? 'Adding...' : 'Add to Cart'}
                 </button>
+                */}
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.href);

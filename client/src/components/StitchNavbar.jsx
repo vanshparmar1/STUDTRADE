@@ -93,6 +93,7 @@ const StitchNavbar = ({ links = defaultLinks, showSearch = true, activeLink = ''
 
         {/* Right: Cart + Profile */}
         <div className="flex items-center gap-1 sm:gap-2">
+          {/* TEMPORARILY DISABLED CART FEATURE
           {isAuthenticated && (
             <Link
               to="/cart"
@@ -103,6 +104,7 @@ const StitchNavbar = ({ links = defaultLinks, showSearch = true, activeLink = ''
               <span className="material-symbols-outlined text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-on-surface)] transition-colors">shopping_cart</span>
             </Link>
           )}
+          */}
           
           <div className="relative profile-dropdown">
             {isAuthenticated ? (
