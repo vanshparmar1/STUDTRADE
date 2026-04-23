@@ -73,8 +73,8 @@ const OfflinePaymentPage = () => {
           >
             arrow_back
           </button>
-          <Link to="/">
-            <img src={LOGO} alt="STUDTRADE" className="h-10 w-auto object-contain" />
+          <Link to="/" className="brand-logo-slot shrink-0">
+            <img src={LOGO} alt="STUDTRADE — Where Students Trade Better" className="h-10 w-auto object-contain" />
           </Link>
         </div>
         <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-on-surface-variant)]">
