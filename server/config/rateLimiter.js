@@ -54,3 +54,30 @@ export const loginLimiter = rateLimit({
         message: 'Too many login attempts. Please try again after 15 minutes.',
     },
 });
+
+// ─── OTP Verify Rate Limiter ────────────────────────────────────────────────
+// Tight limit because this endpoint is brute-force sensitive.
+export const otpVerifyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 8,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.method === 'OPTIONS',
+    message: {
+        success: false,
+        message: 'Too many OTP verification attempts. Please wait and try again.',
+    },
+});
+
+// ─── OTP Resend Rate Limiter ────────────────────────────────────────────────
+export const otpResendLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.method === 'OPTIONS',
+    message: {
+        success: false,
+        message: 'Too many OTP resend requests. Please wait and try again.',
+    },
+});

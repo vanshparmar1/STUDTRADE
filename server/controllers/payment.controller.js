@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import Item from '../models/Item.js';
+import PaymentIntent from '../models/PaymentIntent.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // ─── Configure Cashfree SDK ─────────────────────────────────────────────────
@@ -16,6 +17,7 @@ const cashfree = new Cashfree(
 
 // ─── Platform fee percentage (10%) ───────────────────────────────────────────
 const PLATFORM_FEE_RATE = 0.10;
+const PAYMENT_INTENT_TTL_MS = 20 * 60 * 1000;
 
 // ─── @desc    Create a Cashfree order with platform fee ──────────────────────
 // ─── @route   POST /api/payment/create-order ─────────────────────────────────
@@ -43,13 +45,19 @@ export const createOrder = asyncHandler(async (req, res) => {
         throw error;
     }
 
+    if (item.seller.toString() === req.user._id.toString()) {
+        const error = new Error('You cannot buy your own listing');
+        error.statusCode = 400;
+        throw error;
+    }
+
     // ── Calculate pricing server-side ───────────────────────────────────────
     const basePrice = item.price;
     const platformFee = Math.round(basePrice * PLATFORM_FEE_RATE * 100) / 100;
     const finalAmount = Math.round((basePrice + platformFee) * 100) / 100;
 
     // ── Generate a unique order ID ─────────────────────────────────────────
-    const orderId = `order_${item._id.toString().slice(-6)}_${Date.now()}`;
+    const orderId = `order_${crypto.randomBytes(8).toString('hex')}_${Date.now()}`;
 
     // ── Create Cashfree order (amount in INR, not paise) ────────────────────
     const orderRequest = {
@@ -70,6 +78,17 @@ export const createOrder = asyncHandler(async (req, res) => {
 
     const response = await cashfree.PGCreateOrder(orderRequest);
     const cfOrder = response.data;
+
+    await PaymentIntent.create({
+        cashfreeOrderId: cfOrder.order_id,
+        buyer: req.user._id,
+        item: item._id,
+        seller: item.seller,
+        expectedAmount: finalAmount,
+        currency: 'INR',
+        status: 'created',
+        expiresAt: new Date(Date.now() + PAYMENT_INTENT_TTL_MS),
+    });
 
     res.status(201).json({
         success: true,
@@ -96,8 +115,48 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         throw error;
     }
 
+    const intent = await PaymentIntent.findOne({
+        cashfreeOrderId: String(orderId).trim(),
+        buyer: req.user._id,
+    })
+        .populate('item', 'status')
+        .select('+item');
+
+    if (!intent) {
+        const error = new Error('Payment session not found for this account');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (intent.status === 'paid') {
+        return res.status(200).json({
+            success: true,
+            message: 'Payment already verified',
+            data: {
+                orderId: intent.cashfreeOrderId,
+                paymentId: intent.cashfreePaymentId,
+                paymentAmount: intent.expectedAmount,
+                paymentMethod: 'ONLINE',
+            },
+        });
+    }
+
+    if (intent.expiresAt < new Date()) {
+        intent.status = 'expired';
+        await intent.save();
+        const error = new Error('Payment session expired. Please retry checkout.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (!intent.item || intent.item.status !== 'available') {
+        const error = new Error('Item is no longer available for checkout');
+        error.statusCode = 409;
+        throw error;
+    }
+
     // ── Fetch payment status from Cashfree server-side ──────────────────────
-    const response = await cashfree.PGOrderFetchPayments(orderId);
+    const response = await cashfree.PGOrderFetchPayments(intent.cashfreeOrderId);
     const payments = response.data;
 
     if (!payments || payments.length === 0) {
@@ -106,8 +165,12 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         throw error;
     }
 
-    // Find the successful payment
-    const successfulPayment = payments.find(p => p.payment_status === 'SUCCESS');
+    // Find successful payment matching our expected amount/currency.
+    const successfulPayment = payments.find((p) => {
+        const amountMatches = Number(p.payment_amount) === Number(intent.expectedAmount);
+        const currencyMatches = (p.payment_currency || intent.currency) === intent.currency;
+        return p.payment_status === 'SUCCESS' && amountMatches && currencyMatches;
+    });
 
     if (!successfulPayment) {
         const error = new Error('Payment not completed or failed');
@@ -115,14 +178,37 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         throw error;
     }
 
-    // ── Payment is verified ─────────────────────────────────────────────────
+    // ── Mark intent paid (idempotent) and then sell the item ─────────────────
+    const updatedIntent = await PaymentIntent.findOneAndUpdate(
+        { _id: intent._id, status: { $ne: 'paid' } },
+        {
+            status: 'paid',
+            cashfreePaymentId: successfulPayment.cf_payment_id?.toString() || null,
+            paidAt: new Date(),
+        },
+        { new: true }
+    );
+
+    const finalIntent = updatedIntent || intent;
+
+    const soldResult = await Item.updateOne(
+        { _id: intent.item._id, status: 'available' },
+        { $set: { status: 'sold' } }
+    );
+
+    if (soldResult.modifiedCount === 0) {
+        const error = new Error('Payment captured, but item is no longer available. Contact support.');
+        error.statusCode = 409;
+        throw error;
+    }
+
     res.status(200).json({
         success: true,
         message: 'Payment verified successfully',
         data: {
-            orderId: orderId,
-            paymentId: successfulPayment.cf_payment_id?.toString(),
-            paymentAmount: successfulPayment.payment_amount,
+            orderId: finalIntent.cashfreeOrderId,
+            paymentId: finalIntent.cashfreePaymentId,
+            paymentAmount: finalIntent.expectedAmount,
             paymentMethod: successfulPayment.payment_group,
         },
     });
