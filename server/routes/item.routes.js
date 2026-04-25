@@ -6,7 +6,7 @@ import {
     updateItem,
     markAsSold,
 } from '../controllers/item.controller.js';
-import { protect } from '../middleware/auth.js';
+import { protect, requireCollegeEmail } from '../middleware/auth.js';
 import { uploadItemImages, handleMulterError } from '../middleware/upload.js';
 import { itemLimiter } from '../config/rateLimiter.js';
 import { validate } from '../middleware/validate.js';
@@ -24,6 +24,7 @@ router.get('/:id', getSingleItem);
 router.post(
     '/',
     protect,
+    requireCollegeEmail,
     itemLimiter,
     handleMulterError(uploadItemImages.array('images', 5)),
     validate(createItemRules),
@@ -31,9 +32,9 @@ router.post(
 );
 
 // PUT /api/items/:id — owners or admin only
-router.put('/:id', protect, updateItem);
+router.put('/:id', protect, requireCollegeEmail, updateItem);
 
 // PATCH /api/items/:id/sold — owners only
-router.patch('/:id/sold', protect, markAsSold);
+router.patch('/:id/sold', protect, requireCollegeEmail, markAsSold);
 
 export default router;

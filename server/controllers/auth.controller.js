@@ -3,6 +3,11 @@ import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import sendOtpEmail from '../utils/sendOtpEmail.js';
+import {
+    ALLOWED_EMAIL_DOMAIN,
+    isAllowedCollegeEmail,
+    normalizeEmail,
+} from '../utils/emailDomain.js';
 
 // helper function
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -33,10 +38,19 @@ const toPublicUser = (user) => ({
 // ─── @access  Public ─────────────────────────────────────────────────────────
 export const register = asyncHandler(async (req, res) => {
     const { name, email, password, phone } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    console.log("1. Register started:", email);
+    if (!isAllowedCollegeEmail(normalizedEmail)) {
+        const error = new Error(
+            `Only @${ALLOWED_EMAIL_DOMAIN} email addresses are allowed`
+        );
+        error.statusCode = 400;
+        throw error;
+    }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    console.log("1. Register started:", normalizedEmail);
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
         const error = new Error('An account with this email already exists');
         error.statusCode = 409;
@@ -45,7 +59,7 @@ export const register = asyncHandler(async (req, res) => {
 
     const user = await User.create({
         name,
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         password,
         phone,
         isEmailVerified: false,
@@ -83,8 +97,7 @@ export const register = asyncHandler(async (req, res) => {
 // ─── @access  Public ─────────────────────────────────────────────────────────
 export const verifyEmailOtp = asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
-
-    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = normalizeEmail(email);
 
     const user = await User.findOne({ email: normalizedEmail })
         .select('+emailOtp +emailOtpExpires +emailOtpAttempts');
@@ -153,8 +166,9 @@ export const verifyEmailOtp = asyncHandler(async (req, res) => {
 // ─── @access  Public ─────────────────────────────────────────────────────────
 export const resendEmailOtp = asyncHandler(async (req, res) => {
     const { email } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
         const error = new Error('User not found');
@@ -188,12 +202,21 @@ export const resendEmailOtp = asyncHandler(async (req, res) => {
 // ─── @access  Public ────────────────────────────────────────────────────────
 export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     if (!user || !(await user.matchPassword(password))) {
         const error = new Error('Invalid email or password');
         error.statusCode = 401;
+        throw error;
+    }
+
+    if (!isAllowedCollegeEmail(user.email)) {
+        const error = new Error(
+            `Access restricted to @${ALLOWED_EMAIL_DOMAIN} accounts only`
+        );
+        error.statusCode = 403;
         throw error;
     }
 
