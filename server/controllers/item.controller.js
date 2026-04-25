@@ -161,7 +161,7 @@ export const getSingleItem = asyncHandler(async (req, res) => {
 
     res.status(200).json({
         success: true,
-        data: item,
+        data: toCatalogItem(item),
     });
 });
 

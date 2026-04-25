@@ -1,10 +1,6 @@
 import nodemailer from 'nodemailer';
 
 const sendOtpEmail = async (to, otp) => {
-    console.log(`\n========================================`);
-    console.log(`[DEV] OTP for ${to}: ${otp}`);
-    console.log(`========================================\n`);
-
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.warn('EMAIL_USER or EMAIL_PASS not provided. Skipping actual email send.');
         return;
