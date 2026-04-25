@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { ALLOWED_EMAIL_DOMAIN, isAllowedCollegeEmail } from '../utils/emailDomain.js';
 
 /**
  * protect
@@ -62,5 +63,21 @@ export const authorizeRoles = (...roles) => {
         }
         next();
     };
+};
+
+/**
+ * requireCollegeEmail
+ * Restricts route to users with allowed college email domain.
+ * Must be used AFTER `protect`.
+ */
+export const requireCollegeEmail = (req, _res, next) => {
+    if (!isAllowedCollegeEmail(req.user?.email)) {
+        const error = new Error(
+            `Only @${ALLOWED_EMAIL_DOMAIN} users are allowed to perform this action`
+        );
+        error.statusCode = 403;
+        return next(error);
+    }
+    next();
 };
 
