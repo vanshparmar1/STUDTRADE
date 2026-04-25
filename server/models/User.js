@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import Counter from './Counter.js';
+import { ALLOWED_EMAIL_DOMAIN } from '../utils/emailDomain.js';
 
 
 // ─── Schema Definition ────────────────────────────────────────────────────────
@@ -21,10 +22,10 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             trim: true,
             index: true,
-           match: [
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    'Please provide a valid email address',
-],
+            match: [
+                new RegExp(`^[^\\s@]+@${ALLOWED_EMAIL_DOMAIN.replace('.', '\\.')}$`, 'i'),
+                `Only @${ALLOWED_EMAIL_DOMAIN} email addresses are allowed`,
+            ],
         },
 
         phone: {

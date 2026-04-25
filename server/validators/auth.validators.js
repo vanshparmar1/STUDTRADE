@@ -1,3 +1,5 @@
+import { ALLOWED_EMAIL_DOMAIN } from '../utils/emailDomain.js';
+
 /**
  * Auth validation rules
  * Used with the validate() middleware factory.
@@ -20,8 +22,11 @@ export const registerRules = [
         rules: {
             required: true,
             type: 'string',
-          pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-patternMessage: 'Please provide a valid email address',
+            pattern: new RegExp(
+                `^[^\\s@]+@${ALLOWED_EMAIL_DOMAIN.replace('.', '\\.')}$`,
+                'i'
+            ),
+            patternMessage: `Only @${ALLOWED_EMAIL_DOMAIN} email addresses are allowed`,
         },
     },
     {
