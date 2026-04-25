@@ -52,9 +52,11 @@ export const register = asyncHandler(async (req, res) => {
 
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
-        const error = new Error('An account with this email already exists');
-        error.statusCode = 409;
-        throw error;
+        return res.status(200).json({
+            success: true,
+            message: 'If this email is eligible, registration instructions have been sent',
+            email: normalizedEmail,
+        });
     }
 
     const user = await User.create({
@@ -103,25 +105,25 @@ export const verifyEmailOtp = asyncHandler(async (req, res) => {
         .select('+emailOtp +emailOtpExpires +emailOtpAttempts');
 
     if (!user) {
-        const error = new Error('User not found');
+        const error = new Error('Invalid or expired OTP');
         error.statusCode = 404;
         throw error;
     }
 
     if (user.isEmailVerified) {
-        const error = new Error('Email is already verified');
+        const error = new Error('Invalid or expired OTP');
         error.statusCode = 400;
         throw error;
     }
 
     if (!user.emailOtp || !user.emailOtpExpires) {
-        const error = new Error('No OTP found. Please request a new one');
+        const error = new Error('Invalid or expired OTP');
         error.statusCode = 400;
         throw error;
     }
 
     if (user.emailOtpExpires < new Date()) {
-        const error = new Error('OTP has expired');
+        const error = new Error('Invalid or expired OTP');
         error.statusCode = 400;
         throw error;
     }
@@ -138,7 +140,7 @@ export const verifyEmailOtp = asyncHandler(async (req, res) => {
 
     if (!isOtpValid) {
         await user.save();
-        const error = new Error('Invalid OTP');
+        const error = new Error('Invalid or expired OTP');
         error.statusCode = 400;
         throw error;
     }
@@ -170,16 +172,11 @@ export const resendEmailOtp = asyncHandler(async (req, res) => {
 
     const user = await User.findOne({ email: normalizedEmail });
 
-    if (!user) {
-        const error = new Error('User not found');
-        error.statusCode = 404;
-        throw error;
-    }
-
-    if (user.isEmailVerified) {
-        const error = new Error('Email is already verified');
-        error.statusCode = 400;
-        throw error;
+    if (!user || user.isEmailVerified) {
+        return res.status(200).json({
+            success: true,
+            message: 'If this account is eligible, OTP has been sent',
+        });
     }
 
     const otp = generateOtp();
@@ -193,7 +190,7 @@ export const resendEmailOtp = asyncHandler(async (req, res) => {
 
     res.status(200).json({
         success: true,
-        message: 'OTP resent successfully',
+        message: 'If this account is eligible, OTP has been sent',
     });
 });
 
