@@ -7,7 +7,11 @@ function validate(form) {
     const errors = {};
     if (!form.name.trim() || form.name.trim().length < 2) errors.name = 'Name must be at least 2 characters.';
     if (!form.email.toLowerCase().endsWith('@iiitbhopal.ac.in')) errors.email = 'Only @iiitbhopal.ac.in email addresses are allowed.';
-    if (form.phone && !/^[6-9]\d{9}$/.test(form.phone)) errors.phone = 'Enter a valid 10-digit Indian mobile number.';
+    if (!form.phone.trim()) {
+        errors.phone = 'Phone number is required.';
+    } else if (!/^[6-9]\d{9}$/.test(form.phone.trim())) {
+        errors.phone = 'Enter a valid 10-digit Indian mobile number.';
+    }
     if (form.password.length < 6) errors.password = 'Password must be at least 6 characters.';
     if (form.password !== form.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
     return errors;
@@ -120,7 +124,7 @@ export default function Register() {
                         <form onSubmit={handleSubmit} noValidate className="space-y-6">
                             {renderField('name', 'Full Name', 'person', 'Alex Johnson')}
                             {renderField('email', 'College Email', 'school', 'alex@university.edu', 'email')}
-                            {renderField('phone', 'Phone Number', 'smartphone', '+1 (555) 000-0000', 'tel', true)}
+                            {renderField('phone', 'Phone Number', 'smartphone', '9876543210', 'tel', false)}
 
                             <div className="grid grid-cols-1 gap-6">
                                 {renderField('password', 'Password', 'lock', '••••••••', 'password')}

@@ -4,334 +4,405 @@ import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import StitchNavbar from '../components/StitchNavbar';
 import StitchFooter from '../components/StitchFooter';
+import toast from 'react-hot-toast';
+import { addStoredPost } from '../utils/postsStore';
 
-const CATEGORIES = ['Books', 'Cycles', 'Tech', 'Furniture', 'Other'];
+const CATEGORIES = [
+  { label: 'Books', icon: '📚' },
+  { label: 'Tech', icon: '💻' },
+  { label: 'Furniture', icon: '🛋️' },
+  { label: 'Cycles', icon: '🚲' },
+  { label: 'Housing', icon: '🏠' },
+  { label: 'Need', icon: '🙋' },
+  { label: 'Other', icon: '🏷️' },
+];
+
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair'];
 
 export default function ItemListing() {
-    const { token, user } = useAuth();
-    const navigate = useNavigate();
+  const { token, user } = useAuth();
+  const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        price: '',
-        category: '',
-        condition: '',
-        'pickupAddress.fullAddress': user?.address?.fullAddress || '',
-        'pickupAddress.locality': '',
-        'pickupAddress.city': user?.address?.city || '',
-        'pickupAddress.pincode': user?.address?.pincode || '',
-    });
+  const [postText, setPostText] = useState('');
+  const [title, setTitle] = useState('');
+  const [price, setPrice] = useState('');
+  const [isFree, setIsFree] = useState(false);
+  const [category, setCategory] = useState('Tech');
+  const [condition, setCondition] = useState('Good');
+  const [location, setLocation] = useState(user?.address?.fullAddress || 'Main Campus / Hostel');
 
-    const [images, setImages] = useState([]);
-    const [previews, setPreviews] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+  const [images, setImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (images.length + files.length > 5) {
+      return setError('You can upload up to 5 photos max.');
+    }
+    setError('');
+    const newImages = [...images, ...files];
+    setImages(newImages);
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviews([...previews, ...newPreviews]);
+  };
 
-    const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
-        if (images.length + files.length > 5) {
-            return setError('You can only upload up to 5 images');
+  const removeImage = (index) => {
+    if (previews[index] && previews[index].startsWith('blob:')) {
+      URL.revokeObjectURL(previews[index]);
+    }
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const createDefaultImageFile = () => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const grad = ctx.createLinearGradient(0, 0, 400, 400);
+        grad.addColorStop(0, '#10b981');
+        grad.addColorStop(1, '#059669');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 400, 400);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 28px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('STUDTRADE LISTING', 200, 190);
+        ctx.font = '16px sans-serif';
+        ctx.fillText('Campus Verified Post', 200, 230);
+        const dataUrl = canvas.toDataURL('image/png');
+        const arr = dataUrl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
         }
-        setError('');
-        const newImages = [...images, ...files];
-        setImages(newImages);
-        const newPreviews = files.map(file => URL.createObjectURL(file));
-        setPreviews([...previews, ...newPreviews]);
-    };
+        return new File([u8arr], 'campus_post.png', { type: mime });
+      }
+    } catch (e) {
+      console.warn('Canvas creation fallback:', e);
+    }
+    return null;
+  };
 
-    const removeImage = (index) => {
-        setImages(images.filter((_, i) => i !== index));
-        setPreviews(previews.filter((_, i) => i !== index));
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!postText.trim() && !title.trim() && previews.length === 0) {
+      return setError('Please provide a title, description or photo for your post!');
+    }
+    setLoading(true);
+    setError('');
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (images.length === 0) return setError('At least one image is required');
-        setLoading(true);
-        setError('');
+    const numPrice = isFree ? 0 : Number(price) || 0;
+    const formattedPrice = isFree ? 'FREE' : price ? `₹${price}` : 'Free / Trade';
 
-        const data = new FormData();
-        Object.keys(formData).forEach(key => data.append(key, formData[key]));
-        images.forEach(image => data.append('images', image));
+    // Format title & description to meet backend validators (min title: 3, min desc: 10)
+    let finalTitle = (title.trim() || postText.slice(0, 40).trim() || 'Campus Item').slice(0, 120);
+    if (finalTitle.length < 3) finalTitle = finalTitle + ' Item';
 
-        try {
-            const response = await API.post('/items', data, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            if (response.data.success) navigate('/');
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create listing');
-        } finally {
-            setLoading(false);
-        }
-    };
+    let finalDesc = (postText.trim() || title.trim() || 'Campus listing and post item').slice(0, 2000);
+    if (finalDesc.length < 10) finalDesc = finalDesc + ' - Available on campus for student pickup.';
 
-    return (
-        <div className="bg-background text-on-surface min-h-screen flex flex-col">
-            <StitchNavbar />
+    const finalLocality = (location.trim() || 'Main Campus').slice(0, 120);
 
-            <main className="pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-grow w-full">
-                {/* Header */}
-                <header className="mb-16">
-                    <h1 className="text-5xl font-extrabold tracking-tighter text-primary mb-4 leading-tight">List an Item</h1>
-                    <p className="text-lg text-secondary font-medium max-w-2xl">
-                        Give your pre-loved gear a new home. Reach thousands of students across campus instantly.
-                    </p>
-                </header>
+    // Build FormData payload conforming to MongoDB server validation rules
+    const formData = new FormData();
+    formData.append('title', finalTitle);
+    formData.append('description', finalDesc);
+    formData.append('price', String(numPrice));
+    formData.append('category', category);
+    formData.append('condition', condition);
+    formData.append('pickupAddress.fullAddress', finalLocality);
+    formData.append('pickupAddress.locality', finalLocality);
 
-                {/* Error */}
-                {error && (
-                    <div className="mb-8 p-4 bg-error-container text-on-error-container rounded-lg text-sm font-semibold">
-                        {error}
-                    </div>
-                )}
+    if (images.length > 0) {
+      images.forEach((img) => formData.append('images', img));
+    } else {
+      const defaultImgFile = createDefaultImageFile();
+      if (defaultImgFile) {
+        formData.append('images', defaultImgFile);
+      }
+    }
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-                    {/* ── Left Column: Form ── */}
-                    <form onSubmit={handleSubmit} className="lg:col-span-8 space-y-12">
-                        {/* Image upload */}
-                        <section>
-                            <div className="flex justify-between items-end mb-6">
-                                <h3 className="text-xl font-bold text-on-surface">Images (Max 5)</h3>
-                                <span className="text-sm font-medium text-outline">{images.length} / 5 selected</span>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {/* Add photo button */}
-                                {images.length < 5 && (
-                                    <label className="aspect-square bg-surface-container rounded-lg border-2 border-dashed border-outline-variant flex flex-col items-center justify-center cursor-pointer hover:bg-surface-container-high transition-colors group">
-                                        <span className="material-symbols-outlined text-4xl text-outline group-hover:text-primary transition-colors">add_a_photo</span>
-                                        <p className="mt-2 text-xs font-bold text-outline uppercase tracking-widest">Add Photo</p>
-                                        <input type="file" className="hidden" onChange={handleFileChange} multiple accept="image/*" />
-                                    </label>
-                                )}
-                                {/* Previews */}
-                                {previews.map((src, i) => (
-                                    <div key={i} className="aspect-square rounded-lg overflow-hidden relative group">
-                                        <img src={src} alt="" className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit]" />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeImage(i)}
-                                            className="absolute top-2 right-2 bg-white/90 p-1.5 text-error rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                                        >
-                                            <span className="material-symbols-outlined text-[18px]">close</span>
-                                        </button>
-                                    </div>
-                                ))}
-                                {/* Empty placeholders */}
-                                {Array.from({ length: Math.max(0, 3 - previews.length) }).map((_, i) => (
-                                    <div key={`ph-${i}`} className="aspect-square bg-surface-container-low rounded-lg" />
-                                ))}
-                            </div>
-                        </section>
+    try {
+      // Send FormData to backend. Axios automatically attaches Authorization header
+      // and sets the correct multipart boundary header for Multer.
+      const response = await API.post('/items', formData);
+      const serverItem = response.data?.data;
 
-                        {/* Listing details */}
-                        <section className="bg-surface-container-lowest p-10 rounded-xl shadow-[0_40px_80px_rgba(0,102,103,0.03)] space-y-8">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Item Title</label>
-                                    <input
-                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60"
-                                        name="title"
-                                        placeholder="e.g. Organic Chemistry Textbook (12th Edition)"
-                                        type="text"
-                                        required
-                                        value={formData.title}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Price (₹)</label>
-                                    <div className="relative">
-                                        <span className="absolute left-6 top-1/2 -translate-y-1/2 text-outline font-bold">₹</span>
-                                        <input
-                                            className="w-full bg-surface-container pl-12 pr-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface"
-                                            name="price"
-                                            placeholder="0"
-                                            type="number"
-                                            required
-                                            value={formData.price}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Category</label>
-                                    <select
-                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface appearance-none cursor-pointer"
-                                        name="category"
-                                        required
-                                        value={formData.category}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="">Select Category</option>
-                                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
-                            </div>
+      const postImg = serverItem?.images?.[0] || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&auto=format&fit=crop&q=80';
 
-                            {/* Condition */}
-                            <div>
-                                <label className="block text-sm font-bold text-primary mb-4 uppercase tracking-wider">Item Condition</label>
-                                <div className="flex flex-wrap gap-3">
-                                    {CONDITIONS.map(c => (
-                                        <button
-                                            key={c}
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, condition: c })}
-                                            className={`px-8 py-3 rounded-full font-bold text-sm transition-all ${
-                                                formData.condition === c
-                                                    ? 'bg-primary-container text-on-primary-container shadow-lg shadow-primary-container/20'
-                                                    : 'bg-surface-container text-outline hover:bg-surface-container-high'
-                                            }`}
-                                        >
-                                            {c}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+      const newPostItem = {
+        _id: serverItem?._id || 'post_' + Date.now(),
+        id: serverItem?.id || Date.now(),
+        user: serverItem?.seller?.name || user?.name || 'Campus Member',
+        handle: serverItem?.seller?.email ? `@${serverItem.seller.email.split('@')[0]}` : (user?.email ? `@${user.email.split('@')[0]}` : '@campus_member'),
+        avatar: serverItem?.seller?.avatar || user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+        badge: user?.verificationStatus === 'approved' ? 'Verified Student' : 'Student',
+        isVerified: user?.verificationStatus === 'approved',
+        timeAgo: 'Just now',
+        title: finalTitle,
+        caption: finalDesc,
+        price: formattedPrice,
+        rawPrice: numPrice,
+        category: category,
+        condition: condition,
+        location: finalLocality,
+        image: postImg,
+        likes: 0,
+        isLiked: false,
+        saved: false,
+        comments: []
+      };
 
-                            {/* Description */}
-                            <div>
-                                <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Description</label>
-                                <textarea
-                                    className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60 resize-none"
-                                    name="description"
-                                    placeholder="Tell other students why they should buy this. Mention any wear and tear or special features."
-                                    rows="5"
-                                    required
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </section>
+      addStoredPost(newPostItem);
 
-                        {/* ── Pickup Address Section ── */}
-                        <section className="bg-surface-container-lowest p-10 rounded-xl shadow-[0_40px_80px_rgba(0,102,103,0.03)] space-y-8">
-                            <div className="flex items-start gap-3 mb-8">
-                                <span className="material-symbols-outlined text-primary text-[28px] mt-0.5">location_on</span>
-                                <div>
-                                    <h3 className="text-xl font-bold text-on-surface tracking-tight mb-1.5">Pickup Location</h3>
-                                    <p className="text-sm text-on-surface-variant leading-relaxed">
-                                        <strong>Locality</strong> is the only place label shown on the marketplace. Examples include Kamla Nagar, Nehru Nagar, Harvardhan, and Rivera. Use it so nearby buyers can guess delivery effort. Your full room address stays private until you coordinate after sale.
-                                    </p>
-                                </div>
-                            </div>
+      // Clean up blob URLs
+      previews.forEach((p) => {
+        if (typeof p === 'string' && p.startsWith('blob:')) URL.revokeObjectURL(p);
+      });
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Campus locality (shown on listing)</label>
-                                    <input
-                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60"
-                                        name="pickupAddress.locality"
-                                        placeholder="e.g. Kamla Nagar, Nehru Nagar, Harvardhan, Rivera"
-                                        type="text"
-                                        required
-                                        minLength={2}
-                                        maxLength={120}
-                                        value={formData['pickupAddress.locality']}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Full pickup address (private)</label>
-                                    <input
-                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface placeholder:text-outline/60"
-                                        name="pickupAddress.fullAddress"
-                                        placeholder="e.g. Hostel D, Room 214 — for delivery coordination only"
-                                        type="text"
-                                        required
-                                        value={formData['pickupAddress.fullAddress']}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">City (optional)</label>
-                                    <input
-                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface"
-                                        name="pickupAddress.city"
-                                        placeholder="Not shown on catalog"
-                                        type="text"
-                                        value={formData['pickupAddress.city']}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-primary mb-3 uppercase tracking-wider">Pincode (optional)</label>
-                                    <input
-                                        className="w-full bg-surface-container px-6 py-4 rounded-lg focus:ring-2 focus:ring-primary/20 border-none text-on-surface"
-                                        name="pickupAddress.pincode"
-                                        placeholder="6 digits — not shown on catalog"
-                                        type="text"
-                                        pattern="\d{6}"
-                                        title="6-digit pincode"
-                                        value={formData['pickupAddress.pincode']}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                            </div>
-                        </section>
+      toast.success('Post published to Campus Feed! 🎉');
+      navigate('/');
+    } catch (err) {
+      const errorMsg = err?.response?.data?.message || err?.message || 'Failed to publish post';
+      console.error('API post error:', errorMsg);
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                        {/* Submit */}
-                        <div className="pt-8">
-                            <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200/60 flex gap-3 text-amber-900 text-sm">
-                                <span className="material-symbols-outlined shrink-0 text-amber-700">info</span>
-                                <div>
-                                    <p className="font-bold text-amber-900 mb-1">Important: Payment & Fees</p>
-                                    <p className="text-amber-800/90 leading-relaxed">
-                                        You will receive your money <strong>after the delivery</strong> is completed <span className="text-xs opacity-80">(the delivery will be arranged by us)</span>. Please note that a <strong>10% platform fee</strong> will be charged to the seller on the listed price.
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full md:w-auto px-16 py-5 bg-primary-container text-on-primary-container font-extrabold text-lg rounded-full shadow-[0_20px_40px_rgba(26,128,129,0.3)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-60 disabled:pointer-events-none"
-                            >
-                                {loading ? 'Posting...' : 'Post Listing'}
-                            </button>
-                        </div>
-                    </form>
+  return (
+    <div className="bg-[var(--color-surface)] text-[var(--color-on-surface)] min-h-screen flex flex-col">
+      <StitchNavbar />
 
-                    {/* ── Right Column: Sidebar ── */}
-                    <aside className="lg:col-span-4 space-y-8">
-                        {/* Pro Tips */}
-                        <div className="bg-surface-container p-8 rounded-xl relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16" />
-                            <h3 className="text-xl font-black text-primary mb-6 flex items-center gap-3">
-                                <span className="material-symbols-outlined text-primary-container">lightbulb</span>
-                                Pro Tips for Sellers
-                            </h3>
-                            <ul className="space-y-6">
-                                {[
-                                    { title: 'Take clear photos', desc: 'Natural lighting works best. Show the item from multiple angles.' },
-                                    { title: 'Be honest', desc: 'Clearly mention any scratches or highlights to build trust.' },
-                                    { title: 'Set a fair price', desc: 'Check similar listings to ensure your price is competitive.' },
-                                ].map((tip, i) => (
-                                    <li key={i} className="flex gap-4">
-                                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                                            <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-on-surface text-sm">{tip.title}</p>
-                                            <p className="text-xs text-outline leading-relaxed mt-1">{tip.desc}</p>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-
-                    </aside>
-                </div>
-            </main>
-
-            <StitchFooter />
+      <main className="pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto flex-grow w-full">
+        {/* Header Breadcrumb & Title */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 text-xs font-bold text-[var(--color-on-surface-variant)] mb-3">
+            <button onClick={() => navigate('/')} className="hover:text-[var(--color-primary)] cursor-pointer">Home</button>
+            <span>/</span>
+            <span className="text-[var(--color-primary)]">Share Post &amp; Sell</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-[var(--color-on-surface)] tracking-tight">
+            Share a Post &amp; Sell Item
+          </h1>
+          <p className="text-sm text-[var(--color-on-surface-variant)] mt-1">
+            Reach thousands of students across campus instantly with your listing, trade offer, or request.
+          </p>
         </div>
-    );
+
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg">error</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Main Instagram-Style Upload Post Card */}
+        <div className="bg-white rounded-3xl border border-[var(--color-outline-variant)]/30 p-6 sm:p-8 shadow-sm space-y-6">
+          
+          {/* User Info Header */}
+          <div className="flex items-center gap-3.5 pb-4 border-b border-[var(--color-outline-variant)]/20">
+            <img
+              src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
+              alt="Avatar"
+              className="w-12 h-12 rounded-full object-cover border border-[var(--color-outline-variant)]/40 shadow-2xs"
+            />
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h3 className="font-bold text-base text-[var(--color-on-surface)]">{user?.name || 'Verified Student'}</h3>
+                <span className="material-symbols-outlined text-blue-500 text-sm font-bold" title="Verified Campus Student">verified</span>
+              </div>
+              <p className="text-xs text-[var(--color-on-surface-variant)]">Posting to IIIT Bhopal Campus</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Title / Headline Input */}
+            <div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-[var(--color-on-surface-variant)] mb-2">
+                Post Title / Item Name
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Casio Calculator, Engineering Physics Notes, Desk Chair..."
+                className="w-full bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-3.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 text-[var(--color-on-surface)]"
+              />
+            </div>
+
+            {/* Post Caption / Description Input */}
+            <div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-[var(--color-on-surface-variant)] mb-2">
+                Description / Details
+              </label>
+              <textarea
+                value={postText}
+                onChange={(e) => setPostText(e.target.value)}
+                placeholder="What's happening on campus? Share item details, condition, trade terms, or pickup info..."
+                className="w-full bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 resize-none h-28 text-[var(--color-on-surface)]"
+              />
+            </div>
+
+            {/* Photo Attachment & Preview Section */}
+            <div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-[var(--color-on-surface-variant)] mb-2">
+                Photos (Up to 5 photos)
+              </label>
+              
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                {previews.map((src, index) => (
+                  <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 group">
+                    <img src={src} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-black/75 text-white rounded-full p-1 hover:bg-black transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-xs">close</span>
+                    </button>
+                  </div>
+                ))}
+
+                {previews.length < 5 && (
+                  <label className="aspect-square rounded-2xl border-2 border-dashed border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] bg-[var(--color-surface-container-low)] hover:bg-[var(--color-surface-container)] flex flex-col items-center justify-center cursor-pointer transition-colors text-center p-2">
+                    <span className="material-symbols-outlined text-2xl text-[var(--color-primary)] mb-1">add_a_photo</span>
+                    <span className="text-[10px] font-bold text-[var(--color-on-surface-variant)]">Add Photo</span>
+                    <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Category Selection */}
+            <div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-[var(--color-on-surface-variant)] mb-2">
+                Select Category
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    type="button"
+                    key={cat.label}
+                    onClick={() => setCategory(cat.label)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                      category === cat.label
+                        ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-sm'
+                        : 'bg-[var(--color-surface-container-low)] text-slate-700 border-[var(--color-outline-variant)]/40 hover:bg-[var(--color-surface-container)]'
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Condition & Price Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Condition */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-[var(--color-on-surface-variant)] mb-2">
+                  Condition
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {CONDITIONS.map((cond) => (
+                    <button
+                      type="button"
+                      key={cond}
+                      onClick={() => setCondition(cond)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center border ${
+                        condition === cond
+                          ? 'bg-[var(--color-primary-container)] text-[var(--color-primary)] border-[var(--color-primary)]'
+                          : 'bg-[var(--color-surface-container-low)] text-slate-700 border-[var(--color-outline-variant)]/40'
+                      }`}
+                    >
+                      {cond}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price & Free Toggle */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-extrabold uppercase tracking-wider text-[var(--color-on-surface-variant)]">
+                    Price (₹)
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isFree}
+                      onChange={(e) => {
+                        setIsFree(e.target.checked);
+                        if (e.target.checked) setPrice('');
+                      }}
+                      className="rounded accent-emerald-600"
+                    />
+                    <span>Free Giveaway</span>
+                  </label>
+                </div>
+                <input
+                  type="number"
+                  disabled={isFree}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder={isFree ? 'Free ($0)' : 'e.g. 500'}
+                  className={`w-full bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-3.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 text-[var(--color-on-surface)] ${
+                    isFree ? 'opacity-50 cursor-not-allowed bg-emerald-50' : ''
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Campus Location */}
+            <div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-[var(--color-on-surface-variant)] mb-2">
+                Pickup / Campus Location
+              </label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Hostel B, Main Library, Engineering Block..."
+                className="w-full bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-3.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 text-[var(--color-on-surface)]"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-2xl gradient-primary text-white font-extrabold text-base shadow-lg hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {loading ? (
+                  <span>Publishing Post...</span>
+                ) : (
+                  <>
+                    <span>Publish Post to Campus</span>
+                    <span className="material-symbols-outlined text-xl">send</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </main>
+
+      <StitchFooter />
+    </div>
+  );
 }

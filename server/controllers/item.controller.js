@@ -8,50 +8,44 @@ import { toCatalogItem } from '../utils/catalogItem.js';
 export const createItem = asyncHandler(async (req, res) => {
     const { title, description, price, category, condition } = req.body;
 
-    // ── Build the pickup Address from potential flat fields OR nested objects ────
     const pickupAddress = {
-        fullAddress: req.body['pickupAddress.fullAddress'] || req.body.pickupAddress?.fullAddress,
-        locality: req.body['pickupAddress.locality'] || req.body.pickupAddress?.locality,
-        city: req.body['pickupAddress.city'] || req.body.pickupAddress?.city,
-        pincode: req.body['pickupAddress.pincode'] || req.body.pickupAddress?.pincode,
-        landmark: req.body['pickupAddress.landmark'] || req.body.pickupAddress?.landmark,
+        fullAddress: req.body['pickupAddress.fullAddress'] || req.body.pickupAddress?.fullAddress || 'Main Campus',
+        locality: req.body['pickupAddress.locality'] || req.body.pickupAddress?.locality || 'Main Campus',
+        city: req.body['pickupAddress.city'] || req.body.pickupAddress?.city || 'Campus',
+        pincode: req.body['pickupAddress.pincode'] || req.body.pickupAddress?.pincode || '',
+        landmark: req.body['pickupAddress.landmark'] || req.body.pickupAddress?.landmark || '',
     };
 
-    // (required fields, length limits, and price/enum validation are pre-checked
-    // by validate(createItemRules) middleware before this controller runs)
+    // Extract Cloudinary URLs from uploaded files if attached
+    const imageUrls = (req.files && req.files.length > 0) ? req.files.map((file) => file.path) : [];
 
-    // Require at least one uploaded image
-    if (!req.files || req.files.length === 0) {
-        const error = new Error('At least one image is required');
-        error.statusCode = 400;
-        throw error;
-    }
+    const finalTitle = (title || description || 'Campus Post').trim();
+    const finalDesc = (description || title || 'Campus post and listing item.').trim();
 
-    // 3. Extract Cloudinary URLs from uploaded files
-    const imageUrls = req.files.map((file) => file.path);
-
-    // 4. Create the item — seller comes from the protect middleware
+    // Create item in MongoDB database
     const item = await Item.create({
-        title,
-        description,
-        price: Number(price),
-        category,
-        condition,
+        title: finalTitle,
+        description: finalDesc,
+        price: price !== undefined && !isNaN(Number(price)) ? Number(price) : 0,
+        category: category || 'Other',
+        condition: condition || 'Good',
         pickupAddress,
         images: imageUrls,
         seller: req.user._id,
         status: 'available',
     });
 
+    const populated = await Item.findById(item._id).populate('seller', '_id name email phone');
+
     res.status(201).json({
         success: true,
         message: 'Item listed successfully',
-        data: item,
+        data: toCatalogItem(populated || item),
     });
 });
 
 // ─── Allowlists for query param validation ────────────────────────────────────
-const VALID_CATEGORIES = ['Books', 'Cycles', 'Tech', 'Furniture', 'Other'];
+const VALID_CATEGORIES = ['Books', 'Cycles', 'Tech', 'Furniture', 'Housing', 'Need', 'Other'];
 const VALID_CONDITIONS = ['New', 'Like New', 'Good', 'Fair'];
 
 // ─── @desc    Get all items (with filters + pagination) ──────────────────────
@@ -124,7 +118,7 @@ export const getAllItems = asyncHandler(async (req, res) => {
 
     const [items, total] = await Promise.all([
         Item.find(filter, search ? { score: { $meta: 'textScore' } } : {})
-            .populate('seller', '_id') // _id only — no PII exposed
+            .populate('seller', '_id name email phone avatar verificationStatus')
             .sort(sortOptions)
             .skip(skip)
             .limit(perPage),
@@ -150,7 +144,8 @@ export const getSingleItem = asyncHandler(async (req, res) => {
         req.params.id,
         { $inc: { views: 1 } },
         { new: true, runValidators: true }
-    ).populate('seller', '_id');                // _id only — no PII exposed
+    ).populate('seller', '_id name email phone avatar verificationStatus');
+
 
     if (!item) {
         return res.status(404).json({
@@ -275,3 +270,123 @@ export const markAsSold = asyncHandler(async (req, res) => {
         data: item,
     });
 });
+
+// ─── @desc    Delete item ─────────────────────────────────────────────────────
+// ─── @route   DELETE /api/items/:id ──────────────────────────────────────────
+// ─── @access  Private (Owner or Admin) ───────────────────────────────────────
+export const deleteItem = asyncHandler(async (req, res) => {
+    const item = await Item.findById(req.params.id);
+
+    if (!item) {
+        return res.status(404).json({
+            success: false,
+            message: 'Item not found',
+        });
+    }
+
+    // Allow item owner or admin/manager to delete item
+    if (
+        item.seller.toString() !== req.user._id.toString() &&
+        !['admin', 'manager'].includes(req.user.role)
+    ) {
+        return res.status(403).json({
+            success: false,
+            message: 'Not authorized to delete this item',
+        });
+    }
+
+    await item.deleteOne();
+
+    res.status(200).json({
+        success: true,
+        message: 'Item deleted successfully',
+        data: { id: req.params.id },
+    });
+});
+
+// ─── @desc    Toggle like status on an item post ──────────────────────────────
+// ─── @route   POST /api/items/:id/like ────────────────────────────────────────
+// ─── @access  Private ────────────────────────────────────────────────────────
+export const toggleLikeItem = asyncHandler(async (req, res) => {
+    const item = await Item.findById(req.params.id);
+
+    if (!item) {
+        return res.status(404).json({
+            success: false,
+            message: 'Item not found',
+        });
+    }
+
+    const userId = req.user._id;
+    if (!item.likes) item.likes = [];
+
+    const existingIndex = item.likes.findIndex(
+        (id) => id.toString() === userId.toString()
+    );
+
+    let isLiked = false;
+    if (existingIndex >= 0) {
+        item.likes.splice(existingIndex, 1);
+        isLiked = false;
+    } else {
+        item.likes.push(userId);
+        isLiked = true;
+    }
+
+    await item.save();
+
+    res.status(200).json({
+        success: true,
+        message: isLiked ? 'Item liked' : 'Item unliked',
+        data: {
+            likesCount: item.likes.length,
+            isLiked,
+            likes: item.likes,
+        },
+    });
+});
+
+// ─── @desc    Add a comment to an item post ──────────────────────────────────
+// ─── @route   POST /api/items/:id/comment ─────────────────────────────────────
+// ─── @access  Private ────────────────────────────────────────────────────────
+export const addCommentItem = asyncHandler(async (req, res) => {
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Comment text is required',
+        });
+    }
+
+    const item = await Item.findById(req.params.id);
+
+    if (!item) {
+        return res.status(404).json({
+            success: false,
+            message: 'Item not found',
+        });
+    }
+
+    if (!item.comments) item.comments = [];
+
+    const newComment = {
+        user: req.user._id,
+        userName: req.user.name || 'Campus Member',
+        text: text.trim(),
+        createdAt: new Date(),
+    };
+
+    item.comments.push(newComment);
+    await item.save();
+
+    res.status(201).json({
+        success: true,
+        message: 'Comment added successfully',
+        data: {
+            comments: item.comments,
+            comment: newComment,
+        },
+    });
+});
+

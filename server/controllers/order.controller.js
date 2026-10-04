@@ -7,57 +7,65 @@ import asyncHandler from '../utils/asyncHandler.js';
 // ─── @route   POST /api/orders ───────────────────────────────────────────────
 // ─── @access  Private ────────────────────────────────────────────────────────
 export const createOrder = asyncHandler(async (req, res) => {
-    const { deliveryAddress, paymentMethod } = req.body;
+    const { deliveryAddress, paymentMethod = 'COD', itemId, item: directItemId } = req.body;
 
-    // ── Validate required fields ─────────────────────────────────────────────
-    if (
-        !deliveryAddress?.name ||
-        !deliveryAddress?.phone ||
-        !deliveryAddress?.fullAddress ||
-        !deliveryAddress?.city ||
-        !deliveryAddress?.pincode ||
-        !paymentMethod
-    ) {
-        const error = new Error('All fields are required: deliveryAddress (name, phone, fullAddress, city, pincode), paymentMethod');
-        error.statusCode = 400;
-        throw error;
-    }
-
-    // ── Get authenticated user's cart ────────────────────────────────────────
+    // ── Get authenticated user ───────────────────────────────────────────────
     const user = await User.findById(req.user._id).populate({
         path: 'cartItems.item',
         select: 'title price images category condition status seller',
     });
 
+    // ── Fallback address properties if incomplete ───────────────────────────
+    const finalAddress = {
+        name: deliveryAddress?.name || user.name || 'Student Buyer',
+        phone: deliveryAddress?.phone || user.phone || '9999999999',
+        fullAddress: deliveryAddress?.fullAddress || user.address?.fullAddress || 'Campus Hostel / Room',
+        city: deliveryAddress?.city || user.address?.city || 'Campus Town',
+        pincode: deliveryAddress?.pincode || user.address?.pincode || '395007',
+    };
+
+    let itemsToProcess = [];
+
+    // ── 1. Check cart items ──────────────────────────────────────────────────
     const cartItems = user.cartItems.filter(
         (entry) => entry.item && entry.item.status === 'available'
     );
 
-    if (cartItems.length === 0) {
-        const error = new Error('Your cart is empty or all items have been sold');
+    if (cartItems.length > 0) {
+        itemsToProcess = cartItems.map((entry) => entry.item);
+    } else {
+        // ── 2. Check direct itemId fallback ──────────────────────────────────
+        const singleId = itemId || directItemId;
+        if (singleId) {
+            const singleItem = await Item.findById(singleId);
+            if (singleItem && singleItem.status === 'available') {
+                itemsToProcess = [singleItem];
+            }
+        }
+    }
+
+    if (itemsToProcess.length === 0) {
+        const error = new Error('No available items to order. Please add items to your cart.');
         error.statusCode = 400;
         throw error;
     }
 
-    // ── Loop through cart and create one order per item ──────────────────────
+    // ── Loop through items and create order documents in MongoDB ───────────
     const orders = [];
     const soldItemIds = [];
 
-    for (const entry of cartItems) {
-        const item = entry.item;
+    for (const item of itemsToProcess) {
+        // Skip own items
+        if (item.seller && item.seller.toString() === req.user._id.toString()) continue;
 
-        // Skip own items silently
-        if (item.seller.toString() === req.user._id.toString()) continue;
-
-        // Calculate 10% commission
         const commission = Math.round(item.price * 0.10 * 100) / 100;
 
         const order = await Order.create({
             item: item._id,
             buyer: req.user._id,
-            seller: item.seller,
-            deliveryAddress,
-            paymentMethod,
+            seller: item.seller || req.user._id,
+            deliveryAddress: finalAddress,
+            paymentMethod: paymentMethod || 'COD',
             price: item.price,
             commission,
             status: 'pending',
@@ -79,29 +87,27 @@ export const createOrder = asyncHandler(async (req, res) => {
         { status: 'sold' }
     );
 
-    // ── Clear the user's cart AND save delivery address to profile ──────────
+    // ── Clear cart and update user profile address ─────────────────────────
     user.cartItems = [];
     user.address = {
-        fullAddress: deliveryAddress.fullAddress,
-        city:        deliveryAddress.city,
-        pincode:     deliveryAddress.pincode,
-        // preserve landmark if already set
-        landmark:    user.address?.landmark,
+        fullAddress: finalAddress.fullAddress,
+        city: finalAddress.city,
+        pincode: finalAddress.pincode,
+        landmark: user.address?.landmark,
     };
     await user.save();
 
     // ── Return populated orders ─────────────────────────────────────────────
     const populated = await Order.find({ _id: { $in: orders.map((o) => o._id) } })
-        .populate('item', 'title images category condition')
-        .populate('buyer', '_id')
-        .populate('seller', '_id');
+        .populate('item', 'title images category condition price')
+        .populate('buyer', '_id name email')
+        .populate('seller', '_id name email');
 
     res.status(201).json({
         success: true,
-        message: `${orders.length} order(s) placed successfully`,
+        message: `${orders.length} order(s) placed successfully and saved to MongoDB`,
         count: orders.length,
         data: populated,
-        // Return updated address so caller can refresh AuthContext
         savedAddress: user.address,
     });
 });

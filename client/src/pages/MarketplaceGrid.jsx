@@ -5,6 +5,7 @@ import StitchFooter from '../components/StitchFooter';
 import StitchProductCard from '../components/StitchProductCard';
 import API from '../api/axios';
 import { formatListingAreaFromPickup } from '../utils/listingArea';
+import { getStoredItems } from '../utils/postsStore';
 
 // Maps the sidebar labels to the API's category values
 const CATEGORY_MAP = {
@@ -41,6 +42,15 @@ const MarketplaceGrid = () => {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const q = searchParams.get('q') || '';
+  const categoryParam = searchParams.get('category') || '';
+  const filterParam = searchParams.get('filter') || '';
+
+  // Sync category from URL parameter if present
+  useEffect(() => {
+    if (categoryParam && CATEGORY_MAP[categoryParam]) {
+      setActiveCategory(categoryParam);
+    }
+  }, [categoryParam]);
 
   const fetchItems = useCallback(async (reset = false) => {
     setLoading(true);
@@ -53,20 +63,24 @@ const MarketplaceGrid = () => {
       params.set('page', reset ? 1 : page);
       params.set('limit', 12);
 
-      const { data } = await API.get(`/items?${params.toString()}`);
-      if (data.success) {
-        setItems((prev) => reset ? data.data : [...prev, ...data.data]);
-        setTotal(data.total);
-        if (reset) setPage(1);
+      let apiItems = [];
+      let apiTotal = 0;
+
+      try {
+        const { data } = await API.get(`/items?${params.toString()}`);
+        if (data.success) {
+          apiItems = data.data || [];
+          apiTotal = data.total || 0;
+        }
+      } catch (e) {
+        console.warn('API fetch error:', e.message);
       }
+
+      setItems((prev) => (reset ? apiItems : [...prev, ...apiItems]));
+      setTotal(apiTotal);
+      if (reset) setPage(1);
     } catch (err) {
-      const apiMsg = err.response?.data?.message;
-      const isNetwork = !err.response && err.message;
-      setError(
-        apiMsg
-          || (isNetwork ? `Cannot reach API (${err.message}). Check VITE_API_URL on Vercel and redeploy.` : null)
-          || 'Failed to load items. Please try again.'
-      );
+      setError('Failed to fetch items from server.');
     } finally {
       setLoading(false);
     }
@@ -240,23 +254,39 @@ const MarketplaceGrid = () => {
             )}
 
             {/* Product grid */}
-            {items.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                {items.map((item) => (
-                  <StitchProductCard
-                    key={item._id}
-                    itemId={item._id}
-                    image={item.images?.[0] || 'https://placehold.co/400x400?text=No+Image'}
-                    price={formatPrice(item.price)}
-                    verified={item.seller?.verified ?? false}
-                    title={item.title}
-                    subtitle={`${item.category} • ${item.condition}`}
-                    listingArea={item.listingArea ?? formatListingAreaFromPickup(item.pickupAddress)}
-                    sold={item.status === 'sold'}
-                  />
-                ))}
-              </div>
-            )}
+            {(() => {
+              const displayedItems = filterParam === 'free'
+                ? items.filter(item => item.price === 0 || item.price === '0' || !item.price)
+                : items;
+
+              if (displayedItems.length === 0 && items.length > 0) {
+                return (
+                  <div className="text-center py-16 text-[var(--color-on-surface-variant)]">
+                    <span className="material-symbols-outlined text-5xl mb-3 block opacity-40">card_giftcard</span>
+                    <h3 className="text-lg font-bold mb-1 text-[var(--color-on-surface)]">No free items currently listed</h3>
+                    <p className="text-xs">Check back soon or post a free item to help fellow students!</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                  {displayedItems.map((item) => (
+                    <StitchProductCard
+                      key={item._id}
+                      itemId={item._id}
+                      image={item.images?.[0] || 'https://placehold.co/400x400?text=No+Image'}
+                      price={formatPrice(item.price)}
+                      verified={item.seller?.verified ?? false}
+                      title={item.title}
+                      subtitle={`${item.category} • ${item.condition}`}
+                      listingArea={item.listingArea ?? formatListingAreaFromPickup(item.pickupAddress)}
+                      sold={item.status === 'sold'}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Loading skeleton */}
             {loading && (

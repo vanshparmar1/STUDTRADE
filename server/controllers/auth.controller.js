@@ -48,6 +48,12 @@ export const register = asyncHandler(async (req, res) => {
         throw error;
     }
 
+    if (!phone || !String(phone).trim()) {
+        const error = new Error('Phone number is required');
+        error.statusCode = 400;
+        throw error;
+    }
+
     console.log("1. Register started:", normalizedEmail);
 
     const existingUser = await User.findOne({ email: normalizedEmail });

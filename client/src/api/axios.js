@@ -10,6 +10,10 @@ const USER_KEY = 'studtrade_user';
  * In prod: set VITE_API_URL in Vercel (no trailing slash), e.g. https://your-app.up.railway.app
  */
 function resolveApiBaseUrl() {
+    // In dev mode (npm run dev), use '/api' so Vite proxy forwards to local Express server on port 5000
+    if (import.meta.env.DEV) {
+        return '/api';
+    }
     const raw = import.meta.env.VITE_API_URL?.trim();
     if (raw) {
         return `${raw.replace(/\/+$/, '')}/api`;

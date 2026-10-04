@@ -8,50 +8,46 @@ const itemSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Title is required'],
             trim: true,
-            minlength: [3, 'Title must be at least 3 characters'],
+            default: 'Campus Post',
             maxlength: [120, 'Title cannot exceed 120 characters'],
         },
 
         description: {
             type: String,
-            required: [true, 'Description is required'],
             trim: true,
-            minlength: [10, 'Description must be at least 10 characters'],
+            default: 'Campus listing and post item.',
             maxlength: [2000, 'Description cannot exceed 2000 characters'],
         },
 
         price: {
             type: Number,
-            required: [true, 'Price is required'],
+            default: 0,
             min: [0, 'Price cannot be negative'],
         },
 
         // ── Classification ───────────────────────────────────────────────────
         category: {
             type: String,
-            required: [true, 'Category is required'],
+            default: 'Other',
             enum: {
-                values: ['Books', 'Cycles', 'Tech', 'Furniture', 'Other'],
-                message: 'Category must be Books, Cycles, Tech, Furniture, or Other',
+                values: ['Books', 'Cycles', 'Tech', 'Furniture', 'Housing', 'Need', 'Other'],
+                message: 'Category must be Books, Cycles, Tech, Furniture, Housing, Need, or Other',
             },
         },
 
         condition: {
             type: String,
-            required: [true, 'Condition is required'],
+            default: 'Good',
             enum: {
                 values: ['New', 'Like New', 'Good', 'Fair'],
                 message: 'Condition must be New, Like New, Good, or Fair',
             },
         },
 
-        // ── Media — Cloudinary URLs ──────────────────────────────────────────
+        // ── Media — Cloudinary URLs (Optional) ──────────────────────────────
         images: {
             type: [String],
-            validate: {
-                validator: (arr) => arr.length > 0 && arr.length <= 5,
-                message: 'Must have between 1 and 5 images',
-            },
+            default: [],
         },
 
         // ── Ownership ────────────────────────────────────────────────────────
@@ -66,34 +62,31 @@ const itemSchema = new mongoose.Schema(
         pickupAddress: {
             fullAddress: {
                 type: String,
-                required: [true, 'Pickup full address is required'],
+                default: 'Main Campus',
                 trim: true,
                 maxlength: [300, 'Full address cannot exceed 300 characters'],
             },
-            /** Shown on catalog cards — campus zone (e.g. "North Gate", "Block B hostels"). Not the city name. */
             locality: {
                 type: String,
+                default: 'Main Campus',
                 trim: true,
                 maxlength: [120, 'Locality cannot exceed 120 characters'],
             },
             city: {
                 type: String,
                 trim: true,
+                default: 'Campus',
                 maxlength: [100, 'City cannot exceed 100 characters'],
             },
             pincode: {
                 type: String,
                 trim: true,
-                validate: {
-                    validator(v) {
-                        return !v || /^\d{6}$/.test(v);
-                    },
-                    message: 'Pincode must be a 6-digit number',
-                },
+                default: '',
             },
             landmark: {
                 type: String,
                 trim: true,
+                default: '',
                 maxlength: [200, 'Landmark cannot exceed 200 characters'],
             },
         },
@@ -112,6 +105,37 @@ const itemSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+
+        // ── Social Engagement (Likes & Comments stored in MongoDB) ───────────
+        likes: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+            },
+        ],
+
+        comments: [
+            {
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                },
+                userName: {
+                    type: String,
+                    default: 'Campus Member',
+                },
+                text: {
+                    type: String,
+                    required: true,
+                    trim: true,
+                    maxlength: [1000, 'Comment cannot exceed 1000 characters'],
+                },
+                createdAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     {
         timestamps: true, // auto-manages createdAt & updatedAt

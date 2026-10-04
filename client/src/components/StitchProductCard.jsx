@@ -65,13 +65,13 @@ const StitchProductCard = ({ image, price, verified, title, subtitle, listingAre
         )}
 
         {/* Bottom row (Buttons stack on mobile) */}
-        <div className="mt-auto pt-2 flex flex-col sm:flex-row gap-2">
+        <div className="mt-auto pt-3 flex flex-col sm:flex-row gap-2.5">
           <button
             onClick={(e) => {
               e.stopPropagation();
               navigate(itemId ? `/item/${itemId}` : '/marketplace');
             }}
-            className="w-full sm:flex-1 bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)] text-xs font-bold uppercase tracking-widest py-2.5 sm:py-3 rounded-full transition-all duration-200 hover:bg-[var(--color-surface-container-highest)] active:scale-[0.97] text-center border border-[var(--color-outline-variant)]/50"
+            className="w-full sm:flex-1 bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)] text-xs font-bold uppercase tracking-widest py-3 sm:py-3.5 rounded-2xl transition-all duration-200 hover:bg-[var(--color-surface-container-highest)] active:scale-[0.97] text-center border border-[var(--color-outline-variant)]/50 cursor-pointer"
           >
             View
           </button>
@@ -80,10 +80,10 @@ const StitchProductCard = ({ image, price, verified, title, subtitle, listingAre
               e.stopPropagation();
               navigate(itemId ? `/item/${itemId}` : '/marketplace');
             }}
-            className="w-full sm:flex-1 gradient-primary text-white text-xs font-bold uppercase tracking-widest py-2.5 sm:py-3 rounded-full transition-all duration-200 hover:opacity-90 hover:shadow-md active:scale-[0.97] flex items-center justify-center gap-1.5"
+            className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase tracking-wider px-3.5 py-3 sm:py-3.5 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.97] flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            Buy
-            <span className="material-symbols-outlined text-[14px]">shopping_bag</span>
+            <span>Contact</span>
+            <span className="material-symbols-outlined text-[15px]">chat</span>
           </button>
         </div>
       </div>

@@ -17,24 +17,23 @@ const userSchema = new mongoose.Schema(
 
         email: {
             type: String,
-            required: [true, 'College email is required'],
+            required: [true, 'Email is required'],
             unique: true,
             lowercase: true,
             trim: true,
             index: true,
             match: [
-                new RegExp(`^[^\\s@]+@${ALLOWED_EMAIL_DOMAIN.replace('.', '\\.')}$`, 'i'),
-                `Only @${ALLOWED_EMAIL_DOMAIN} email addresses are allowed`,
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                'Please provide a valid email address',
             ],
         },
 
         phone: {
             type: String,
+            required: [true, 'Phone number is required'],
             trim: true,
-            default: null,
             validate: {
                 validator(v) {
-                    if (!v) return true;
                     return /^[6-9]\d{9}$/.test(v);
                 },
                 message: 'Please provide a valid 10-digit Indian mobile number',
@@ -51,8 +50,8 @@ const userSchema = new mongoose.Schema(
         role: {
             type: String,
             enum: {
-                values: ['user', 'admin', 'manager'],
-                message: 'Role must be "user", "admin", or "manager"',
+                values: ['user', 'admin', 'manager', 'provider'],
+                message: 'Role must be "user", "admin", "manager", or "provider"',
             },
             default: 'user',
         },

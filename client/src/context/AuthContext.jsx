@@ -69,6 +69,12 @@ export function AuthProvider({ children }) {
         }
     }, [token]);
 
+    useEffect(() => {
+        if (token) {
+            refreshUser();
+        }
+    }, [token, refreshUser]);
+
     /**
      * login — call this after a successful register or login API response.
      */

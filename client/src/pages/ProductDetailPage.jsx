@@ -4,6 +4,7 @@ import StitchNavbar from '../components/StitchNavbar';
 import StitchFooter from '../components/StitchFooter';
 import API from '../api/axios';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import { isOnlineCashfreeCheckout } from '../config/payment';
 import { formatListingAreaFromPickup } from '../utils/listingArea';
 
@@ -13,11 +14,13 @@ const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
+  const { user } = useAuth();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeThumb, setActiveThumb] = useState(0);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -98,12 +101,43 @@ const ProductDetailPage = () => {
   const listingAreaLabel =
     item.listingArea ?? formatListingAreaFromPickup(item.pickupAddress);
 
-  const handleBuyNow = () => {
-    if (isOnlineCashfreeCheckout()) {
-      navigate('/checkout/' + item._id);
+  const handleContactWhatsApp = () => {
+    if (!user) {
+      toast.error('Please log in first to contact seller or buy items');
+      navigate('/login', { state: { from: window.location.pathname } });
       return;
     }
-    navigate('/offline-pay/' + item._id);
+    const rawPhone = item.seller?.phone || item.phone || '';
+    if (!rawPhone) {
+      toast.error(
+        `Seller (${item.seller?.name || 'Seller'}) has not listed a phone number. Email: ${item.seller?.email || 'N/A'}`
+      );
+      return;
+    }
+
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    const formattedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+    
+    const message = encodeURIComponent(
+      `Hi ${item.seller?.name || 'Seller'}, I am interested in buying your item "${item.title}" for ₹${item.price} listed on STUDTRADE! Is it available?`
+    );
+    
+    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${message}`;
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleDeleteItem = async () => {
+    if (!window.confirm('Are you sure you want to delete this listing?')) return;
+    try {
+      setDeleting(true);
+      await API.delete(`/items/${item._id}`);
+      toast.success('Listing deleted successfully!');
+      navigate('/marketplace');
+    } catch (err) {
+      toast.error('Failed to delete item');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -196,44 +230,66 @@ const ProductDetailPage = () => {
               </p>
             </div>
 
+            {/* Seller Contact Details Card */}
+            <div className="mt-2 p-5 bg-gradient-to-r from-emerald-50 via-teal-50/40 to-emerald-50/80 border border-emerald-200/80 rounded-3xl flex items-center justify-between gap-4 shadow-xs">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white font-black flex items-center justify-center text-sm shadow-sm shrink-0">
+                  {item.seller?.name?.[0]?.toUpperCase() || 'S'}
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-900 tracking-wide">{item.seller?.name || 'Campus Seller'}</p>
+                  <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
+                    {item.seller?.phone ? `📱 +91 ${item.seller.phone}` : `✉️ ${item.seller?.email || 'Verified Student'}`}
+                  </p>
+                </div>
+              </div>
+
+              {item.seller?.phone && (
+                <a
+                  href={`tel:${item.seller.phone}`}
+                  className="px-4 py-2 rounded-2xl bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 shadow-2xs hover:shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-base text-emerald-600">call</span>
+                  <span>Call</span>
+                </a>
+              )}
+            </div>
+
             {/* CTAs */}
-            <div className="flex flex-col gap-4 pt-4">
+            <div className="flex flex-col gap-4 pt-3">
               <button
                 type="button"
-                onClick={handleBuyNow}
-                className="bg-[var(--color-primary)] text-[var(--color-on-primary)] font-bold py-4 rounded-2xl text-lg shadow-md hover:shadow-xl hover:-translate-y-1 active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2"
+                onClick={handleContactWhatsApp}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-6 py-4.5 rounded-2xl text-base shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer"
               >
-                Buy Now
-                <span className="material-symbols-outlined">shopping_bag</span>
+                <span>Contact Seller on WhatsApp</span>
+                <span className="material-symbols-outlined text-xl">chat</span>
               </button>
+
               <div className="flex gap-3">
-                {/* TEMPORARILY DISABLED ADD TO CART 
-                <button
-                  onClick={handleAddToCart}
-                  disabled={addingToCart}
-                  className="flex-1 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[var(--color-surface-container-highest)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {addingToCart ? (
-                    <span className="material-symbols-outlined animate-spin text-[var(--color-outline)]">refresh</span>
-                  ) : (
-                    <span className="material-symbols-outlined text-[var(--color-outline)]">add_shopping_cart</span>
-                  )}
-                  {addingToCart ? 'Adding...' : 'Add to Cart'}
-                </button>
-                */}
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.href);
-                    alert('Link copied to clipboard!');
+                    toast.success('Link copied to clipboard!');
                   }}
-                  className="w-16 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] py-4 rounded-2xl flex items-center justify-center hover:bg-[var(--color-surface-container-highest)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200"
+                  className="w-16 bg-[var(--color-surface-container-high)] text-[var(--color-primary)] py-4 rounded-2xl flex items-center justify-center hover:bg-[var(--color-surface-container-highest)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 cursor-pointer"
                   title="Share Item"
                 >
                   <span className="material-symbols-outlined">share</span>
                 </button>
+
+                {(user?._id === (item.seller?._id || item.seller) || user?.role === 'admin') && (
+                  <button
+                    onClick={handleDeleteItem}
+                    disabled={deleting}
+                    className="flex-1 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined">delete</span>
+                    <span>{deleting ? 'Deleting...' : 'Delete Listing'}</span>
+                  </button>
+                )}
               </div>
             </div>
-
 
           </div>
         </div>

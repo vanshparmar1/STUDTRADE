@@ -15,6 +15,10 @@ import VerifyEmail from './pages/VerifyEmail';
 import ItemListing from './pages/ItemListing';
 
 // New Stitch UI Pages (own navbar/footer built-in)
+import CampusPage from './pages/CampusPage';
+import CampusAnnouncementsPage from './pages/CampusAnnouncementsPage';
+import NeedPage from './pages/NeedPage';
+import StudyPage from './pages/StudyPage';
 import MarketplaceGrid from './pages/MarketplaceGrid';
 import LandingPage from './pages/LandingPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -30,6 +34,10 @@ import RefundCancellation from './pages/policies/RefundCancellation';
 import ShippingDelivery from './pages/policies/ShippingDelivery';
 import ContactUs from './pages/policies/ContactUs';
 
+// Provider Ecosystem Pages
+import ProviderLogin from './pages/provider/ProviderLogin';
+import ProviderApply from './pages/provider/ProviderApply';
+import ProviderDashboard from './pages/provider/ProviderDashboard';
 
 // Layout wrapper for the legacy UI (old Navbar + footer)
 const LegacyLayout = () => (
@@ -51,13 +59,17 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/marketplace" element={<MarketplaceGrid />} />
       <Route path="/item/:id" element={<ProductDetailPage />} />
-      <Route path="/buy" element={<BuyPage />} />
+      <Route path="/buy" element={<ProtectedRoute><BuyPage /></ProtectedRoute>} />
       <Route path="/success" element={<OrderSuccessPage />} />
       <Route path="/terms-conditions" element={<TermsConditions />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/refund-cancellation" element={<RefundCancellation />} />
       <Route path="/shipping-delivery" element={<ShippingDelivery />} />
       <Route path="/contact-us" element={<ContactUs />} />
+      <Route path="/campus" element={<CampusAnnouncementsPage />} />
+      <Route path="/services" element={<ProtectedRoute><CampusPage /></ProtectedRoute>} />
+      <Route path="/need" element={<ProtectedRoute><NeedPage /></ProtectedRoute>} />
+      <Route path="/study" element={<ProtectedRoute><StudyPage /></ProtectedRoute>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
@@ -66,6 +78,18 @@ function App() {
       <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/sell" element={<ProtectedRoute><ItemListing /></ProtectedRoute>} />
+
+      {/* ── Provider Ecosystem Routes ── */}
+      <Route path="/provider" element={<ProviderLogin />} />
+      <Route path="/provider/login" element={<ProviderLogin />} />
+      <Route path="/provider/apply" element={<ProviderApply />} />
+      <Route path="/provider/dashboard" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="dashboard" /></ProtectedRoute>} />
+      <Route path="/provider/services" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="services" /></ProtectedRoute>} />
+      <Route path="/provider/customers" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="customers" /></ProtectedRoute>} />
+      <Route path="/provider/notifications" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="notifications" /></ProtectedRoute>} />
+      <Route path="/provider/profile" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="profile" /></ProtectedRoute>} />
+
+      {/* ── Admin Route ── */}
       <Route path="/admin" element={<ProtectedRoute requiredRole={['admin', 'manager']}><AdminDashboard /></ProtectedRoute>} />
 
       {/* ── Legacy UI (wrapped with old Navbar) ── */}
@@ -78,4 +102,3 @@ function App() {
 }
 
 export default App;
-

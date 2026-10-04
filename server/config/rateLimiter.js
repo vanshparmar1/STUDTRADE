@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 // Applied globally to all routes. Generous limit for normal browsing.
 export const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200,                  // 200 requests per window per IP
+    max: process.env.NODE_ENV === 'production' ? 1000 : 5000, // Generous limit to prevent rate limit errors during admin & dev browsing
     standardHeaders: true,     // Return rate limit info in `RateLimit-*` headers
     legacyHeaders: false,
     // Never throttle CORS preflight — a 429 on OPTIONS surfaces as a browser "Network Error".
@@ -33,12 +33,13 @@ export const authLimiter = rateLimit({
 // Applied to item creation to prevent spam listings.
 export const itemLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5,                   // 5 item creations per window per IP
+    max: 100,                  // 100 item creations per 15 minutes
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => req.method === 'OPTIONS',
     message: {
         success: false,
-        message: 'You have reached the maximum number of items (5) you can list in 15 minutes. Please try again later.',
+        message: 'You have reached the maximum number of items (100) you can list in 15 minutes.',
     },
 });
 

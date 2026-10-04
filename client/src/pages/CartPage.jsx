@@ -47,16 +47,7 @@ const CartPage = () => {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
-    setCheckoutLoading(true);
-    try {
-      // In a real app, this would create an Order and Start Payment.
-      // For now, clear cart and redirect to success.
-      await API.delete('/cart/clear');
-      navigate('/success');
-    } catch (err) {
-      toast.error('Checkout failed');
-      setCheckoutLoading(false);
-    }
+    navigate('/buy');
   };
 
   const formatPrice = (price) => `₹${Number(price).toLocaleString('en-IN')}`;

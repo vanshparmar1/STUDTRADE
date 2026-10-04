@@ -2,6 +2,14 @@ import Report from '../models/Report.js';
 import Order from '../models/Order.js';
 import User from '../models/User.js';
 import Item from '../models/Item.js';
+import Need from '../models/Need.js';
+import Study from '../models/Study.js';
+import CampusUpdate from '../models/CampusUpdate.js';
+import Service from '../models/Service.js';
+import Provider from '../models/Provider.js';
+import ProviderService from '../models/ProviderService.js';
+import Customer from '../models/Customer.js';
+import ProviderNotification from '../models/ProviderNotification.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // ─── @desc    Get all reports ────────────────────────────────────────────────
@@ -10,7 +18,6 @@ import asyncHandler from '../utils/asyncHandler.js';
 export const getAllReports = asyncHandler(async (req, res) => {
     const { status, page = 1, limit = 12 } = req.query;
 
-    // Allowlist status to prevent operator injection
     const VALID_STATUSES = ['pending', 'reviewed', 'dismissed'];
     if (status && !VALID_STATUSES.includes(status)) {
         return res.status(400).json({
@@ -19,14 +26,12 @@ export const getAllReports = asyncHandler(async (req, res) => {
         });
     }
 
-    // ── Pagination Logic ─────────────────────────────────────────────────────
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const perPage = Math.min(50, Math.max(1, parseInt(limit, 10) || 12));
     const skip = (pageNum - 1) * perPage;
 
     const filter = status ? { status } : {};
 
-    // ── Execute query + count in parallel ────────────────────────────────────
     const [reports, total] = await Promise.all([
         Report.find(filter)
             .populate('item', 'title images')
@@ -80,34 +85,58 @@ export const reviewReport = asyncHandler(async (req, res) => {
     });
 });
 
-// ─── @desc    Get all orders (admin) ─────────────────────────────────────────
+// ─── @desc    Get all orders & resource usage (admin) ───────────────────────
 // ─── @route   GET /api/admin/orders ──────────────────────────────────────────
 // ─── @access  Private/Admin ──────────────────────────────────────────────────
 export const getAllOrders = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20 } = req.query;
-
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const perPage = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
-    const skip = (pageNum - 1) * perPage;
-
-    const [orders, total] = await Promise.all([
+    const [orders, customers] = await Promise.all([
         Order.find()
             .populate('buyer', 'name email phone studtradeID')
             .populate('seller', 'name email phone studtradeID')
             .populate('item', 'title images price category condition pickupAddress')
-            .sort('-createdAt')
-            .skip(skip)
-            .limit(perPage),
-        Order.countDocuments(),
+            .sort('-createdAt'),
+        Customer.find()
+            .populate('provider', 'businessName name phone email')
+            .populate('student', 'name email phone')
+            .populate('service', 'title type price')
+            .sort('-createdAt'),
     ]);
+
+    // Format product orders
+    const formattedOrders = orders.map((o) => ({
+        _id: o._id,
+        type: 'Marketplace Purchase',
+        itemName: o.item?.title || 'Marketplace Item',
+        buyerName: o.buyer?.name || o.deliveryAddress?.name || 'Campus Buyer',
+        buyerContact: o.buyer?.phone || o.deliveryAddress?.phone || o.buyer?.email || 'N/A',
+        sellerName: o.seller?.name || 'Campus Seller',
+        price: o.totalAmount || o.price || 0,
+        status: o.status || 'pending',
+        date: o.createdAt,
+    }));
+
+    // Format provider service requests / website resource usages
+    const formattedServiceUsages = customers.map((c) => ({
+        _id: c._id,
+        type: `Service: ${c.serviceName || c.service?.type || 'Provider Service'}`,
+        itemName: c.service?.title || c.serviceName || 'Campus Service',
+        buyerName: c.name || c.student?.name || 'Student Customer',
+        buyerContact: c.contact || c.student?.phone || c.student?.email || 'N/A',
+        sellerName: c.provider?.businessName || c.provider?.name || 'Provider',
+        price: c.service?.price || 0,
+        status: c.status || 'Active',
+        date: c.createdAt || c.startDate,
+        notes: c.notes || '',
+    }));
+
+    const combined = [...formattedOrders, ...formattedServiceUsages].sort(
+        (a, b) => new Date(b.date) - new Date(a.date)
+    );
 
     res.status(200).json({
         success: true,
-        count: orders.length,
-        total,
-        page: pageNum,
-        totalPages: Math.ceil(total / perPage),
-        data: orders,
+        count: combined.length,
+        data: combined,
     });
 });
 
@@ -117,7 +146,6 @@ export const getAllOrders = asyncHandler(async (req, res) => {
 export const updateOrderStatus = asyncHandler(async (req, res) => {
     const { status } = req.body;
 
-    // Allowlist — prevents operator injection and invalid values
     const VALID_TRANSITIONS = {
         pending:   'confirmed',
         confirmed: 'delivered',
@@ -137,7 +165,6 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    // Enforce transition chain: pending → confirmed → delivered
     const expectedCurrent = Object.keys(VALID_TRANSITIONS).find(
         (k) => VALID_TRANSITIONS[k] === status
     );
@@ -170,25 +197,201 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         totalOrders,
         totalUsers,
         totalItems,
-        revenueResult,
+        totalNeeds,
+        totalStudyMaterials,
+        totalUpdates,
+        totalServices,
+        totalReports,
     ] = await Promise.all([
         Order.countDocuments(),
         User.countDocuments(),
         Item.countDocuments(),
-        Order.aggregate([
-            { $group: { _id: null, totalCommission: { $sum: '$commission' } } },
-        ]),
+        Need.countDocuments(),
+        Study.countDocuments(),
+        CampusUpdate.countDocuments(),
+        ProviderService.countDocuments({ status: { $ne: 'deleted' } }),
+        Report.countDocuments({ status: 'pending' }),
     ]);
-
-    const totalRevenue = revenueResult[0]?.totalCommission ?? 0;
 
     res.status(200).json({
         success: true,
         data: {
             totalOrders,
-            totalRevenue: Math.round(totalRevenue * 100) / 100,
             totalUsers,
             totalItems,
+            totalNeeds,
+            totalStudyMaterials,
+            totalUpdates,
+            totalServices,
+            totalReports,
         },
+    });
+});
+
+// ─── @desc    Get all provider services (admin) ─────────────────────────────
+// ─── @route   GET /api/admin/services ───────────────────────────────────────
+// ─── @access  Private/Admin ─────────────────────────────────────────────────
+export const getAllAdminServices = asyncHandler(async (req, res) => {
+    const services = await ProviderService.find({ status: { $ne: 'deleted' } })
+        .populate({
+            path: 'provider',
+            select: 'businessName name email phone providerTypes location verificationStatus',
+        })
+        .sort('-createdAt');
+
+    res.status(200).json({
+        success: true,
+        count: services.length,
+        data: services,
+    });
+});
+
+// ─── @desc    Toggle service active/hidden status (admin) ───────────────────
+// ─── @route   PATCH /api/admin/services/:id/status ─────────────────────────
+// ─── @access  Private/Admin ─────────────────────────────────────────────────
+export const toggleAdminServiceStatus = asyncHandler(async (req, res) => {
+    const service = await ProviderService.findById(req.params.id);
+    if (!service) {
+        return res.status(404).json({ success: false, message: 'Provider service not found' });
+    }
+    service.status = service.status === 'active' ? 'hidden' : 'active';
+    await service.save();
+    res.status(200).json({
+        success: true,
+        message: `Service status updated to "${service.status}"`,
+        data: service,
+    });
+});
+
+// ─── @desc    Delete a provider service (admin) ──────────────────────────────
+// ─── @route   DELETE /api/admin/services/:id ─────────────────────────────────
+// ─── @access  Private/Admin ─────────────────────────────────────────────────
+export const deleteAdminService = asyncHandler(async (req, res) => {
+    const service = await ProviderService.findById(req.params.id);
+    if (!service) {
+        return res.status(404).json({ success: false, message: 'Provider service not found' });
+    }
+    await ProviderService.deleteOne({ _id: req.params.id });
+    res.status(200).json({
+        success: true,
+        message: 'Provider service deleted successfully',
+    });
+});
+
+// ─── @desc    Delete comment on item post (admin) ─────────────────────────────
+// ─── @route   DELETE /api/admin/items/:itemId/comments/:commentId ───────────
+// ─── @access  Private/Admin ─────────────────────────────────────────────────
+export const deleteAdminItemComment = asyncHandler(async (req, res) => {
+    const { itemId, commentId } = req.params;
+    const item = await Item.findById(itemId);
+    if (!item) {
+        return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+    item.comments = (item.comments || []).filter((c) => c._id.toString() !== commentId);
+    await item.save();
+    res.status(200).json({
+        success: true,
+        message: 'Comment deleted successfully',
+        data: item.comments,
+    });
+});
+
+// ─── @desc    Get all registered users (admin) ──────────────────────────────
+// ─── @route   GET /api/admin/users ─────────────────────────────────────────
+// ─── @access  Private/Admin ─────────────────────────────────────────────────
+export const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find()
+        .select('-password')
+        .sort('-createdAt');
+
+    res.status(200).json({
+        success: true,
+        count: users.length,
+        data: users,
+    });
+});
+
+// ─── @desc    Get all provider applications (admin) ──────────────────────────
+// ─── @route   GET /api/admin/providers ───────────────────────────────────────
+// ─── @access  Private/Admin ─────────────────────────────────────────────────
+export const getAllProviders = asyncHandler(async (req, res) => {
+    const { status } = req.query;
+    const filter = status ? { verificationStatus: status } : {};
+
+    const providers = await Provider.find(filter)
+        .populate('user', 'name email phone studtradeID')
+        .sort('-createdAt');
+
+    res.status(200).json({
+        success: true,
+        count: providers.length,
+        data: providers,
+    });
+});
+
+// ─── @desc    Update provider verification status (approve, reject, suspend) ─
+// ─── @route   PATCH /api/admin/providers/:id/status ───────────────────────────
+// ─── @access  Private/Admin ─────────────────────────────────────────────────
+export const updateProviderStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const VALID_STATUSES = ['pending', 'approved', 'rejected', 'suspended'];
+
+    if (!status || !VALID_STATUSES.includes(status)) {
+        return res.status(400).json({
+            success: false,
+            message: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`,
+        });
+    }
+
+    const provider = await Provider.findById(req.params.id);
+
+    if (!provider) {
+        return res.status(404).json({ success: false, message: 'Provider profile not found' });
+    }
+
+    provider.verificationStatus = status;
+    await provider.save();
+
+    // Create system notification for provider
+    let title = 'Account Status Update';
+    let msg = `Your provider account verification status has been updated to "${status}".`;
+
+    if (status === 'approved') {
+        title = 'Account Approved! 🎉';
+        msg = 'Congratulations! Your provider application has been approved. You can now publish public services.';
+    } else if (status === 'suspended') {
+        title = 'Account Suspended ⚠️';
+        msg = 'Your provider account has been temporarily suspended by STUDTRADE admin.';
+    }
+
+    await ProviderNotification.create({
+        provider: provider._id,
+        title,
+        message: msg,
+        type: 'approval',
+    });
+
+    res.status(200).json({
+        success: true,
+        message: `Provider status updated to "${status}"`,
+        data: provider,
+    });
+});
+
+// ─── @desc    Delete provider application ────────────────────────────────────
+// ─── @route   DELETE /api/admin/providers/:id ────────────────────────────────
+// ─── @access  Private/Admin ─────────────────────────────────────────────────
+export const deleteProvider = asyncHandler(async (req, res) => {
+    const provider = await Provider.findById(req.params.id);
+
+    if (!provider) {
+        return res.status(404).json({ success: false, message: 'Provider not found' });
+    }
+
+    await Provider.deleteOne({ _id: req.params.id });
+
+    res.status(200).json({
+        success: true,
+        message: 'Provider application deleted successfully',
     });
 });

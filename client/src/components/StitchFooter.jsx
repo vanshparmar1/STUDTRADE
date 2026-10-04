@@ -6,7 +6,7 @@ const LOGO = '/logo.png';
 const SOCIAL_LINKS = [
   { label: 'Facebook', href: 'https://www.facebook.com/share/1PRbNqa4TY/?mibextid=wwXIfr' },
   { label: 'Instagram', href: 'https://www.instagram.com/stud.trade?igsh=MWFranRidGNzOGhmOA==' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/stud-trade-156328405/' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/studtrade1/' },
 ];
 
 const StitchFooter = () => (

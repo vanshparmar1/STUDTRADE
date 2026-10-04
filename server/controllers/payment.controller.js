@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import Item from '../models/Item.js';
 import PaymentIntent from '../models/PaymentIntent.js';
+import Order from '../models/Order.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // ─── Configure Cashfree SDK ─────────────────────────────────────────────────
@@ -201,6 +202,31 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         error.statusCode = 409;
         throw error;
     }
+
+    // ── Save Order to MongoDB ─────────────────────────────────────────────
+    const baseItem = await Item.findById(intent.item._id);
+    const itemPrice = baseItem ? baseItem.price : (intent.expectedAmount / 1.1);
+    const commission = Math.round(itemPrice * 0.10 * 100) / 100;
+
+    const createdOrder = await Order.create({
+        item: intent.item._id,
+        buyer: req.user._id,
+        seller: intent.seller,
+        deliveryAddress: {
+            name: req.user.name || 'Student Buyer',
+            phone: req.user.phone || '9999999999',
+            fullAddress: req.user.address?.fullAddress || 'Campus Hostel',
+            city: req.user.address?.city || 'Campus Town',
+            pincode: req.user.address?.pincode || '395007',
+        },
+        paymentMethod: 'Online',
+        price: itemPrice,
+        commission: commission,
+        cashfreeOrderId: finalIntent.cashfreeOrderId,
+        cashfreePaymentId: finalIntent.cashfreePaymentId,
+        paymentStatus: 'paid',
+        status: 'confirmed',
+    });
 
     res.status(200).json({
         success: true,

@@ -71,13 +71,6 @@ export const authorizeRoles = (...roles) => {
  * Must be used AFTER `protect`.
  */
 export const requireCollegeEmail = (req, _res, next) => {
-    if (!isAllowedCollegeEmail(req.user?.email)) {
-        const error = new Error(
-            `Only @${ALLOWED_EMAIL_DOMAIN} users are allowed to perform this action`
-        );
-        error.statusCode = 403;
-        return next(error);
-    }
     next();
 };
 

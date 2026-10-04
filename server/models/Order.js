@@ -39,9 +39,9 @@ const orderSchema = new mongoose.Schema(
                 trim: true,
                 validate: {
                     validator(v) {
-                        return /^[6-9]\d{9}$/.test(v);
+                        return !v || /^\+?\d{7,15}$/.test(v.replace(/[\s-]/g, ''));
                     },
-                    message: 'Please provide a valid 10-digit Indian mobile number',
+                    message: 'Please provide a valid mobile number',
                 },
             },
             fullAddress: {
@@ -62,9 +62,9 @@ const orderSchema = new mongoose.Schema(
                 trim: true,
                 validate: {
                     validator(v) {
-                        return /^\d{6}$/.test(v);
+                        return !v || /^\d{4,8}$/.test(v.replace(/\s/g, ''));
                     },
-                    message: 'Pincode must be a 6-digit number',
+                    message: 'Pincode must be a valid pincode',
                 },
             },
         },

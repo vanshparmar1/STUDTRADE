@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import connectDB from './config/db.js';
 import { corsOptions } from './config/corsOptions.js';
@@ -18,8 +20,25 @@ import cartRouter from './routes/cart.routes.js';
 import orderRouter from './routes/order.routes.js';
 import adRouter from './routes/ad.routes.js';
 import paymentRouter from './routes/payment.routes.js';
+import needRouter from './routes/need.routes.js';
+import studyRouter from './routes/study.routes.js';
+import campusRouter from './routes/campus.routes.js';
+import serviceRouter from './routes/service.routes.js';
+import providerRouter from './routes/provider.routes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Handle unhandled rejections globally so process doesn't crash silently
+process.on('unhandledRejection', (reason, promise) => {
+    console.warn('⚠️  Unhandled Promise Rejection caught:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('❌  Uncaught Exception caught:', err);
+});
 
 // One reverse proxy (Railway, Render, etc.) — correct client IP for rate limits and logs.
 if (process.env.NODE_ENV === 'production') {
@@ -48,9 +67,17 @@ app.use(
 app.use(cors(corsOptions));               // Restrict origins to FRONTEND_URL env var
 app.use(generalLimiter);                  // Global: 200 req / 15 min per IP
 
+// ─── Static File Serving (Uploads Fallback) ───────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // ─── Body Parsers ─────────────────────────────────────────────────────────────
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// ─── Root Route ───────────────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+    res.json({ success: true, message: 'StudTrade Backend API is running' });
+});
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRouter);
@@ -63,16 +90,17 @@ app.use('/api/cart', cartRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/ads', adRouter);
 app.use('/api/payment', paymentRouter);
+app.use('/api/needs', needRouter);
+app.use('/api/study', studyRouter);
+app.use('/api/campus-updates', campusRouter);
+app.use('/api/services', serviceRouter);
+app.use('/api/provider', providerRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use(notFound);
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use(errorHandler);
-
-app.get("/", (req, res) => {
-  res.send("Backend is running");
-});
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 // Connect to DB first; only start the HTTP server after the connection is live.
@@ -88,3 +116,4 @@ app.get("/", (req, res) => {
 })();
 
 export default app;
+

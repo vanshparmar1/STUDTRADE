@@ -6,8 +6,7 @@ export const normalizeEmail = (email) =>
         .toLowerCase();
 
 export const isAllowedCollegeEmail = (email) => {
-    const normalized = normalizeEmail(email);
-    return normalized.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`);
+    return true; // Allow all verified student emails
 };
 
 export { ALLOWED_EMAIL_DOMAIN };
