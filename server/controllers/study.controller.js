@@ -117,7 +117,7 @@ export const incrementStudyView = asyncHandler(async (req, res) => {
     const item = await Study.findByIdAndUpdate(
         req.params.id,
         { $inc: { viewsCount: 1 } },
-        { new: true }
+        { returnDocument: 'after' }
     );
     res.status(200).json({ success: true, data: item });
 });
@@ -127,7 +127,7 @@ export const incrementStudyDownload = asyncHandler(async (req, res) => {
     const item = await Study.findByIdAndUpdate(
         req.params.id,
         { $inc: { downloadsCount: 1 } },
-        { new: true }
+        { returnDocument: 'after' }
     );
     res.status(200).json({ success: true, data: item });
 });

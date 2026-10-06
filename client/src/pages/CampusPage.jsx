@@ -5,6 +5,7 @@ import StitchFooter from '../components/StitchFooter';
 import toast from 'react-hot-toast';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl, handleImageError } from '../utils/imageUrl';
 
 export const WHATSAPP_NUMBER = '8058528664';
 
@@ -190,7 +191,12 @@ const CampusPage = () => {
                   <div className="space-y-3">
                     {svc.images?.[0] && (
                       <div className="h-44 w-full rounded-2xl overflow-hidden bg-slate-100">
-                        <img src={svc.images[0]} alt={svc.title} className="w-full h-full object-cover" />
+                        <img
+                          src={getImageUrl(svc.images[0])}
+                          alt={svc.title}
+                          onError={(e) => handleImageError(e)}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     )}
 
@@ -383,7 +389,12 @@ const CampusPage = () => {
                   <div className="space-y-3">
                     {svc.images?.[0] ? (
                       <div className="h-44 w-full rounded-2xl overflow-hidden bg-slate-100">
-                        <img src={svc.images[0]} alt={svc.title} className="w-full h-full object-cover" />
+                        <img
+                          src={getImageUrl(svc.images[0])}
+                          alt={svc.title}
+                          onError={(e) => handleImageError(e)}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     ) : (
                       <div className="h-40 w-full rounded-2xl bg-blue-50/70 border border-blue-200 flex items-center justify-center text-4xl">
@@ -515,7 +526,12 @@ const CampusPage = () => {
                     <div className="space-y-3">
                       {svc.images?.[0] && (
                         <div className="h-44 w-full rounded-2xl overflow-hidden bg-slate-100">
-                          <img src={svc.images[0]} alt={svc.title} className="w-full h-full object-cover" />
+                          <img
+                            src={getImageUrl(svc.images[0])}
+                            alt={svc.title}
+                            onError={(e) => handleImageError(e)}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       )}
 
@@ -598,7 +614,12 @@ const CampusPage = () => {
                     <div className="space-y-3">
                       {svc.images?.[0] && (
                         <div className="h-44 w-full rounded-2xl overflow-hidden bg-slate-100">
-                          <img src={svc.images[0]} alt={svc.title} className="w-full h-full object-cover" />
+                          <img
+                            src={getImageUrl(svc.images[0])}
+                            alt={svc.title}
+                            onError={(e) => handleImageError(e)}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       )}
 

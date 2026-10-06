@@ -10,6 +10,7 @@ import { getStoredPosts } from '../utils/postsStore';
 import { getActiveNeeds, getDaysLeft } from '../utils/needsStore';
 import { getCampusUpdates, getShortRemainingTime, getCategoryIcon, cleanupExpiredCampusPosts } from '../utils/campusUpdatesStore';
 import { getStudyMaterials } from '../utils/studyStore';
+import { getImageUrl, handleImageError, DEFAULT_AVATAR_FALLBACK, DEFAULT_FALLBACK_IMAGE } from '../utils/imageUrl';
 
 const HERO_IMG = '/assets/landing_hero.png';
 
@@ -80,7 +81,7 @@ const LandingPage = () => {
               _id: item._id,
               user: sellerName,
               handle: handle,
-              avatar: sellerObj?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+              avatar: getImageUrl(sellerObj?.avatar, DEFAULT_AVATAR_FALLBACK),
               badge: isVerified ? 'Verified Student' : 'Student',
               isVerified: isVerified,
               timeAgo: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Just now',
@@ -88,7 +89,7 @@ const LandingPage = () => {
               price: item.price !== undefined ? `₹${item.price}` : 'Free / Trade',
               title: item.title,
               caption: item.description,
-              image: item.images?.[0] || '',
+              image: getImageUrl(item.images?.[0], ''),
               sellerId: sellerObj?._id || item.seller,
               likes: rawLikes.length,
               isLiked: isLiked,
@@ -566,8 +567,9 @@ const LandingPage = () => {
                       <div className="p-4 sm:p-5 flex items-center justify-between border-b border-[var(--color-outline-variant)]/10">
                         <div className="flex items-center gap-3">
                           <img
-                            src={post.avatar}
+                            src={getImageUrl(post.avatar, DEFAULT_AVATAR_FALLBACK)}
                             alt={post.user}
+                            onError={(e) => handleImageError(e, DEFAULT_AVATAR_FALLBACK)}
                             className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border border-[var(--color-outline-variant)]/40 shadow-2xs"
                           />
                           <div>
@@ -608,8 +610,9 @@ const LandingPage = () => {
                           className="relative w-full bg-slate-900 group overflow-hidden flex items-center justify-center cursor-pointer"
                         >
                           <img
-                            src={post.image}
+                            src={getImageUrl(post.image)}
                             alt={post.title || post.caption}
+                            onError={(e) => handleImageError(e, DEFAULT_FALLBACK_IMAGE)}
                             className="w-full max-h-[440px] object-cover group-hover:scale-[1.01] transition-transform duration-300"
                           />
                           {post.price && (

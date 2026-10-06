@@ -21,7 +21,7 @@ const promoteToAdmin = async () => {
             const user = await User.findOneAndUpdate(
                 { email: emailArg.toLowerCase().trim() },
                 { role: 'admin' },
-                { new: true }
+                { returnDocument: 'after' }
             );
             if (!user) {
                 console.error(`❌ User with email "${emailArg}" not found in database.`);

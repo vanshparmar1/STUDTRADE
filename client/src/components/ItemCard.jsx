@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../utils/imageUrl';
 
 // ─── LazyImage ───────────────────────────────────────────────────────────────
 /**
@@ -58,7 +59,7 @@ function LazyImage({ src, alt, className = '' }) {
                 /* Only render the <img> tag when the card is near the viewport */
                 visible && (
                     <img
-                        src={src}
+                        src={getImageUrl(src)}
                         alt={alt}
                         loading="lazy"          // native browser lazy-load as a belt-and-suspenders fallback
                         decoding="async"        // offload decode to a background thread

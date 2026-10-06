@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import StitchNavbar from '../components/StitchNavbar';
 import StitchFooter from '../components/StitchFooter';
 import API from '../api/axios';
+import { getImageUrl, handleImageError } from '../utils/imageUrl';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { isOnlineCashfreeCheckout } from '../config/payment';
@@ -150,8 +151,9 @@ const ProductDetailPage = () => {
           <div className="lg:col-span-7 flex flex-col gap-6">
             <div className="aspect-[4/5] bg-[var(--color-surface-container-low)] rounded-3xl overflow-hidden relative group">
               <img
-                src={mainImage}
+                src={getImageUrl(mainImage)}
                 alt={item.title}
+                onError={(e) => handleImageError(e)}
                 className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit] group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute top-6 right-6">
@@ -175,7 +177,12 @@ const ProductDetailPage = () => {
                         : 'opacity-60 hover:opacity-100 hover:ring-1 hover:ring-[var(--color-outline-variant)] hover:shadow-sm'
                     } bg-[var(--color-surface-container-low)]`}
                   >
-                    <img src={src} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit]" />
+                    <img
+                      src={getImageUrl(src)}
+                      alt={`Thumbnail ${i + 1}`}
+                      onError={(e) => handleImageError(e)}
+                      className="w-full h-full object-cover object-center max-w-full overflow-hidden rounded-[inherit]"
+                    />
                   </button>
                 ))}
               </div>

@@ -187,7 +187,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             cashfreePaymentId: successfulPayment.cf_payment_id?.toString() || null,
             paidAt: new Date(),
         },
-        { new: true }
+        { returnDocument: 'after' }
     );
 
     const finalIntent = updatedIntent || intent;

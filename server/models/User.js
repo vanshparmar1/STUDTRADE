@@ -153,7 +153,7 @@ userSchema.pre('save', async function () {
         const counter = await Counter.findOneAndUpdate(
             { _id: 'studtradeID' },
             { $inc: { seq: 1 } },
-            { new: true, upsert: true }
+            { returnDocument: 'after', upsert: true }
         );
         // e.g. ST-0001
         this.studtradeID = `ST-${String(counter.seq).padStart(4, '0')}`;

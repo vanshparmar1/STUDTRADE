@@ -143,7 +143,7 @@ export const getSingleItem = asyncHandler(async (req, res) => {
     const item = await Item.findByIdAndUpdate(
         req.params.id,
         { $inc: { views: 1 } },
-        { new: true, runValidators: true }
+        { returnDocument: 'after', runValidators: true }
     ).populate('seller', '_id name email phone avatar verificationStatus');
 
 
@@ -230,7 +230,7 @@ export const updateItem = asyncHandler(async (req, res) => {
     }
 
     const updated = await Item.findByIdAndUpdate(req.params.id, allowedUpdates, {
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
     });
 

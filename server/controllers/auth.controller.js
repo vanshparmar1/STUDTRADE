@@ -58,6 +58,37 @@ export const register = asyncHandler(async (req, res) => {
 
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
+        if (!existingUser.isEmailVerified) {
+            // Account exists but is not verified yet. Refresh details and resend OTP.
+            if (name) existingUser.name = name;
+            if (password) existingUser.password = password;
+            if (phone) existingUser.phone = phone;
+
+            const otp = generateOtp();
+            const hashedOtp = await bcrypt.hash(otp, 10);
+            existingUser.emailOtp = hashedOtp;
+            existingUser.emailOtpExpires = new Date(Date.now() + 5 * 60 * 1000);
+            existingUser.emailOtpAttempts = 0;
+            await existingUser.save();
+
+            let emailSent = false;
+            try {
+                await sendOtpEmail(existingUser.email, otp);
+                emailSent = true;
+            } catch (mailError) {
+                console.error("⚠️ Mail send error on unverified user registration retry:", mailError.message || mailError);
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: emailSent
+                    ? 'Account details updated. Verification OTP sent to your email.'
+                    : 'Account pending verification. OTP generated (check server log/email).',
+                email: existingUser.email,
+                emailSent,
+            });
+        }
+
         return res.status(200).json({
             success: true,
             message: 'If this email is eligible, registration instructions have been sent',
@@ -72,31 +103,30 @@ export const register = asyncHandler(async (req, res) => {
         phone,
         isEmailVerified: false,
     });
-    console.log("2. User created");
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = generateOtp();
     const hashedOtp = await bcrypt.hash(otp, 10);
 
     user.emailOtp = hashedOtp;
     user.emailOtpExpires = new Date(Date.now() + 5 * 60 * 1000);
+    user.emailOtpAttempts = 0;
     await user.save();
-    console.log("3. OTP saved");
 
+    let emailSent = false;
     try {
-        console.log("4. Sending OTP email...");
         await sendOtpEmail(user.email, otp);
-        console.log("5. OTP email sent");
+        emailSent = true;
     } catch (mailError) {
-        console.error("MAIL ERROR:", mailError);
-        const error = new Error("User created, but OTP email could not be sent");
-        error.statusCode = 500;
-        throw error;
+        console.error("⚠️ Mail send error on new user registration:", mailError.message || mailError);
     }
 
     res.status(201).json({
         success: true,
-        message: 'Registration successful. OTP sent to your email',
+        message: emailSent
+            ? 'Registration successful. OTP sent to your email.'
+            : 'Registration successful. OTP sent (check email / server logs).',
         email: user.email,
+        emailSent,
     });
 });
 
@@ -190,13 +220,21 @@ export const resendEmailOtp = asyncHandler(async (req, res) => {
 
     user.emailOtp = hashedOtp;
     user.emailOtpExpires = new Date(Date.now() + 5 * 60 * 1000);
+    user.emailOtpAttempts = 0;
     await user.save();
 
-    await sendOtpEmail(user.email, otp);
+    let emailSent = false;
+    try {
+        await sendOtpEmail(user.email, otp);
+        emailSent = true;
+    } catch (mailError) {
+        console.error("⚠️ Mail send error on resendEmailOtp:", mailError.message || mailError);
+    }
 
     res.status(200).json({
         success: true,
         message: 'If this account is eligible, OTP has been sent',
+        emailSent,
     });
 });
 

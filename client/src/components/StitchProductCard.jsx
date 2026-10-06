@@ -12,6 +12,8 @@ import { useNavigate } from 'react-router-dom';
  *   listingArea — optional campus locality (or legacy city · PIN) for delivery estimates
  *   itemId      — string (for router navigation)
  */
+import { getImageUrl, handleImageError } from '../utils/imageUrl';
+
 const StitchProductCard = ({ image, price, verified, title, subtitle, listingArea, itemId, sold }) => {
   const navigate = useNavigate();
 
@@ -23,8 +25,9 @@ const StitchProductCard = ({ image, price, verified, title, subtitle, listingAre
         onClick={() => navigate(itemId ? `/item/${itemId}` : '/marketplace')}
       >
         <img
-          src={image}
+          src={getImageUrl(image)}
           alt={title}
+          onError={(e) => handleImageError(e)}
           className="object-cover object-center w-full h-full max-w-full overflow-hidden rounded-[inherit] group-hover:scale-105 transition-transform duration-500"
         />
         {sold && (

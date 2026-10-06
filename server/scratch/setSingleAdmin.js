@@ -22,7 +22,7 @@ const setSingleAdmin = async () => {
         const user = await User.findOneAndUpdate(
             { email: targetEmail.toLowerCase().trim() },
             { role: 'admin' },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!user) {
