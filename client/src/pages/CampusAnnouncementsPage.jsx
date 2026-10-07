@@ -4,6 +4,7 @@ import StitchFooter from '../components/StitchFooter';
 import toast from 'react-hot-toast';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { renderFormattedText } from '../utils/formatText';
 import {
   getCampusUpdates,
   addCampusUpdate,
@@ -258,7 +259,7 @@ const CampusAnnouncementsPage = () => {
                         </h3>
 
                         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium whitespace-pre-line">
-                          {post.description}
+                          {renderFormattedText(post.description)}
                         </p>
 
                         {/* Location & Date/Time Pills */}

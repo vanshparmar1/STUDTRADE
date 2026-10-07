@@ -16,8 +16,8 @@ const campusUpdateSchema = new mongoose.Schema(
         },
         category: {
             type: String,
-            default: 'General',
-            enum: ['Event', 'Announcement', 'General', 'Sports', 'Exam', 'Emergency'],
+            default: 'Announcement',
+            trim: true,
         },
         location: {
             type: String,

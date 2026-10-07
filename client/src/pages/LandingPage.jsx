@@ -11,6 +11,7 @@ import { getActiveNeeds, getDaysLeft } from '../utils/needsStore';
 import { getCampusUpdates, getShortRemainingTime, getCategoryIcon, cleanupExpiredCampusPosts } from '../utils/campusUpdatesStore';
 import { getStudyMaterials } from '../utils/studyStore';
 import { getImageUrl, handleImageError, DEFAULT_AVATAR_FALLBACK, DEFAULT_FALLBACK_IMAGE } from '../utils/imageUrl';
+import { renderFormattedText } from '../utils/formatText';
 
 const HERO_IMG = '/assets/landing_hero.png';
 
@@ -634,8 +635,8 @@ const LandingPage = () => {
                             {post.title}
                           </h3>
                         )}
-                        <p className="text-sm text-[var(--color-on-surface-variant)] leading-relaxed font-normal">
-                          {post.caption || post.description}
+                        <p className="text-sm text-[var(--color-on-surface-variant)] leading-relaxed font-normal whitespace-pre-line">
+                          {renderFormattedText(post.caption || post.description)}
                         </p>
 
                         {/* Action Bar */}

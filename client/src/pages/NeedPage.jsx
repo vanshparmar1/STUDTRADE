@@ -5,6 +5,7 @@ import StitchFooter from '../components/StitchFooter';
 import toast from 'react-hot-toast';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { renderFormattedText } from '../utils/formatText';
 import { getStoredNeeds, saveNeed, markNeedFulfilled, getDaysLeft } from '../utils/needsStore';
 
 const CATEGORIES = [
@@ -313,7 +314,9 @@ const NeedPage = () => {
                   {/* Title & Description */}
                   <div className="space-y-1.5">
                     <h3 className="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">{post.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">{post.description}</p>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal whitespace-pre-line">
+                      {renderFormattedText(post.description)}
+                    </p>
                   </div>
 
                   {/* Optional Uploaded Image */}
