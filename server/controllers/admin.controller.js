@@ -10,6 +10,7 @@ import Provider from '../models/Provider.js';
 import ProviderService from '../models/ProviderService.js';
 import Customer from '../models/Customer.js';
 import ProviderNotification from '../models/ProviderNotification.js';
+import Promotion from '../models/Promotion.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // ─── @desc    Get all reports ────────────────────────────────────────────────
@@ -85,58 +86,32 @@ export const reviewReport = asyncHandler(async (req, res) => {
     });
 });
 
-// ─── @desc    Get all orders & resource usage (admin) ───────────────────────
+// ─── @desc    Get all platform orders (admin) ────────────────────────────────
 // ─── @route   GET /api/admin/orders ──────────────────────────────────────────
 // ─── @access  Private/Admin ──────────────────────────────────────────────────
 export const getAllOrders = asyncHandler(async (req, res) => {
-    const [orders, customers] = await Promise.all([
-        Order.find()
-            .populate('buyer', 'name email phone studtradeID')
-            .populate('seller', 'name email phone studtradeID')
-            .populate('item', 'title images price category condition pickupAddress')
-            .sort('-createdAt'),
-        Customer.find()
-            .populate('provider', 'businessName name phone email')
-            .populate('student', 'name email phone')
-            .populate('service', 'title type price')
-            .sort('-createdAt'),
-    ]);
+    const orders = await Order.find()
+        .populate('buyer', 'name email phone studtradeID')
+        .populate('seller', 'name email phone studtradeID')
+        .populate('item', 'title images price category condition pickupAddress')
+        .sort('-createdAt');
 
-    // Format product orders
     const formattedOrders = orders.map((o) => ({
         _id: o._id,
         type: 'Marketplace Purchase',
-        itemName: o.item?.title || 'Marketplace Item',
-        buyerName: o.buyer?.name || o.deliveryAddress?.name || 'Campus Buyer',
+        itemName: o.item?.title || 'N/A',
+        buyerName: o.buyer?.name || o.deliveryAddress?.name || 'N/A',
         buyerContact: o.buyer?.phone || o.deliveryAddress?.phone || o.buyer?.email || 'N/A',
-        sellerName: o.seller?.name || 'Campus Seller',
+        sellerName: o.seller?.name || 'N/A',
         price: o.totalAmount || o.price || 0,
         status: o.status || 'pending',
         date: o.createdAt,
     }));
 
-    // Format provider service requests / website resource usages
-    const formattedServiceUsages = customers.map((c) => ({
-        _id: c._id,
-        type: `Service: ${c.serviceName || c.service?.type || 'Provider Service'}`,
-        itemName: c.service?.title || c.serviceName || 'Campus Service',
-        buyerName: c.name || c.student?.name || 'Student Customer',
-        buyerContact: c.contact || c.student?.phone || c.student?.email || 'N/A',
-        sellerName: c.provider?.businessName || c.provider?.name || 'Provider',
-        price: c.service?.price || 0,
-        status: c.status || 'Active',
-        date: c.createdAt || c.startDate,
-        notes: c.notes || '',
-    }));
-
-    const combined = [...formattedOrders, ...formattedServiceUsages].sort(
-        (a, b) => new Date(b.date) - new Date(a.date)
-    );
-
     res.status(200).json({
         success: true,
-        count: combined.length,
-        data: combined,
+        count: formattedOrders.length,
+        data: formattedOrders,
     });
 });
 
@@ -202,6 +177,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         totalUpdates,
         totalServices,
         totalReports,
+        totalPromotions,
     ] = await Promise.all([
         Order.countDocuments(),
         User.countDocuments(),
@@ -211,6 +187,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         CampusUpdate.countDocuments(),
         ProviderService.countDocuments({ status: { $ne: 'deleted' } }),
         Report.countDocuments({ status: 'pending' }),
+        Promotion.countDocuments(),
     ]);
 
     res.status(200).json({
@@ -224,6 +201,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
             totalUpdates,
             totalServices,
             totalReports,
+            totalPromotions,
         },
     });
 });

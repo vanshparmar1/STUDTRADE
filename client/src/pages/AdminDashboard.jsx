@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import StitchNavbar from '../components/StitchNavbar';
-import StitchFooter from '../components/StitchFooter';
 import toast from 'react-hot-toast';
 import { getRemainingTimeText } from '../utils/campusUpdatesStore';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // ─── Data States ───────────────────────────────────────────────────────
   const [stats, setStats] = useState(null);
@@ -37,38 +37,45 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
 
-  const [reports, setReports] = useState([]);
-  const [reportsLoading, setReportsLoading] = useState(false);
+  // Promotions State
+  const [promotions, setPromotions] = useState([]);
+  const [promotionsLoading, setPromotionsLoading] = useState(false);
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const [editingPromo, setEditingPromo] = useState(null);
 
-  const [providers, setProviders] = useState([]);
-  const [providersLoading, setProvidersLoading] = useState(false);
-  const [providerFilter, setProviderFilter] = useState('');
+  const [promoForm, setPromoForm] = useState({
+    title: '',
+    description: '',
+    offerText: 'SPECIAL OFFER',
+    category: 'Offer',
+    buttonText: 'Explore Now',
+    buttonLink: '/marketplace',
+    displayOrder: 0,
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: '',
+    isActive: true,
+  });
+  const [promoImageFile, setPromoImageFile] = useState(null);
+  const [promoImagePreview, setPromoImagePreview] = useState('');
+  const [promoSubmitting, setPromoSubmitting] = useState(false);
 
-  // ─── Filters ──────────────────────────────────────────────────────────
-  const [orderFilter, setOrderFilter] = useState('');
+  // Search filter inside tables
   const [searchQuery, setSearchQuery] = useState('');
 
+  // ─── Effects ───────────────────────────────────────────────────────────
   useEffect(() => {
     fetchDashboardStats();
-    if (activeTab === 'marketplace' && items.length === 0) {
-      fetchItems();
-    } else if (activeTab === 'study' && studyMaterials.length === 0) {
-      fetchStudyMaterials();
-    } else if (activeTab === 'needs' && needs.length === 0) {
-      fetchNeeds();
-    } else if (activeTab === 'updates' && campusUpdates.length === 0) {
-      fetchCampusUpdates();
-    } else if (activeTab === 'services' && services.length === 0) {
-      fetchServices();
-    } else if (activeTab === 'orders' && orders.length === 0) {
-      fetchOrders();
-    } else if (activeTab === 'users' && users.length === 0) {
-      fetchUsers();
-    } else if (activeTab === 'reports' && reports.length === 0) {
-      fetchReports();
-    } else if (activeTab === 'providers' && providers.length === 0) {
-      fetchProviders();
-    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'marketplace' && items.length === 0) fetchItems();
+    else if (activeTab === 'study' && studyMaterials.length === 0) fetchStudyMaterials();
+    else if (activeTab === 'needs' && needs.length === 0) fetchNeeds();
+    else if (activeTab === 'updates' && campusUpdates.length === 0) fetchCampusUpdates();
+    else if (activeTab === 'services' && services.length === 0) fetchServices();
+    else if (activeTab === 'orders' && orders.length === 0) fetchOrders();
+    else if (activeTab === 'users' && users.length === 0) fetchUsers();
+    else if (activeTab === 'promotions') fetchPromotions();
   }, [activeTab]);
 
   // ─── API Fetchers ──────────────────────────────────────────────────────
@@ -144,51 +151,13 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleToggleServiceStatus = async (id) => {
-    try {
-      const { data } = await API.patch(`/admin/services/${id}/status`);
-      if (data.success) {
-        toast.success(data.message || 'Service status updated');
-        setServices((prev) => prev.map((s) => (s._id === id ? data.data : s)));
-      }
-    } catch (err) {
-      toast.error('Failed to update service status');
-    }
-  };
-
-  const handleDeleteService = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this provider service listing?')) return;
-    try {
-      await API.delete(`/admin/services/${id}`);
-      toast.success('Provider service deleted!');
-      setServices((prev) => prev.filter((s) => s._id !== id));
-    } catch (err) {
-      toast.error('Failed to delete service');
-    }
-  };
-
-  const handleDeleteComment = async (itemId, commentId) => {
-    if (!window.confirm('Are you sure you want to delete this comment?')) return;
-    try {
-      const { data } = await API.delete(`/admin/items/${itemId}/comments/${commentId}`);
-      if (data.success) {
-        toast.success('Comment deleted!');
-        setItems((prev) =>
-          prev.map((item) => (item._id === itemId ? { ...item, comments: data.data } : item))
-        );
-      }
-    } catch (err) {
-      toast.error('Failed to delete comment');
-    }
-  };
-
   const fetchOrders = async () => {
     try {
       setOrdersLoading(true);
       const { data } = await API.get('/admin/orders');
       if (data.success && Array.isArray(data.data)) setOrders(data.data);
     } catch (err) {
-      console.warn('Failed to load orders:', err.message);
+      toast.error('Failed to load orders');
     } finally {
       setOrdersLoading(false);
     }
@@ -200,969 +169,1130 @@ export default function AdminDashboard() {
       const { data } = await API.get('/admin/users');
       if (data.success && Array.isArray(data.data)) setUsers(data.data);
     } catch (err) {
-      toast.error('Failed to load registered users');
+      toast.error('Failed to load users');
     } finally {
       setUsersLoading(false);
     }
   };
 
-  const fetchReports = async () => {
+  const fetchPromotions = async () => {
     try {
-      setReportsLoading(true);
-      const { data } = await API.get('/admin/reports');
-      if (data.success && Array.isArray(data.data)) setReports(data.data);
+      setPromotionsLoading(true);
+      const { data } = await API.get('/promotions/admin');
+      if (data.success && Array.isArray(data.data)) setPromotions(data.data);
     } catch (err) {
-      toast.error('Failed to load reports');
+      toast.error('Failed to load promotions');
     } finally {
-      setReportsLoading(false);
+      setPromotionsLoading(false);
     }
   };
 
-  const fetchProviders = async () => {
+  // ─── Actions ──────────────────────────────────────────────────────────
+  const handleToggleServiceStatus = async (id) => {
     try {
-      setProvidersLoading(true);
-      const { data } = await API.get('/admin/providers');
-      if (data.success && Array.isArray(data.data)) setProviders(data.data);
-    } catch (err) {
-      toast.error('Failed to load provider applications');
-    } finally {
-      setProvidersLoading(false);
-    }
-  };
-
-  const handleUpdateProviderStatus = async (id, status) => {
-    try {
-      const { data } = await API.patch(`/admin/providers/${id}/status`, { status });
+      const { data } = await API.patch(`/admin/services/${id}/status`);
       if (data.success) {
-        toast.success(`Provider status updated to "${status}"`);
-        setProviders(providers.map((p) => (p._id === id ? data.data : p)));
+        toast.success(data.message || 'Service status updated');
+        setServices((prev) =>
+          prev.map((s) => (s._id === id ? { ...s, status: s.status === 'active' ? 'hidden' : 'active' } : s))
+        );
       }
     } catch (err) {
-      toast.error('Failed to update provider status');
+      toast.error('Failed to update service status');
     }
   };
 
-  const handleDeleteProvider = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this provider application?')) return;
+  const handleDeleteService = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this provider service listing?')) return;
     try {
-      await API.delete(`/admin/providers/${id}`);
-      toast.success('Provider application deleted');
-      setProviders((prev) => prev.filter((p) => p._id !== id));
+      const { data } = await API.delete(`/admin/services/${id}`);
+      if (data.success) {
+        toast.success('Service deleted successfully');
+        setServices((prev) => prev.filter((s) => s._id !== id));
+      }
     } catch (err) {
-      toast.error('Failed to delete provider');
+      toast.error('Failed to delete service');
     }
   };
 
-  // ─── Admin Delete / Update Actions ─────────────────────────────────────
   const handleDeleteItem = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this marketplace item?')) return;
+    if (!window.confirm('Delete this marketplace item listing?')) return;
     try {
       await API.delete(`/items/${id}`);
-      toast.success('Marketplace item deleted!');
-      setItems((prev) => prev.filter((i) => i._id !== id));
+      toast.success('Item deleted');
+      setItems((prev) => prev.filter((i) => i._id !== id && i.id !== id));
     } catch (err) {
       toast.error('Failed to delete item');
     }
   };
 
-  const handleDeleteStudy = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this study material?')) return;
+  const handleDeleteStudyMaterial = async (id) => {
+    if (!window.confirm('Delete this study material?')) return;
     try {
       await API.delete(`/study/${id}`);
-      toast.success('Study material deleted!');
-      setStudyMaterials((prev) => prev.filter((s) => s._id !== id));
+      toast.success('Study material deleted');
+      setStudyMaterials((prev) => prev.filter((m) => m._id !== id && m.id !== id));
     } catch (err) {
       toast.error('Failed to delete study material');
     }
   };
 
-  const handleDeleteNeed = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this campus need query?')) return;
-    try {
-      await API.delete(`/needs/${id}`);
-      toast.success('Campus need query deleted!');
-      setNeeds((prev) => prev.filter((n) => n._id !== id));
-    } catch (err) {
-      toast.error('Failed to delete campus need');
-    }
-  };
-
-  const handleFulfillNeed = async (id) => {
-    try {
-      await API.patch(`/needs/${id}/fulfill`);
-      toast.success('Need query marked as fulfilled!');
-      fetchNeeds();
-    } catch (err) {
-      toast.error('Failed to update need status');
-    }
-  };
-
-  const handleDeleteUpdate = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this campus update?')) return;
+  const handleDeleteCampusUpdate = async (id) => {
+    if (!window.confirm('Delete this campus update?')) return;
     try {
       await API.delete(`/campus-updates/${id}`);
-      toast.success('Campus update deleted!');
-      setCampusUpdates((prev) => prev.filter((c) => c._id !== id));
+      toast.success('Campus update deleted');
+      setCampusUpdates((prev) => prev.filter((u) => u._id !== id && u.id !== id));
     } catch (err) {
       toast.error('Failed to delete campus update');
     }
   };
 
-  const handleUpdateOrderStatus = async (id, status) => {
-    try {
-      const { data } = await API.patch(`/admin/orders/${id}`, { status });
-      if (data.success) {
-        toast.success(`Order status updated to "${status}"`);
-        fetchOrders();
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update order status');
+  // ─── Promotion Management Handlers ─────────────────────────────────────
+  const handleOpenAddPromo = () => {
+    setEditingPromo(null);
+    setPromoForm({
+      title: '',
+      description: '',
+      offerText: 'SPECIAL OFFER',
+      category: 'Offer',
+      buttonText: 'Explore Now',
+      buttonLink: '/marketplace',
+      displayOrder: 0,
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: '',
+      isActive: true,
+    });
+    setPromoImageFile(null);
+    setPromoImagePreview('');
+    setIsPromoModalOpen(true);
+  };
+
+  const handleOpenEditPromo = (promo) => {
+    setEditingPromo(promo);
+    setPromoForm({
+      title: promo.title,
+      description: promo.description,
+      offerText: promo.offerText || 'SPECIAL OFFER',
+      category: promo.category || 'Offer',
+      buttonText: promo.buttonText || 'Explore Now',
+      buttonLink: promo.buttonLink || '/marketplace',
+      displayOrder: promo.displayOrder || 0,
+      startDate: promo.startDate ? new Date(promo.startDate).toISOString().split('T')[0] : '',
+      endDate: promo.endDate ? new Date(promo.endDate).toISOString().split('T')[0] : '',
+      isActive: promo.isActive !== false,
+    });
+    setPromoImageFile(null);
+    setPromoImagePreview(promo.image ? getImageUrl(promo.image) : '');
+    setIsPromoModalOpen(true);
+  };
+
+  const handlePromoImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPromoImageFile(file);
+      setPromoImagePreview(URL.createObjectURL(file));
     }
   };
 
-  const handleReviewReport = async (id, status) => {
+  const handleSubmitPromo = async (e) => {
+    e.preventDefault();
+    if (!promoForm.title.trim() || !promoForm.description.trim()) {
+      toast.error('Title and description are required');
+      return;
+    }
+
     try {
-      const adminNote = window.prompt(`Add a note for this ${status} report (optional):`);
-      const { data } = await API.patch(`/admin/reports/${id}/review`, { status, adminNote });
-      if (data.success) {
-        setReports(reports.map(r => r._id === id ? data.data : r));
-        toast.success(`Report marked as ${status}`);
+      setPromoSubmitting(true);
+      const formData = new FormData();
+      formData.append('title', promoForm.title);
+      formData.append('description', promoForm.description);
+      formData.append('offerText', promoForm.offerText);
+      formData.append('category', promoForm.category);
+      formData.append('buttonText', promoForm.buttonText);
+      formData.append('buttonLink', promoForm.buttonLink);
+      formData.append('displayOrder', promoForm.displayOrder);
+      if (promoForm.startDate) formData.append('startDate', promoForm.startDate);
+      if (promoForm.endDate) formData.append('endDate', promoForm.endDate);
+      formData.append('isActive', promoForm.isActive);
+
+      if (promoImageFile) {
+        formData.append('image', promoImageFile);
+      }
+
+      if (editingPromo) {
+        const { data } = await API.put(`/promotions/${editingPromo._id}`, formData);
+        if (data.success) {
+          toast.success('Promotion updated successfully! 🎉');
+          fetchPromotions();
+          fetchDashboardStats();
+          setIsPromoModalOpen(false);
+        }
+      } else {
+        const { data } = await API.post('/promotions', formData);
+        if (data.success) {
+          toast.success('Promotion published to public carousel! 🎉');
+          fetchPromotions();
+          fetchDashboardStats();
+          setIsPromoModalOpen(false);
+        }
       }
     } catch (err) {
-      toast.error('Failed to update report');
+      toast.error(err.response?.data?.message || 'Failed to save promotion');
+    } finally {
+      setPromoSubmitting(false);
     }
   };
 
-  // Formatters
-  const formatPrice = (p) => (p !== undefined && p !== null ? `₹${Number(p).toLocaleString('en-IN')}` : 'Free');
-  const formatDate = (d) => (d ? new Date(d).toLocaleDateString('en-IN', {
-    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-  }) : 'N/A');
+  const handleTogglePromoStatus = async (id) => {
+    try {
+      const { data } = await API.patch(`/promotions/${id}/status`);
+      if (data.success) {
+        toast.success(data.message || 'Status updated');
+        setPromotions((prev) =>
+          prev.map((p) => (p._id === id ? { ...p, isActive: !p.isActive } : p))
+        );
+      }
+    } catch (err) {
+      toast.error('Failed to update promotion status');
+    }
+  };
 
-  const filteredOrdersList = orderFilter ? orders.filter(o => o.status === orderFilter) : orders;
+  const handleDeletePromo = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this promotional slide?')) return;
+    try {
+      const { data } = await API.delete(`/promotions/${id}`);
+      if (data.success) {
+        toast.success('Promotion deleted');
+        setPromotions((prev) => prev.filter((p) => p._id !== id));
+        fetchDashboardStats();
+      }
+    } catch (err) {
+      toast.error('Failed to delete promotion');
+    }
+  };
+
+  // Navigation Items (Exactly 9 Sections)
+  const navItems = [
+    { id: 'overview', label: 'Overview', icon: 'bar_chart' },
+    { id: 'marketplace', label: 'Marketplace Items', icon: 'shopping_bag', count: stats?.totalItems },
+    { id: 'study', label: 'Study Materials', icon: 'menu_book', count: stats?.totalStudyMaterials },
+    { id: 'needs', label: 'Campus Needs', icon: 'saved_search', count: stats?.totalNeeds },
+    { id: 'updates', label: 'Campus Updates', icon: 'campaign', count: stats?.totalUpdates },
+    { id: 'services', label: 'Services', icon: 'build', count: stats?.totalServices },
+    { id: 'orders', label: 'Orders', icon: 'local_shipping', count: stats?.totalOrders },
+    { id: 'users', label: 'Registered Users', icon: 'group', count: stats?.totalUsers },
+    { id: 'promotions', label: 'Promotions & News', icon: 'stars', count: stats?.totalPromotions },
+  ];
+
+  const currentNav = navItems.find((n) => n.id === activeTab) || navItems[0];
 
   return (
-    <div className="bg-[#f8fafc] text-[var(--color-on-surface)] min-h-screen flex flex-col">
-      <StitchNavbar activeLink="Admin" />
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col font-sans">
+      
+      {/* TOP HEADER */}
+      <header className="bg-white border-b border-slate-200/90 sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xs">
+        <div className="flex items-center gap-3">
+          {/* Mobile Hamburger Button */}
+          <button
+            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            className="md:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold"
+          >
+            <span className="material-symbols-outlined text-xl">menu</span>
+          </button>
 
-      <main className="flex-1 pt-24 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-6">
-        
-        {/* Header Title */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-black uppercase tracking-wider border border-rose-200">
-              <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
-              <span>ADMIN CONTROL PANEL</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Platform Administration
+          <div>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">ADMIN PANEL</span>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <span>{currentNav.label}</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium">
-              Manage data, moderation, users, and content across all website pages.
-            </p>
+          </div>
+        </div>
+
+        {/* Right Header Admin Info */}
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex flex-col text-right">
+            <span className="text-xs font-black text-slate-900 leading-snug">{user?.name || 'Administrator'}</span>
+            <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200 inline-block self-end">
+              Administrator
+            </span>
+          </div>
+
+          <div className="w-9 h-9 rounded-2xl bg-slate-900 text-white font-black text-sm flex items-center justify-center border border-slate-800 shadow-2xs">
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
           </div>
 
           <button
-            onClick={() => {
-              fetchDashboardStats();
-              if (activeTab === 'marketplace') fetchItems();
-              else if (activeTab === 'study') fetchStudyMaterials();
-              else if (activeTab === 'needs') fetchNeeds();
-              else if (activeTab === 'updates') fetchCampusUpdates();
-              else if (activeTab === 'services') fetchServices();
-              else if (activeTab === 'orders') fetchOrders();
-              else if (activeTab === 'users') fetchUsers();
-              else if (activeTab === 'reports') fetchReports();
-              toast.success('Admin Dashboard Refreshed');
-            }}
-            className="px-4 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5"
+            onClick={() => logout && logout()}
+            className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs transition-colors cursor-pointer"
+            title="Logout"
           >
-            <span className="material-symbols-outlined text-sm">refresh</span>
-            <span>Refresh Data</span>
+            <span className="material-symbols-outlined text-lg">logout</span>
           </button>
         </div>
+      </header>
 
-        {/* Navigation Tabs (covering all pages of the website) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {[
-            { id: 'overview', label: '📊 Overview', count: null },
-            { id: 'marketplace', label: '🛒 Marketplace Items', count: items.length || stats?.totalItems || 0 },
-            { id: 'study', label: '📚 Study Materials', count: studyMaterials.length || stats?.totalStudyMaterials || 0 },
-            { id: 'needs', label: '🔎 Campus Needs', count: needs.length || stats?.totalNeeds || 0 },
-            { id: 'updates', label: '📢 Campus Updates', count: campusUpdates.length || stats?.totalUpdates || 0 },
-            { id: 'services', label: '🧰 Services', count: services.length || stats?.totalServices || 0 },
-            { id: 'orders', label: '📦 Orders', count: orders.length || stats?.totalOrders || 0 },
-            { id: 'users', label: '👥 Registered Users', count: users.length || stats?.totalUsers || 0 },
-            { id: 'providers', label: '🏢 Providers', count: providers.length || stats?.totalProviders || 0 },
-            { id: 'reports', label: '🚩 Reports', count: reports.length || stats?.totalReports || 0 },
-          ].map((tab) => (
+      {/* DASHBOARD LAYOUT (Sidebar + Main Content) */}
+      <div className="flex-1 flex overflow-hidden">
+        
+        {/* DESKTOP SIDEBAR */}
+        <aside className="hidden md:flex md:w-64 bg-white border-r border-slate-200/90 flex-col justify-between p-4 shrink-0 sticky top-[61px] h-[calc(100vh-61px)]">
+          <div className="space-y-4 overflow-y-auto pr-1">
+            <div className="px-3 py-2 bg-slate-50 rounded-2xl border border-slate-200/70">
+              <span className="text-xs font-black tracking-wider text-slate-900 uppercase block">STUDTRADE</span>
+              <span className="text-[10px] text-slate-500 font-bold">Admin Operations Panel</span>
+            </div>
+
+            <nav className="space-y-1">
+              {navItems.map((nav) => (
+                <button
+                  key={nav.id}
+                  onClick={() => setActiveTab(nav.id)}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
+                    activeTab === nav.id
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="material-symbols-outlined text-lg">{nav.icon}</span>
+                    <span>{nav.label}</span>
+                  </div>
+
+                  {nav.count !== undefined && nav.count !== null && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                        activeTab === nav.id ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {nav.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 space-y-2">
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all cursor-pointer border ${
-                activeTab === tab.id
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                  : 'bg-white text-slate-600 border-slate-200/90 hover:bg-slate-50'
-              }`}
+              onClick={() => navigate('/')}
+              className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
             >
-              {tab.label} {tab.count !== null && <span className="ml-1 opacity-70">({tab.count})</span>}
+              <span className="material-symbols-outlined text-base">storefront</span>
+              <span>Public Website</span>
             </button>
-          ))}
-        </div>
+          </div>
+        </aside>
 
-        {/* ── 1. OVERVIEW TAB ── */}
-        {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Top Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xs space-y-1">
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">RESOURCE USAGE & ORDERS</span>
-                <div className="text-2xl font-black text-slate-900">{stats?.totalOrders || orders.length || 0}</div>
-                <span className="text-[10px] text-slate-500 font-medium">Campus service & product requests</span>
+        {/* MOBILE DRAWER SIDEBAR */}
+        {isMobileSidebarOpen && (
+          <div className="md:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex">
+            <div className="bg-white w-72 h-full p-4 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left duration-200">
+              <div className="space-y-4 overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <span className="text-xs font-black text-slate-900 uppercase">STUDTRADE Admin</span>
+                    <span className="text-[10px] text-slate-500 font-bold block">Management Menu</span>
+                  </div>
+                  <button onClick={() => setIsMobileSidebarOpen(false)} className="p-1 text-slate-400">
+                    <span className="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+
+                <nav className="space-y-1">
+                  {navItems.map((nav) => (
+                    <button
+                      key={nav.id}
+                      onClick={() => {
+                        setActiveTab(nav.id);
+                        setIsMobileSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all ${
+                        activeTab === nav.id ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="material-symbols-outlined text-lg">{nav.icon}</span>
+                        <span>{nav.label}</span>
+                      </div>
+                      {nav.count !== undefined && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700">
+                          {nav.count}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </nav>
               </div>
 
-              <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xs space-y-1">
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">ACTIVE USERS</span>
-                <div className="text-2xl font-black text-slate-900">{stats?.totalUsers || users.length || 0}</div>
-                <span className="text-[10px] text-slate-500 font-medium">Registered students & accounts</span>
-              </div>
-
-              <div className="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-xs space-y-1">
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">LISTED ITEMS & SERVICES</span>
-                <div className="text-2xl font-black text-slate-900">{(stats?.totalItems || items.length || 0) + (stats?.totalServices || services.length || 0)}</div>
-                <span className="text-[10px] text-slate-500 font-medium">Marketplace & Provider listings</span>
+              <div className="pt-3 border-t border-slate-100">
+                <button
+                  onClick={() => logout && logout()}
+                  className="w-full py-2.5 rounded-2xl bg-rose-600 text-white font-extrabold text-xs cursor-pointer"
+                >
+                  Logout
+                </button>
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Quick Website Pages Data Summary Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* MAIN CONTENT AREA */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6 text-left">
+          
+          {/* 1. OVERVIEW SECTION */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
               
-              <div onClick={() => setActiveTab('marketplace')} className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs hover:border-blue-400 transition-all cursor-pointer space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">🛒</span>
-                  <span className="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">{items.length || stats?.totalItems || 0} Posts</span>
+              {/* Stat Cards Grid */}
+              <div className="space-y-3">
+                <h3 className="font-black text-slate-900 text-base">Platform Statistics</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">ACTIVE USERS</span>
+                    <div className="text-2xl font-black text-slate-900">{stats?.totalUsers || 0}</div>
+                    <span className="text-[10px] text-slate-500 font-medium">Registered accounts</span>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">MARKETPLACE ITEMS</span>
+                    <div className="text-2xl font-black text-slate-900">{stats?.totalItems || 0}</div>
+                    <span className="text-[10px] text-slate-500 font-medium">Student trade listings</span>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">STUDY MATERIALS</span>
+                    <div className="text-2xl font-black text-slate-900">{stats?.totalStudyMaterials || 0}</div>
+                    <span className="text-[10px] text-slate-500 font-medium">Notes & PYQ papers</span>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">CAMPUS NEEDS</span>
+                    <div className="text-2xl font-black text-slate-900">{stats?.totalNeeds || 0}</div>
+                    <span className="text-[10px] text-slate-500 font-medium">Student request posts</span>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">CAMPUS UPDATES</span>
+                    <div className="text-2xl font-black text-slate-900">{stats?.totalUpdates || 0}</div>
+                    <span className="text-[10px] text-slate-500 font-medium">24h Campus notices</span>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">SERVICES</span>
+                    <div className="text-2xl font-black text-slate-900">{stats?.totalServices || 0}</div>
+                    <span className="text-[10px] text-slate-500 font-medium">Provider listings</span>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">ORDERS</span>
+                    <div className="text-2xl font-black text-slate-900">{stats?.totalOrders || 0}</div>
+                    <span className="text-[10px] text-slate-500 font-medium">Completed transactions</span>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs space-y-1">
+                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block">PROMOTIONS</span>
+                    <div className="text-2xl font-black text-emerald-600">{stats?.totalPromotions || 0}</div>
+                    <span className="text-[10px] text-slate-500 font-medium">Public carousel slides</span>
+                  </div>
+
                 </div>
-                <h3 className="font-extrabold text-base text-slate-900">Marketplace Page</h3>
-                <p className="text-xs text-slate-500 font-normal">Active product listings & items for buy/sell across campus.</p>
               </div>
 
-              <div onClick={() => setActiveTab('study')} className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs hover:border-emerald-400 transition-all cursor-pointer space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">📚</span>
-                  <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">{studyMaterials.length || stats?.totalStudyMaterials || 0} Materials</span>
-                </div>
-                <h3 className="font-extrabold text-base text-slate-900">Study Page</h3>
-                <p className="text-xs text-slate-500 font-normal">Notes, PYQs, assignments & academic resources uploaded by students.</p>
-              </div>
+              {/* Quick Access Section */}
+              <div className="space-y-3">
+                <h3 className="font-black text-slate-900 text-base">Quick Access Management</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { id: 'marketplace', title: 'Marketplace', desc: 'Manage student buy/sell listings', icon: 'shopping_bag', count: stats?.totalItems },
+                    { id: 'study', title: 'Study Materials', desc: 'Manage notes & exam papers', icon: 'menu_book', count: stats?.totalStudyMaterials },
+                    { id: 'needs', title: 'Campus Needs', desc: 'Manage student requirement posts', icon: 'saved_search', count: stats?.totalNeeds },
+                    { id: 'updates', title: 'Campus Updates', desc: 'Manage 24h campus notices', icon: 'campaign', count: stats?.totalUpdates },
+                    { id: 'services', title: 'Services', desc: 'Manage mess, water & rental providers', icon: 'build', count: stats?.totalServices },
+                    { id: 'orders', title: 'Orders', desc: 'Track transactions & customers', icon: 'local_shipping', count: stats?.totalOrders },
+                    { id: 'users', title: 'Users', desc: 'Manage registered student accounts', icon: 'group', count: stats?.totalUsers },
+                    { id: 'promotions', title: 'Promotions', desc: 'Manage homepage carousel slides', icon: 'stars', count: stats?.totalPromotions },
+                  ].map((card) => (
+                    <div key={card.id} className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3">
+                      <div className="space-y-1">
+                        <div className="w-9 h-9 rounded-2xl bg-slate-100 text-slate-800 font-black text-lg flex items-center justify-center mb-2">
+                          <span className="material-symbols-outlined">{card.icon}</span>
+                        </div>
+                        <h4 className="font-black text-slate-900 text-sm leading-tight">{card.title}</h4>
+                        <p className="text-xs text-slate-500 font-medium">{card.desc}</p>
+                      </div>
 
-              <div onClick={() => setActiveTab('needs')} className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs hover:border-purple-400 transition-all cursor-pointer space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">🔎</span>
-                  <span className="text-xs font-black text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">{needs.length || stats?.totalNeeds || 0} Queries</span>
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span className="text-xs font-black text-slate-400">{card.count || 0} items</span>
+                        <button
+                          onClick={() => setActiveTab(card.id)}
+                          className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition-colors cursor-pointer"
+                        >
+                          Manage
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <h3 className="font-extrabold text-base text-slate-900">Need Page</h3>
-                <p className="text-xs text-slate-500 font-normal">Student requirement posts & item help queries around campus.</p>
-              </div>
-
-              <div onClick={() => setActiveTab('updates')} className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs hover:border-indigo-400 transition-all cursor-pointer space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">📢</span>
-                  <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{campusUpdates.length || stats?.totalUpdates || 0} Notices</span>
-                </div>
-                <h3 className="font-extrabold text-base text-slate-900">Campus Updates Page</h3>
-                <p className="text-xs text-slate-500 font-normal">Live 24-hour campus notices, events, and sports announcements.</p>
-              </div>
-
-              <div onClick={() => setActiveTab('services')} className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs hover:border-amber-400 transition-all cursor-pointer space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">🧰</span>
-                  <span className="text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">{services.length || stats?.totalServices || 0} Services</span>
-                </div>
-                <h3 className="font-extrabold text-base text-slate-900">Services Page</h3>
-                <p className="text-xs text-slate-500 font-normal">Community mess/tiffin, water camper, laundry & rental services.</p>
-              </div>
-
-              <div onClick={() => setActiveTab('users')} className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-xs hover:border-rose-400 transition-all cursor-pointer space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl">👥</span>
-                  <span className="text-xs font-black text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full">{users.length || stats?.totalUsers || 0} Users</span>
-                </div>
-                <h3 className="font-extrabold text-base text-slate-900">Users & Accounts</h3>
-                <p className="text-xs text-slate-500 font-normal">Registered student accounts, admin roles & email verification.</p>
               </div>
 
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ── 2. MARKETPLACE ITEMS TAB (/marketplace) ── */}
-        {activeTab === 'marketplace' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Marketplace Listings (`/marketplace`)</h2>
-                <p className="text-xs text-slate-500">All buy/sell product items published by students.</p>
+          {/* 2. MARKETPLACE ITEMS SECTION */}
+          {activeTab === 'marketplace' && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-black text-slate-900 text-base">Marketplace Item Listings ({items.length})</h3>
+                <button onClick={fetchItems} className="text-xs font-bold text-slate-500 hover:text-slate-900">
+                  Refresh
+                </button>
               </div>
-              <span className="text-xs font-extrabold text-slate-500">{items.length} items total</span>
-            </div>
 
-            {items.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No marketplace items found in MongoDB.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Item</th>
-                      <th className="py-3 px-3">Price</th>
-                      <th className="py-3 px-3">Category</th>
-                      <th className="py-3 px-3">Seller</th>
-                      <th className="py-3 px-3">Date</th>
-                      <th className="py-3 px-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {items.map((item) => (
-                      <React.Fragment key={item._id}>
-                        <tr className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3 px-3">
-                            <div className="flex items-center gap-3">
-                              {item.images?.[0] ? (
-                                <img src={item.images[0]} alt={item.title} className="w-9 h-9 rounded-xl object-cover border border-slate-200" />
-                              ) : (
-                                <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">📦</div>
-                              )}
-                              <div>
-                                <div className="font-extrabold text-slate-900">{item.title}</div>
-                                <div className="text-[10px] text-slate-500 line-clamp-1">{item.description}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3 px-3 font-bold text-emerald-700">{formatPrice(item.price)}</td>
-                          <td className="py-3 px-3"><span className="px-2 py-0.5 rounded-full bg-slate-100 font-bold">{item.category}</span></td>
-                          <td className="py-3 px-3">{item.seller?.name || item.sellerName || 'Campus Student'}</td>
-                          <td className="py-3 px-3 text-slate-400">{formatDate(item.createdAt)}</td>
-                          <td className="py-3 px-3 text-right space-x-1">
-                            <button
-                              onClick={() => handleDeleteItem(item._id)}
-                              className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs cursor-pointer transition-colors"
-                            >
-                              Delete Post
-                            </button>
-                          </td>
-                        </tr>
-
-                        {/* Comments row if comments exist */}
-                        {item.comments && item.comments.length > 0 && (
-                          <tr className="bg-slate-50/60">
-                            <td colSpan={6} className="px-4 py-2 border-b border-slate-100">
-                              <div className="pl-6 space-y-1">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Post Comments ({item.comments.length}):</span>
-                                <div className="flex flex-wrap gap-2">
-                                  {item.comments.map((comment) => (
-                                    <div key={comment._id} className="inline-flex items-center gap-2 bg-white px-3 py-1 rounded-xl border border-slate-200 text-xs">
-                                      <span className="font-bold text-slate-800">{comment.userName}:</span>
-                                      <span className="text-slate-600">{comment.text}</span>
-                                      <button
-                                        onClick={() => handleDeleteComment(item._id, comment._id)}
-                                        className="text-rose-600 hover:text-rose-800 text-[10px] font-extrabold ml-1 cursor-pointer"
-                                        title="Delete Comment"
-                                      >
-                                        ✕
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── 3. STUDY MATERIALS TAB (/study) ── */}
-        {activeTab === 'study' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Study Materials (`/study`)</h2>
-                <p className="text-xs text-slate-500">Academic notes, PYQs, and question papers uploaded by branch peers.</p>
-              </div>
-              <span className="text-xs font-extrabold text-slate-500">{studyMaterials.length} materials total</span>
-            </div>
-
-            {studyMaterials.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No study materials found in MongoDB.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Title &amp; Subject</th>
-                      <th className="py-3 px-3">Branch &amp; Year</th>
-                      <th className="py-3 px-3">Type</th>
-                      <th className="py-3 px-3">Uploaded By</th>
-                      <th className="py-3 px-3">Date</th>
-                      <th className="py-3 px-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {studyMaterials.map((item) => (
-                      <tr key={item._id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="font-extrabold text-slate-900">{item.title}</div>
-                          <div className="text-[10px] text-slate-500">{item.subject} &bull; {item.semester}</div>
-                        </td>
-                        <td className="py-3 px-3 font-semibold">{item.branch} • {item.year}</td>
-                        <td className="py-3 px-3"><span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">{item.contentType}</span></td>
-                        <td className="py-3 px-3">{item.uploadedByName || item.uploadedBy?.name || 'Verified Student'}</td>
-                        <td className="py-3 px-3 text-slate-400">{formatDate(item.createdAt)}</td>
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            onClick={() => handleDeleteStudy(item._id)}
-                            className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs cursor-pointer transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </td>
+              {itemsLoading ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-bold">Loading items...</div>
+              ) : items.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">No marketplace items listed yet.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-100">
+                        <th className="py-3 px-4">Item</th>
+                        <th className="py-3 px-4">Price</th>
+                        <th className="py-3 px-4">Category</th>
+                        <th className="py-3 px-4">Seller</th>
+                        <th className="py-3 px-4 text-right">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── 4. CAMPUS NEEDS TAB (/need) ── */}
-        {activeTab === 'needs' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Campus Needs (`/need`)</h2>
-                <p className="text-xs text-slate-500">Student requirement queries and help requests.</p>
-              </div>
-              <span className="text-xs font-extrabold text-slate-500">{needs.length} queries total</span>
-            </div>
-
-            {needs.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No campus needs found in MongoDB.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Title &amp; Description</th>
-                      <th className="py-3 px-3">Category</th>
-                      <th className="py-3 px-3">Budget</th>
-                      <th className="py-3 px-3">Location</th>
-                      <th className="py-3 px-3">User</th>
-                      <th className="py-3 px-3">Status</th>
-                      <th className="py-3 px-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {needs.map((item) => (
-                      <tr key={item._id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="font-extrabold text-slate-900">{item.title}</div>
-                          <div className="text-[10px] text-slate-500 line-clamp-1">{item.description}</div>
-                        </td>
-                        <td className="py-3 px-3"><span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-bold">{item.category}</span></td>
-                        <td className="py-3 px-3 font-bold text-emerald-700">{item.budget || 'Flexible'}</td>
-                        <td className="py-3 px-3">{item.location}</td>
-                        <td className="py-3 px-3">{item.userName || item.user?.name || 'Student'}</td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${item.status === 'FULFILLED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                            {item.status || 'ACTIVE'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right space-x-2">
-                          {item.status !== 'FULFILLED' && (
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {items.map((item) => (
+                        <tr key={item._id || item.id} className="hover:bg-slate-50/70">
+                          <td className="py-3 px-4 font-bold text-slate-900 flex items-center gap-2">
+                            {item.images?.[0] && (
+                              <img src={getImageUrl(item.images[0])} alt={item.title} className="w-8 h-8 rounded-lg object-cover" />
+                            )}
+                            <span>{item.title}</span>
+                          </td>
+                          <td className="py-3 px-4 font-extrabold text-emerald-600">₹{item.price}</td>
+                          <td className="py-3 px-4">{item.category}</td>
+                          <td className="py-3 px-4">{item.seller?.name || 'Student'}</td>
+                          <td className="py-3 px-4 text-right">
                             <button
-                              onClick={() => handleFulfillNeed(item._id)}
-                              className="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs hover:bg-emerald-100 cursor-pointer"
-                            >
-                              Fulfill
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteNeed(item._id)}
-                            className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs cursor-pointer transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── 5. CAMPUS UPDATES TAB (/campus-updates) ── */}
-        {activeTab === 'updates' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Campus Updates (`/campus-updates`)</h2>
-                <p className="text-xs text-slate-500">Live 24-hour notices, events, and announcements.</p>
-              </div>
-              <span className="text-xs font-extrabold text-slate-500">{campusUpdates.length} updates total</span>
-            </div>
-
-            {campusUpdates.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No campus updates found in MongoDB.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Title &amp; Notice</th>
-                      <th className="py-3 px-3">Category</th>
-                      <th className="py-3 px-3">Location</th>
-                      <th className="py-3 px-3">Remaining Time</th>
-                      <th className="py-3 px-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {campusUpdates.map((item) => (
-                      <tr key={item._id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="font-extrabold text-slate-900">{item.title}</div>
-                          <div className="text-[10px] text-slate-500 line-clamp-1">{item.description}</div>
-                        </td>
-                        <td className="py-3 px-3"><span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold">{item.category}</span></td>
-                        <td className="py-3 px-3">{item.location}</td>
-                        <td className="py-3 px-3 font-bold text-amber-700">⏳ {getRemainingTimeText(item.expiresAt)}</td>
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            onClick={() => handleDeleteUpdate(item._id)}
-                            className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs cursor-pointer transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── 6. PROVIDER SERVICES TAB (/services) ── */}
-        {activeTab === 'services' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Provider Services (`/services`)</h2>
-                <p className="text-xs text-slate-500">Mess/Tiffin, Water Camper, Laundry, Shop items, and Rentals published by providers.</p>
-              </div>
-              <span className="text-xs font-extrabold text-slate-500">{services.length} provider services total</span>
-            </div>
-
-            {services.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No provider services listed yet in MongoDB.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Service &amp; Photo</th>
-                      <th className="py-3 px-3">Category Type</th>
-                      <th className="py-3 px-3">Price</th>
-                      <th className="py-3 px-3">Provider Details</th>
-                      <th className="py-3 px-3">Status</th>
-                      <th className="py-3 px-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {services.map((item) => {
-                      const providerName = item.provider?.businessName || item.provider?.name || item.providerName || 'Registered Provider';
-                      const providerPhone = item.provider?.phone || item.provider?.user?.phone || 'N/A';
-                      const isHidden = item.status === 'hidden';
-                      return (
-                        <tr key={item._id} className={`hover:bg-slate-50/80 transition-colors ${isHidden ? 'opacity-60 bg-slate-50/50' : ''}`}>
-                          <td className="py-3 px-3">
-                            <div className="flex items-center gap-3">
-                              {item.images?.[0] ? (
-                                <img src={item.images[0]} alt={item.title} className="w-10 h-10 rounded-xl object-cover border border-slate-200" />
-                              ) : (
-                                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold">🍱</div>
-                              )}
-                              <div>
-                                <div className="font-extrabold text-slate-900">{item.title}</div>
-                                <div className="text-[10px] text-slate-500 line-clamp-1">{item.description || item.schedule}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3 px-3">
-                            <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 font-black text-[10px] uppercase">
-                              {item.type || item.category || 'Provider Service'}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 font-extrabold text-emerald-700">₹{item.price || item.pricingDetails?.monthlyPrice || 0}</td>
-                          <td className="py-3 px-3">
-                            <div className="font-bold text-slate-800">{providerName}</div>
-                            <div className="text-[10px] text-slate-500">📱 {providerPhone}</div>
-                          </td>
-                          <td className="py-3 px-3">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                              item.status === 'active' || !item.status ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
-                            }`}>
-                              {item.status === 'active' || !item.status ? 'Active 🟢' : 'Hidden 🔴'}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-right space-x-1">
-                            <button
-                              onClick={() => handleToggleServiceStatus(item._id)}
-                              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition-colors"
-                            >
-                              {item.status === 'active' || !item.status ? 'Hide' : 'Show'}
-                            </button>
-                            <button
-                              onClick={() => handleDeleteService(item._id)}
-                              className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs cursor-pointer transition-colors"
+                              onClick={() => handleDeleteItem(item._id || item.id)}
+                              className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold"
                             >
                               Delete
                             </button>
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── 7. ORDERS & RESOURCE USAGE TAB ── */}
-        {activeTab === 'orders' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Resource Usages &amp; Student Orders</h2>
-                <p className="text-xs text-slate-500">Track which students are using which website services, resources, or marketplace items.</p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <select
-                  value={orderFilter}
-                  onChange={(e) => setOrderFilter(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer"
-                >
-                  <option value="">All Orders &amp; Requests</option>
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed / Active</option>
-                  <option value="delivered">Delivered / Completed</option>
-                </select>
-              </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
+          )}
 
-            {filteredOrdersList.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No resource usages or orders recorded in MongoDB.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Resource / Item Used</th>
-                      <th className="py-3 px-3">Student / Buyer</th>
-                      <th className="py-3 px-3">Provider / Seller</th>
-                      <th className="py-3 px-3">Price / Rate</th>
-                      <th className="py-3 px-3">Status</th>
-                      <th className="py-3 px-3">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {filteredOrdersList.map((order) => {
-                      const itemName = order.itemName || order.item?.title || 'Campus Resource';
-                      const resourceType = order.type || 'Service Usage';
-                      const buyerName = order.buyerName || order.buyer?.name || 'Campus Student';
-                      const buyerContact = order.buyerContact || order.buyer?.phone || order.buyer?.email || 'N/A';
-                      const sellerName = order.sellerName || order.seller?.name || 'Provider / Seller';
-                      const priceVal = order.price || order.amount || 0;
-                      const statusStr = order.status || 'Active';
-                      return (
-                        <tr key={order._id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3 px-3">
-                            <div className="font-extrabold text-slate-900">{itemName}</div>
-                            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">{resourceType}</span>
+          {/* 3. STUDY MATERIALS SECTION */}
+          {activeTab === 'study' && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-black text-slate-900 text-base">Study Materials & Notes ({studyMaterials.length})</h3>
+                <button onClick={fetchStudyMaterials} className="text-xs font-bold text-slate-500 hover:text-slate-900">
+                  Refresh
+                </button>
+              </div>
+
+              {studyLoading ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-bold">Loading study materials...</div>
+              ) : studyMaterials.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">No study materials uploaded yet.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-100">
+                        <th className="py-3 px-4">Title</th>
+                        <th className="py-3 px-4">Subject</th>
+                        <th className="py-3 px-4">Branch / Year</th>
+                        <th className="py-3 px-4">Type</th>
+                        <th className="py-3 px-4 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {studyMaterials.map((mat) => (
+                        <tr key={mat._id || mat.id} className="hover:bg-slate-50/70">
+                          <td className="py-3 px-4 font-bold text-slate-900">{mat.title}</td>
+                          <td className="py-3 px-4">{mat.subject}</td>
+                          <td className="py-3 px-4">{mat.branch} • {mat.year}</td>
+                          <td className="py-3 px-4">{mat.contentType}</td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              onClick={() => handleDeleteStudyMaterial(mat._id || mat.id)}
+                              className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold"
+                            >
+                              Delete
+                            </button>
                           </td>
-                          <td className="py-3 px-3">
-                            <div className="font-bold text-slate-900">{buyerName}</div>
-                            <div className="text-[10px] text-slate-500">📱 {buyerContact}</div>
-                          </td>
-                          <td className="py-3 px-3 font-semibold text-slate-800">{sellerName}</td>
-                          <td className="py-3 px-3 font-bold text-emerald-700">{formatPrice(priceVal)}</td>
-                          <td className="py-3 px-3">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                              ['delivered', 'completed', 'active'].includes(String(statusStr).toLowerCase())
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : ['confirmed', 'requested'].includes(String(statusStr).toLowerCase())
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-amber-100 text-amber-800'
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4. CAMPUS NEEDS SECTION */}
+          {activeTab === 'needs' && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-black text-slate-900 text-base">Campus Needs Posts ({needs.length})</h3>
+                <button onClick={fetchNeeds} className="text-xs font-bold text-slate-500 hover:text-slate-900">
+                  Refresh
+                </button>
+              </div>
+
+              {needsLoading ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-bold">Loading campus needs...</div>
+              ) : needs.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">No campus need posts found.</div>
+              ) : (
+                <div className="space-y-3">
+                  {needs.map((need) => (
+                    <div key={need._id || need.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <h4 className="font-extrabold text-sm text-slate-900">{need.title}</h4>
+                        <p className="text-xs text-slate-500">{need.description}</p>
+                        <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                          {need.category}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 5. CAMPUS UPDATES SECTION */}
+          {activeTab === 'updates' && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-black text-slate-900 text-base">24-Hour Campus Updates ({campusUpdates.length})</h3>
+                <button onClick={fetchCampusUpdates} className="text-xs font-bold text-slate-500 hover:text-slate-900">
+                  Refresh
+                </button>
+              </div>
+
+              {updatesLoading ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-bold">Loading updates...</div>
+              ) : campusUpdates.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">No active campus updates found.</div>
+              ) : (
+                <div className="space-y-3">
+                  {campusUpdates.map((up) => (
+                    <div key={up._id || up.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black uppercase text-amber-700">{up.category}</span>
+                        <h4 className="font-extrabold text-sm text-slate-900">{up.title}</h4>
+                        <p className="text-xs text-slate-600 line-clamp-2">{up.description}</p>
+                      </div>
+
+                      <button
+                        onClick={() => handleDeleteCampusUpdate(up._id || up.id)}
+                        className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-xs shrink-0"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 6. SERVICES SECTION */}
+          {activeTab === 'services' && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-black text-slate-900 text-base">Campus Provider Services ({services.length})</h3>
+                <button onClick={fetchServices} className="text-xs font-bold text-slate-500 hover:text-slate-900">
+                  Refresh
+                </button>
+              </div>
+
+              {servicesLoading ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-bold">Loading provider services...</div>
+              ) : services.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">No provider services listed yet.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-100">
+                        <th className="py-3 px-4">Service</th>
+                        <th className="py-3 px-4">Provider Business</th>
+                        <th className="py-3 px-4">Type</th>
+                        <th className="py-3 px-4">Price</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {services.map((svc) => (
+                        <tr key={svc._id} className="hover:bg-slate-50/70">
+                          <td className="py-3 px-4 font-bold text-slate-900">{svc.title}</td>
+                          <td className="py-3 px-4">{svc.provider?.businessName || 'Provider'}</td>
+                          <td className="py-3 px-4">{svc.type}</td>
+                          <td className="py-3 px-4 font-bold text-slate-900">₹{svc.price} / {svc.priceUnit}</td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                              svc.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
                             }`}>
-                              {statusStr}
+                              {svc.status}
                             </span>
                           </td>
-                          <td className="py-3 px-3 text-slate-400">{formatDate(order.date || order.createdAt)}</td>
+                          <td className="py-3 px-4 text-right space-x-1">
+                            <button
+                              onClick={() => handleToggleServiceStatus(svc._id)}
+                              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-700"
+                            >
+                              {svc.status === 'active' ? 'Hide' : 'Show'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteService(svc._id)}
+                              className="px-2 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold"
+                            >
+                              Delete
+                            </button>
+                          </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* ── 8. REGISTERED USERS TAB ── */}
-        {activeTab === 'users' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Registered Students &amp; Accounts</h2>
-                <p className="text-xs text-slate-500">All registered college student accounts in MongoDB.</p>
+          {/* 7. ORDERS SECTION */}
+          {activeTab === 'orders' && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-black text-slate-900 text-base">Platform Orders & Transactions ({orders.length})</h3>
+                <button onClick={fetchOrders} className="text-xs font-bold text-slate-500 hover:text-slate-900">
+                  Refresh
+                </button>
               </div>
-              <span className="text-xs font-extrabold text-slate-500">{users.length} users total</span>
+
+              {ordersLoading ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-bold">Loading orders...</div>
+              ) : orders.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">No order transactions found.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-100">
+                        <th className="py-3 px-4">Order ID</th>
+                        <th className="py-3 px-4">Buyer</th>
+                        <th className="py-3 px-4">Item / Service</th>
+                        <th className="py-3 px-4">Amount</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {orders.map((ord) => (
+                        <tr key={ord._id} className="hover:bg-slate-50/70">
+                          <td className="py-3 px-4 font-mono font-bold text-slate-900">{ord._id ? ord._id.slice(-6) : 'N/A'}</td>
+                          <td className="py-3 px-4">{ord.buyerName || (typeof ord.buyer === 'object' ? ord.buyer?.name : ord.buyer) || 'N/A'}</td>
+                          <td className="py-3 px-4 font-bold">{ord.itemName || (typeof ord.item === 'object' ? ord.item?.title : ord.item) || 'N/A'}</td>
+                          <td className="py-3 px-4 font-bold text-emerald-600">₹{ord.price ?? ord.totalAmount ?? 0}</td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">
+                              {ord.status || 'Paid'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-500">
+                            {ord.date ? new Date(ord.date).toLocaleDateString() : (ord.createdAt ? new Date(ord.createdAt).toLocaleDateString() : 'N/A')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 8. REGISTERED USERS SECTION */}
+          {activeTab === 'users' && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-black text-slate-900 text-base">Registered Student Accounts ({users.length})</h3>
+                <button onClick={fetchUsers} className="text-xs font-bold text-slate-500 hover:text-slate-900">
+                  Refresh
+                </button>
+              </div>
+
+              {usersLoading ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-bold">Loading user accounts...</div>
+              ) : users.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">No registered users found.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-100">
+                        <th className="py-3 px-4">Student Name</th>
+                        <th className="py-3 px-4">Email</th>
+                        <th className="py-3 px-4">Role</th>
+                        <th className="py-3 px-4">Joined Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {users.map((u) => (
+                        <tr key={u._id} className="hover:bg-slate-50/70">
+                          <td className="py-3 px-4 font-bold text-slate-900">{u.name}</td>
+                          <td className="py-3 px-4">{u.email}</td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                              u.role === 'admin'
+                                ? 'bg-purple-100 text-purple-800'
+                                : u.role === 'provider'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-500">{new Date(u.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 9. PROMOTIONS & NEWS SECTION */}
+          {activeTab === 'promotions' && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-6">
+              
+              {/* Top Banner & Add Button */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-black uppercase tracking-wider mb-1">
+                    <span>🎯</span>
+                    <span>HOMEPAGE PUBLIC CAROUSEL CONTROL</span>
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                    Promotions & News Slides
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Publish dynamic promotional banners, offers, and campus announcements displayed on the STUDTRADE homepage.
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleOpenAddPromo}
+                  className="px-5 py-2.5 rounded-2xl gradient-primary text-white font-extrabold text-xs shadow-xs hover:opacity-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <span className="material-symbols-outlined text-lg">add_circle</span>
+                  <span>+ Add Promotion</span>
+                </button>
+              </div>
+
+              {/* Promotions Table */}
+              {promotionsLoading ? (
+                <div className="p-8 text-center text-xs text-slate-500 font-bold">Loading promotional slides...</div>
+              ) : promotions.length === 0 ? (
+                <div className="p-10 text-center space-y-3 border border-slate-200/80 rounded-2xl bg-slate-50/50">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xl mx-auto">
+                    🎯
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm">No dynamic promotions published yet</h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Click <strong>"+ Add Promotion"</strong> to create custom promotional slides for the public website.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-100">
+                        <th className="py-3.5 px-4">Slide</th>
+                        <th className="py-3.5 px-4">Title & Description</th>
+                        <th className="py-3.5 px-4">Category</th>
+                        <th className="py-3.5 px-4">Offer Text</th>
+                        <th className="py-3.5 px-4">Order</th>
+                        <th className="py-3.5 px-4">Status</th>
+                        <th className="py-3.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {promotions.map((promo) => (
+                        <tr key={promo._id} className="hover:bg-slate-50/70">
+                          {/* Image preview */}
+                          <td className="py-3.5 px-4">
+                            {promo.image ? (
+                              <img src={getImageUrl(promo.image)} alt={promo.title} className="w-12 h-12 rounded-xl object-cover border border-slate-200" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 font-bold text-xs">
+                                🎯
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Title */}
+                          <td className="py-3.5 px-4 max-w-xs">
+                            <h4 className="font-extrabold text-slate-900 text-xs leading-snug">{promo.title}</h4>
+                            <p className="text-[11px] text-slate-500 line-clamp-1">{promo.description}</p>
+                          </td>
+
+                          {/* Category */}
+                          <td className="py-3.5 px-4">
+                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black">
+                              {promo.category || 'Offer'}
+                            </span>
+                          </td>
+
+                          {/* Offer Text */}
+                          <td className="py-3.5 px-4 font-bold text-emerald-600">
+                            {promo.offerText || 'SPECIAL OFFER'}
+                          </td>
+
+                          {/* Display Order */}
+                          <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                            #{promo.displayOrder || 0}
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3.5 px-4">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                              promo.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                            }`}>
+                              {promo.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3.5 px-4 text-right space-x-1">
+                            <button
+                              onClick={() => handleTogglePromoStatus(promo._id)}
+                              className={`px-2.5 py-1 rounded-lg font-bold text-xs ${
+                                promo.isActive ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-emerald-50 text-emerald-700'
+                              }`}
+                            >
+                              {promo.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+
+                            <button
+                              onClick={() => handleOpenEditPromo(promo)}
+                              className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs"
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              onClick={() => handleDeletePromo(promo._id)}
+                              className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+        </main>
+      </div>
+
+      {/* PROMOTION FORM MODAL */}
+      {isPromoModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl text-left animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎯</span>
+                <h3 className="text-lg font-black text-slate-900">
+                  {editingPromo ? 'Edit Promotion Slide' : 'Add New Promotion Slide'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsPromoModalOpen(false)}
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-500 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
             </div>
 
-            {users.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No registered users found in MongoDB.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Student Name</th>
-                      <th className="py-3 px-3">College Email</th>
-                      <th className="py-3 px-3">StudTrade ID</th>
-                      <th className="py-3 px-3">Role</th>
-                      <th className="py-3 px-3">Email Verified</th>
-                      <th className="py-3 px-3 text-right">Joined Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {users.map((u) => (
-                      <tr key={u._id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-3 font-extrabold text-slate-900">{u.name}</td>
-                        <td className="py-3 px-3 font-mono text-slate-700">{u.email}</td>
-                        <td className="py-3 px-3 font-mono font-bold text-slate-500">{u.studtradeID || 'ST-0000'}</td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            u.role === 'admin' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-700'
-                          }`}>
-                            {u.role || 'user'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${u.isEmailVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                            {u.isEmailVerified ? '✓ Verified' : 'Pending'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right text-slate-400">{formatDate(u.createdAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── 9. PROVIDERS MANAGEMENT TAB ── */}
-        {activeTab === 'providers' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+            <form onSubmit={handleSubmitPromo} className="space-y-4 text-left">
+              
+              {/* Image Upload Input */}
               <div>
-                <h2 className="text-lg font-black text-slate-900">Provider Applications & Verification</h2>
-                <p className="text-xs text-slate-500">Review, approve, reject, or suspend campus service providers.</p>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Upload Image (Optional)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePromoImageChange}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200 cursor-pointer"
+                />
+                {promoImagePreview && (
+                  <div className="mt-2.5 w-full h-32 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                    <img src={promoImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
 
-              {/* Status Filter */}
-              <div className="flex items-center gap-1.5 overflow-x-auto">
-                {['', 'pending', 'approved', 'rejected', 'suspended'].map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setProviderFilter(st)}
-                    className={`px-3 py-1 rounded-full text-xs font-bold capitalize transition-all cursor-pointer border ${
-                      providerFilter === st
-                        ? 'bg-slate-900 text-white border-slate-900'
-                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                    }`}
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={promoForm.title}
+                  onChange={(e) => setPromoForm({ ...promoForm, title: e.target.value })}
+                  placeholder="e.g. Student Deals Are Here 🎉"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] outline-none"
+                />
+              </div>
+
+              {/* Short Description */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Short Description *
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={promoForm.description}
+                  onChange={(e) => setPromoForm({ ...promoForm, description: e.target.value })}
+                  placeholder="e.g. Discover useful items and services from students around your campus."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] outline-none"
+                />
+              </div>
+
+              {/* Offer Text & Category Row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Offer / Highlight Text
+                  </label>
+                  <input
+                    type="text"
+                    value={promoForm.offerText}
+                    onChange={(e) => setPromoForm({ ...promoForm, offerText: e.target.value })}
+                    placeholder="e.g. FLAT 20% OFF"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={promoForm.category}
+                    onChange={(e) => setPromoForm({ ...promoForm, category: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none"
                   >
-                    {st === '' ? 'All Status' : st}
-                  </button>
-                ))}
+                    <option value="Offer">Offer</option>
+                    <option value="News">News</option>
+                    <option value="Announcement">Announcement</option>
+                    <option value="Service">Service</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            {providersLoading ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">Loading provider applications...</p>
-            ) : providers.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No provider applications found.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Business Name / Owner</th>
-                      <th className="py-3 px-3">Types</th>
-                      <th className="py-3 px-3">Contact</th>
-                      <th className="py-3 px-3">Location</th>
-                      <th className="py-3 px-3">Verification</th>
-                      <th className="py-3 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {(providerFilter ? providers.filter(p => p.verificationStatus === providerFilter) : providers).map((p) => (
-                      <tr key={p._id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="font-extrabold text-slate-900">{p.businessName}</div>
-                          <div className="text-[11px] text-slate-500">{p.name} ({p.email})</div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="flex flex-wrap gap-1">
-                            {p.providerTypes?.map((t) => (
-                              <span key={t} className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
-                                {t}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-slate-700">{p.phone}</td>
-                        <td className="py-3 px-3 text-slate-600 max-w-xs truncate">{p.location}</td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                            p.verificationStatus === 'approved' ? 'bg-emerald-100 text-emerald-800' :
-                            p.verificationStatus === 'pending' ? 'bg-amber-100 text-amber-800' :
-                            p.verificationStatus === 'suspended' ? 'bg-purple-100 text-purple-800' : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {p.verificationStatus || 'pending'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right space-x-1.5">
-                          {p.verificationStatus !== 'approved' && (
-                            <button
-                              onClick={() => handleUpdateProviderStatus(p._id, 'approved')}
-                              className="px-2.5 py-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs transition-all cursor-pointer"
-                            >
-                              ✓ Approve
-                            </button>
-                          )}
-                          {p.verificationStatus === 'pending' && (
-                            <button
-                              onClick={() => handleUpdateProviderStatus(p._id, 'rejected')}
-                              className="px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs cursor-pointer"
-                            >
-                              Reject
-                            </button>
-                          )}
-                          {p.verificationStatus === 'approved' && (
-                            <button
-                              onClick={() => handleUpdateProviderStatus(p._id, 'suspended')}
-                              className="px-2.5 py-1 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs cursor-pointer"
-                            >
-                              Suspend
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteProvider(p._id)}
-                            className="p-1 rounded-xl hover:bg-rose-50 text-rose-600 text-xs cursor-pointer"
-                            title="Delete Application"
-                          >
-                            🗑️
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* Button Text & Button Link */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Button Text
+                  </label>
+                  <input
+                    type="text"
+                    value={promoForm.buttonText}
+                    onChange={(e) => setPromoForm({ ...promoForm, buttonText: e.target.value })}
+                    placeholder="e.g. Explore Deals"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Button Link
+                  </label>
+                  <input
+                    type="text"
+                    value={promoForm.buttonLink}
+                    onChange={(e) => setPromoForm({ ...promoForm, buttonLink: e.target.value })}
+                    placeholder="e.g. /marketplace"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none"
+                  />
+                </div>
               </div>
-            )}
+
+              {/* Display Order & Status */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Display Order
+                  </label>
+                  <input
+                    type="number"
+                    value={promoForm.displayOrder}
+                    onChange={(e) => setPromoForm({ ...promoForm, displayOrder: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={promoForm.isActive ? 'active' : 'inactive'}
+                    onChange={(e) => setPromoForm({ ...promoForm, isActive: e.target.value === 'active' })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 outline-none"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={promoSubmitting}
+                  className="w-full py-3 rounded-2xl gradient-primary text-white font-extrabold text-xs shadow-md hover:opacity-95 transition-all cursor-pointer"
+                >
+                  {promoSubmitting ? 'Publishing...' : editingPromo ? 'Save Changes' : 'Publish Promotion'}
+                </button>
+              </div>
+
+            </form>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* ── 10. REPORTS & MODERATION TAB ── */}
-        {activeTab === 'reports' && (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Content Moderation &amp; Reports</h2>
-                <p className="text-xs text-slate-500">Flagged posts and user reports requiring admin review.</p>
-              </div>
-              <span className="text-xs font-extrabold text-slate-500">{reports.length} reports total</span>
-            </div>
-
-            {reports.length === 0 ? (
-              <p className="text-xs text-slate-400 italic py-6 text-center">No reports or flagged posts right now.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-400 uppercase font-extrabold text-[10px]">
-                      <th className="py-3 px-3">Reported Item</th>
-                      <th className="py-3 px-3">Reported By</th>
-                      <th className="py-3 px-3">Reason</th>
-                      <th className="py-3 px-3">Status</th>
-                      <th className="py-3 px-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
-                    {reports.map((r) => (
-                      <tr key={r._id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-3 font-extrabold text-slate-900">{r.item?.title || 'Reported Post'}</td>
-                        <td className="py-3 px-3">{r.reportedBy?.name || r.reportedBy?.email || 'Student'}</td>
-                        <td className="py-3 px-3 text-slate-600">{r.reason}</td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            r.status === 'dismissed' ? 'bg-slate-100 text-slate-600' : r.status === 'reviewed' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {r.status || 'pending'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-right space-x-1">
-                          {r.status === 'pending' && (
-                            <>
-                              <button
-                                onClick={() => handleReviewReport(r._id, 'reviewed')}
-                                className="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs hover:bg-emerald-100 cursor-pointer"
-                              >
-                                Review
-                              </button>
-                              <button
-                                onClick={() => handleReviewReport(r._id, 'dismissed')}
-                                className="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs hover:bg-slate-200 cursor-pointer"
-                              >
-                                Dismiss
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-      </main>
-
-      <StitchFooter />
     </div>
   );
 }

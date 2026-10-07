@@ -26,6 +26,7 @@ import campusRouter from './routes/campus.routes.js';
 import serviceRouter from './routes/service.routes.js';
 import providerRouter from './routes/provider.routes.js';
 import attendanceRouter from './routes/attendance.routes.js';
+import promotionRouter from './routes/promotion.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -97,6 +98,7 @@ app.use('/api/campus-updates', campusRouter);
 app.use('/api/services', serviceRouter);
 app.use('/api/provider', providerRouter);
 app.use('/api/attendance', attendanceRouter);
+app.use('/api/promotions', promotionRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use(notFound);
