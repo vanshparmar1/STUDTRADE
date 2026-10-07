@@ -18,12 +18,13 @@ export function getImageUrl(url, fallback = DEFAULT_FALLBACK_IMAGE) {
     // Relative upload path (e.g. "/uploads/items/123.png" or "uploads/items/123.png")
     const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
 
-    // Get backend base domain from VITE_API_URL or environment
     let backendOrigin = '';
     const rawApiUrl = import.meta.env.VITE_API_URL?.trim();
     if (rawApiUrl) {
         // Strip trailing slash and trailing /api if present
         backendOrigin = rawApiUrl.replace(/\/+$/, '').replace(/\/api$/, '');
+    } else if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        backendOrigin = 'http://localhost:5000';
     } else if (import.meta.env.DEV) {
         backendOrigin = 'http://localhost:5000';
     }

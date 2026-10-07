@@ -79,15 +79,30 @@ ResilientCloudinaryStorage.prototype._handleFile = function (req, file, cb) {
             }
         } catch (cloudErr) {
             console.warn(
-                `⚠️ Cloudinary upload skipped/failed (${cloudErr.message || 'HTTP 403'}). Using local storage fallback: ${relativeWebPath}`
+                `⚠️ Cloudinary upload skipped/failed (${cloudErr.message || 'HTTP 403'}). Using persistent Data URI / local storage fallback.`
             );
         }
 
-        // Local storage fallback if Cloudinary failed or bypassed
+        // Persistent Data URI / Local storage fallback if Cloudinary failed or bypassed
         try {
             const stat = fs.statSync(localFilePath);
+            let finalPath = relativeWebPath;
+
+            // For files under 10MB, generate a Data URI so the file content persists directly in DB across deployments
+            if (stat.size <= 10 * 1024 * 1024) {
+                const buffer = fs.readFileSync(localFilePath);
+                const mimeType = file.mimetype || (
+                    (file.originalname || '').endsWith('.pdf') ? 'application/pdf' :
+                    (file.originalname || '').match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' :
+                    (file.originalname || '').endsWith('.png') ? 'image/png' :
+                    (file.originalname || '').endsWith('.webp') ? 'image/webp' :
+                    'application/octet-stream'
+                );
+                finalPath = `data:${mimeType};base64,${buffer.toString('base64')}`;
+            }
+
             cb(null, {
-                path: relativeWebPath,
+                path: finalPath,
                 filename: filename,
                 size: stat.size,
             });

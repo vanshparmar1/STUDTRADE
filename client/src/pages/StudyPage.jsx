@@ -5,6 +5,7 @@ import StitchFooter from '../components/StitchFooter';
 import toast from 'react-hot-toast';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl, handleImageError } from '../utils/imageUrl';
 import {
   getStudyMaterials,
   addStudyMaterial,
@@ -257,8 +258,9 @@ export default function StudyPage() {
       // ignore
     }
 
+    const resolvedUrl = getImageUrl(item.fileUrl);
     const link = document.createElement('a');
-    link.href = item.fileUrl;
+    link.href = resolvedUrl;
     link.download = item.fileName || `${item.title}.pdf`;
     document.body.appendChild(link);
     link.click();
@@ -817,14 +819,14 @@ export default function StudyPage() {
 
             {/* In-Browser Preview Section */}
             <div className="bg-slate-900 rounded-2xl overflow-hidden min-h-[300px] max-h-[420px] flex items-center justify-center relative border border-slate-800">
-              {selectedItem.fileUrl?.endsWith('.pdf') || selectedItem.fileType?.includes('pdf') ? (
+              {selectedItem.fileUrl?.startsWith('data:application/pdf') || selectedItem.fileUrl?.toLowerCase().includes('.pdf') || selectedItem.fileType?.includes('pdf') ? (
                 <iframe
-                  src={selectedItem.fileUrl}
+                  src={getImageUrl(selectedItem.fileUrl)}
                   title={selectedItem.title}
                   className="w-full h-[380px] border-none"
                 />
-              ) : selectedItem.fileType?.startsWith('image/') || selectedItem.fileUrl?.match(/\.(jpg|jpeg|png|webp)$/i) ? (
-                <img src={selectedItem.fileUrl} alt={selectedItem.title} className="max-h-[380px] w-full object-contain" />
+              ) : selectedItem.fileType?.startsWith('image/') || selectedItem.fileUrl?.match(/\.(jpg|jpeg|png|webp)$/i) || selectedItem.fileUrl?.startsWith('data:image/') ? (
+                <img src={getImageUrl(selectedItem.fileUrl)} alt={selectedItem.title} onError={(e) => handleImageError(e)} className="max-h-[380px] w-full object-contain" />
               ) : (
                 <div className="p-8 text-center text-white space-y-3">
                   <span className="material-symbols-outlined text-5xl text-blue-400">description</span>
@@ -868,7 +870,7 @@ export default function StudyPage() {
             {/* Modal Action Buttons */}
             <div className="pt-2 flex items-center gap-3">
               <a
-                href={selectedItem.fileUrl}
+                href={getImageUrl(selectedItem.fileUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-all text-center"
