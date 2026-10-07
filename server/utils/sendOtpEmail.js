@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 const sendOtpEmail = async (to, otp) => {
-    // ALWAYS log OTP to server console so developers and admins can inspect/test in logs on localhost and deployment!
+    // ALWAYS log OTP to server console so developers and admins can inspect/test in logs!
     console.log(`\n==================================================`);
     console.log(`🔑 [STUDTRADE OTP CODE] Email: ${to}`);
     console.log(`🔑 [STUDTRADE OTP CODE] Code:  ${otp}`);
@@ -15,38 +15,26 @@ const sendOtpEmail = async (to, otp) => {
     const emailUser = process.env.EMAIL_USER.trim();
     const emailPass = process.env.EMAIL_PASS.replace(/\s+/g, '');
 
-    // Try transport methods (service 'gmail' first if gmail address, or explicit host/port fallback)
-    const transportOptions = [];
-
-    if (emailUser.endsWith('@gmail.com') || (process.env.EMAIL_HOST && process.env.EMAIL_HOST.includes('gmail'))) {
-        transportOptions.push({
+    // Standard fast transport options
+    const transportOptions = [
+        {
             service: 'gmail',
             auth: { user: emailUser, pass: emailPass },
             tls: { rejectUnauthorized: false },
-        });
-    }
-
-    transportOptions.push({
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: Number(process.env.EMAIL_PORT) || 465,
-        secure: Number(process.env.EMAIL_PORT) === 465 || !process.env.EMAIL_PORT,
-        auth: { user: emailUser, pass: emailPass },
-        tls: { rejectUnauthorized: false },
-        connectionTimeout: 10000,
-        greetingTimeout: 5000,
-        socketTimeout: 10000,
-    });
-
-    transportOptions.push({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: { user: emailUser, pass: emailPass },
-        tls: { rejectUnauthorized: false },
-        connectionTimeout: 10000,
-    });
-
-    let lastError = null;
+            connectionTimeout: 4000,
+            greetingTimeout: 3000,
+            socketTimeout: 4000,
+        },
+        {
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: { user: emailUser, pass: emailPass },
+            tls: { rejectUnauthorized: false },
+            connectionTimeout: 4000,
+            socketTimeout: 4000,
+        },
+    ];
 
     for (const options of transportOptions) {
         try {
@@ -72,7 +60,6 @@ const sendOtpEmail = async (to, otp) => {
             console.log(`✅ OTP email successfully delivered to ${to}`);
             return true;
         } catch (err) {
-            lastError = err;
             console.warn(`⚠️ SMTP transport attempt failed (${options.service || options.port}):`, err.message || err);
         }
     }
