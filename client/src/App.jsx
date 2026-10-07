@@ -86,6 +86,7 @@ function App() {
       <Route path="/provider/dashboard" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="dashboard" /></ProtectedRoute>} />
       <Route path="/provider/services" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="services" /></ProtectedRoute>} />
       <Route path="/provider/customers" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="customers" /></ProtectedRoute>} />
+      <Route path="/provider/attendance" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="attendance" /></ProtectedRoute>} />
       <Route path="/provider/notifications" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="notifications" /></ProtectedRoute>} />
       <Route path="/provider/profile" element={<ProtectedRoute requiredRole={['provider', 'admin', 'manager']}><ProviderDashboard defaultTab="profile" /></ProtectedRoute>} />
 

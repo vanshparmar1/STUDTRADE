@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 import ProviderServicesTab from './ProviderServicesTab';
 import ProviderCustomersTab from './ProviderCustomersTab';
+import ProviderAttendanceTab from './ProviderAttendanceTab';
 import ProviderNotificationsTab from './ProviderNotificationsTab';
 import ProviderProfileTab from './ProviderProfileTab';
 import QuickUpdateModal from './QuickUpdateModal';
@@ -159,6 +160,7 @@ export default function ProviderDashboard({ defaultTab = 'dashboard' }) {
                 { id: 'dashboard', label: 'Dashboard', icon: 'grid_view' },
                 { id: 'services', label: 'Services / Products', icon: 'storefront', count: servicesCount },
                 { id: 'customers', label: 'Customers', icon: 'group', count: customersCount },
+                { id: 'attendance', label: 'Attendance Register', icon: 'fact_check' },
                 { id: 'notifications', label: 'Notifications', icon: 'notifications', badge: requestsCount > 0 ? requestsCount : null },
                 { id: 'profile', label: 'Profile Settings', icon: 'settings' },
               ].map((nav) => (
@@ -243,12 +245,20 @@ export default function ProviderDashboard({ defaultTab = 'dashboard' }) {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => setIsQuickUpdateOpen(true)}
-                          className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition-all cursor-pointer"
-                        >
-                          ✏️ Quick Edit Menu
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setActiveTab('attendance')}
+                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          >
+                            <span>📋</span> Mark Attendance
+                          </button>
+                          <button
+                            onClick={() => setIsQuickUpdateOpen(true)}
+                            className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            ✏️ Edit Menu
+                          </button>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -286,12 +296,20 @@ export default function ProviderDashboard({ defaultTab = 'dashboard' }) {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => setActiveTab('services')}
-                          className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold transition-all cursor-pointer"
-                        >
-                          Manage Pricing & Delivery
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setActiveTab('attendance')}
+                            className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          >
+                            <span>📋</span> Track Deliveries
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('services')}
+                            className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            Manage Pricing
+                          </button>
+                        </div>
                       </div>
 
                       <p className="text-xs text-slate-600 font-medium">
@@ -388,6 +406,11 @@ export default function ProviderDashboard({ defaultTab = 'dashboard' }) {
               <ProviderCustomersTab provider={provider} />
             )}
 
+            {/* 4. ATTENDANCE TAB */}
+            {activeTab === 'attendance' && (
+              <ProviderAttendanceTab provider={provider} onNavigateToCustomers={() => setActiveTab('customers')} />
+            )}
+
             {/* 4. NOTIFICATIONS TAB */}
             {activeTab === 'notifications' && (
               <ProviderNotificationsTab provider={provider} />
@@ -409,6 +432,7 @@ export default function ProviderDashboard({ defaultTab = 'dashboard' }) {
           { id: 'dashboard', label: 'Dashboard', icon: 'grid_view' },
           { id: 'services', label: 'Services', icon: 'storefront' },
           { id: 'customers', label: 'Customers', icon: 'group' },
+          { id: 'attendance', label: 'Attendance', icon: 'fact_check' },
           { id: 'notifications', label: 'Notifs', icon: 'notifications' },
           { id: 'profile', label: 'Profile', icon: 'settings' },
         ].map((item) => (
