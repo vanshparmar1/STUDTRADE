@@ -15,24 +15,34 @@ const sendOtpEmail = async (to, otp) => {
     const emailUser = process.env.EMAIL_USER.trim();
     const emailPass = process.env.EMAIL_PASS.replace(/\s+/g, '');
 
-    // Standard fast transport options
+    // Transport options optimized for both local and cloud environments (Render/Railway)
     const transportOptions = [
+        {
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // Direct SSL - most reliable on cloud platforms like Render
+            auth: { user: emailUser, pass: emailPass },
+            tls: { rejectUnauthorized: false },
+            connectionTimeout: 10000,
+            greetingTimeout: 8000,
+            socketTimeout: 10000,
+        },
         {
             service: 'gmail',
             auth: { user: emailUser, pass: emailPass },
             tls: { rejectUnauthorized: false },
-            connectionTimeout: 4000,
-            greetingTimeout: 3000,
-            socketTimeout: 4000,
+            connectionTimeout: 10000,
+            greetingTimeout: 8000,
+            socketTimeout: 10000,
         },
         {
             host: 'smtp.gmail.com',
             port: 587,
-            secure: false,
+            secure: false, // STARTTLS
             auth: { user: emailUser, pass: emailPass },
             tls: { rejectUnauthorized: false },
-            connectionTimeout: 4000,
-            socketTimeout: 4000,
+            connectionTimeout: 10000,
+            socketTimeout: 10000,
         },
     ];
 
