@@ -73,8 +73,7 @@ export const register = asyncHandler(async (req, res) => {
 
             let emailSent = false;
             try {
-                await sendOtpEmail(existingUser.email, otp);
-                emailSent = true;
+                emailSent = await sendOtpEmail(existingUser.email, otp);
             } catch (mailError) {
                 console.error("⚠️ Mail send error on unverified user registration retry:", mailError.message || mailError);
             }
@@ -114,8 +113,7 @@ export const register = asyncHandler(async (req, res) => {
 
     let emailSent = false;
     try {
-        await sendOtpEmail(user.email, otp);
-        emailSent = true;
+        emailSent = await sendOtpEmail(user.email, otp);
     } catch (mailError) {
         console.error("⚠️ Mail send error on new user registration:", mailError.message || mailError);
     }
@@ -226,8 +224,7 @@ export const resendEmailOtp = asyncHandler(async (req, res) => {
 
     let emailSent = false;
     try {
-        await sendOtpEmail(user.email, otp);
-        emailSent = true;
+        emailSent = await sendOtpEmail(user.email, otp);
     } catch (mailError) {
         console.error("⚠️ Mail send error on resendEmailOtp:", mailError.message || mailError);
     }

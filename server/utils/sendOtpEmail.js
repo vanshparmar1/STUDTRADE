@@ -7,8 +7,52 @@ const sendOtpEmail = async (to, otp) => {
     console.log(`🔑 [STUDTRADE OTP CODE] Code:  ${otp}`);
     console.log(`==================================================\n`);
 
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 480px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
+            <h2 style="color: #0d9488; text-align: center; margin-top: 0;">StudTrade Email Verification</h2>
+            <p style="font-size: 14px; color: #475569; text-align: center;">Your 6-digit email verification code is:</p>
+            <div style="background-color: #f0fdf4; border: 2px dashed #16a34a; padding: 18px; text-align: center; border-radius: 12px; margin: 20px 0;">
+                <h1 style="letter-spacing: 10px; font-size: 38px; color: #15803d; margin: 0; font-family: monospace;">${otp}</h1>
+            </div>
+            <p style="font-size: 13px; color: #64748b; text-align: center;">This code is valid for 5 minutes. Please do not share it with anyone.</p>
+            <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 20px 0;" />
+            <p style="font-size: 11px; color: #94a3b8; text-align: center;">Sent automatically by StudTrade Platform</p>
+        </div>
+    `;
+
+    // ── Option 1: Resend HTTP API (Best for Render/Cloud, uses HTTPS Port 443) ──────
+    if (process.env.RESEND_API_KEY) {
+        try {
+            const fromAddress = process.env.EMAIL_FROM || 'StudTrade <onboarding@resend.dev>';
+            const res = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    from: fromAddress,
+                    to: [to],
+                    subject: 'Your StudTrade Email Verification Code',
+                    html: htmlContent,
+                }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                console.log(`✅ [Resend API] OTP email successfully sent to ${to} (ID: ${data.id})`);
+                return true;
+            } else {
+                console.warn(`⚠️ [Resend API] Delivery failed:`, data);
+            }
+        } catch (resendErr) {
+            console.warn(`⚠️ [Resend API] Request error:`, resendErr.message || resendErr);
+        }
+    }
+
+    // ── Option 2: Nodemailer SMTP (Gmail / Custom SMTP) ──────────────────────────
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.warn('⚠️ EMAIL_USER or EMAIL_PASS not configured in .env. OTP is logged above.');
+        console.warn('⚠️ Neither RESEND_API_KEY nor EMAIL_USER/EMAIL_PASS configured in environment. OTP logged to console.');
         return false;
     }
 
@@ -53,29 +97,20 @@ const sendOtpEmail = async (to, otp) => {
                 from: `"StudTrade" <${emailUser}>`,
                 to,
                 subject: 'Your StudTrade Email Verification Code',
-                html: `
-                    <div style="font-family: Arial, sans-serif; padding: 24px; max-width: 480px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff;">
-                        <h2 style="color: #0d9488; text-align: center; margin-top: 0;">StudTrade Email Verification</h2>
-                        <p style="font-size: 14px; color: #475569; text-align: center;">Your 6-digit email verification code is:</p>
-                        <div style="background-color: #f0fdf4; border: 2px dashed #16a34a; padding: 18px; text-align: center; border-radius: 12px; margin: 20px 0;">
-                            <h1 style="letter-spacing: 10px; font-size: 38px; color: #15803d; margin: 0; font-family: monospace;">${otp}</h1>
-                        </div>
-                        <p style="font-size: 13px; color: #64748b; text-align: center;">This code is valid for 5 minutes. Please do not share it with anyone.</p>
-                        <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 20px 0;" />
-                        <p style="font-size: 11px; color: #94a3b8; text-align: center;">Sent automatically by StudTrade Platform</p>
-                    </div>
-                `,
+                html: htmlContent,
             });
 
-            console.log(`✅ OTP email successfully delivered to ${to}`);
+            console.log(`✅ [Nodemailer SMTP] OTP email successfully delivered to ${to}`);
             return true;
         } catch (err) {
-            console.warn(`⚠️ SMTP transport attempt failed (${options.service || options.port}):`, err.message || err);
+            console.warn(`⚠️ [Nodemailer SMTP] Transport attempt failed (${options.service || options.port}):`, err.message || err);
         }
     }
 
-    console.error(`❌ All SMTP transport attempts failed for ${to}. OTP code logged to console.`);
+    console.error(`❌ All email transport attempts failed for ${to}. OTP code logged to server console.`);
     return false;
 };
+
+export default sendOtpEmail;
 
 export default sendOtpEmail;
