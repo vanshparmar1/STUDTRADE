@@ -112,5 +112,3 @@ const sendOtpEmail = async (to, otp) => {
 };
 
 export default sendOtpEmail;
-
-export default sendOtpEmail;
