@@ -50,6 +50,37 @@ const sendOtpEmail = async (to, otp) => {
         }
     }
 
+    // ── Option 2: Brevo HTTP API (Free 300 emails/day to any recipient like Outlook/IIIT) ──
+    if (process.env.BREVO_API_KEY) {
+        try {
+            const senderEmail = process.env.EMAIL_USER || 'noreply@studtrade.com';
+            const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'api-key': process.env.BREVO_API_KEY.trim(),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    sender: { name: 'StudTrade', email: senderEmail },
+                    to: [{ email: to }],
+                    subject: 'Your StudTrade Email Verification Code',
+                    htmlContent: htmlContent,
+                }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                console.log(`✅ [Brevo API] OTP email successfully delivered to ${to} (MessageId: ${data.messageId})`);
+                return true;
+            } else {
+                console.warn(`⚠️ [Brevo API] Delivery failed:`, data);
+            }
+        } catch (brevoErr) {
+            console.warn(`⚠️ [Brevo API] Request error:`, brevoErr.message || brevoErr);
+        }
+    }
+
     // ── Option 2: Nodemailer SMTP (Gmail / Custom SMTP) ──────────────────────────
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.warn('⚠️ Neither RESEND_API_KEY nor EMAIL_USER/EMAIL_PASS configured in environment. OTP logged to console.');
