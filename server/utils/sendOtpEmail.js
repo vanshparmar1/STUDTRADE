@@ -76,8 +76,36 @@ const sendOtpEmail = async (to, otp) => {
             } else {
                 console.warn(`⚠️ [Brevo API] Delivery failed:`, data);
             }
-        } catch (brevoErr) {
-            console.warn(`⚠️ [Brevo API] Request error:`, brevoErr.message || brevoErr);
+    // ── Option 3: EmailJS HTTP API (100% Free, sends from Gmail to ANY email over HTTPS) ──
+    if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_PUBLIC_KEY) {
+        try {
+            const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    service_id: process.env.EMAILJS_SERVICE_ID.trim(),
+                    template_id: process.env.EMAILJS_TEMPLATE_ID.trim(),
+                    user_id: process.env.EMAILJS_PUBLIC_KEY.trim(),
+                    accessToken: process.env.EMAILJS_PRIVATE_KEY ? process.env.EMAILJS_PRIVATE_KEY.trim() : undefined,
+                    template_params: {
+                        to_email: to,
+                        otp_code: otp,
+                        to_name: to.split('@')[0],
+                    },
+                }),
+            });
+
+            if (res.ok) {
+                console.log(`✅ [EmailJS API] OTP email successfully delivered to ${to}`);
+                return true;
+            } else {
+                const errText = await res.text();
+                console.warn(`⚠️ [EmailJS API] Delivery failed:`, errText);
+            }
+        } catch (emailjsErr) {
+            console.warn(`⚠️ [EmailJS API] Request error:`, emailjsErr.message || emailjsErr);
         }
     }
 
