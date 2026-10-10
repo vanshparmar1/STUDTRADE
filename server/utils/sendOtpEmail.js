@@ -95,29 +95,32 @@ const sendOtpEmail = async (to, otp) => {
         {
             host: 'smtp.gmail.com',
             port: 465,
-            secure: true, // Direct SSL - most reliable on cloud platforms like Render
+            secure: true, // Direct SSL
+            family: 4, // Force IPv4 (fixes ENETUNREACH IPv6 error on Render)
             auth: { user: emailUser, pass: emailPass },
             tls: { rejectUnauthorized: false },
-            connectionTimeout: 10000,
-            greetingTimeout: 8000,
-            socketTimeout: 10000,
-        },
-        {
-            service: 'gmail',
-            auth: { user: emailUser, pass: emailPass },
-            tls: { rejectUnauthorized: false },
-            connectionTimeout: 10000,
-            greetingTimeout: 8000,
-            socketTimeout: 10000,
+            connectionTimeout: 8000,
+            greetingTimeout: 6000,
+            socketTimeout: 8000,
         },
         {
             host: 'smtp.gmail.com',
             port: 587,
             secure: false, // STARTTLS
+            family: 4, // Force IPv4
             auth: { user: emailUser, pass: emailPass },
             tls: { rejectUnauthorized: false },
-            connectionTimeout: 10000,
-            socketTimeout: 10000,
+            connectionTimeout: 8000,
+            socketTimeout: 8000,
+        },
+        {
+            service: 'gmail',
+            family: 4,
+            auth: { user: emailUser, pass: emailPass },
+            tls: { rejectUnauthorized: false },
+            connectionTimeout: 8000,
+            greetingTimeout: 6000,
+            socketTimeout: 8000,
         },
     ];
 
